@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Integrated Vault — v819 · 3 nov</title>
+<title>Integrated Vault — v820 · 3 nov</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
@@ -2726,6 +2726,14 @@
   .pk-b { position: absolute; top: 0; width: 9%; height: 62%; background: #0f172a; border-radius: 0 0 5px 5px; transform: translateX(-50%); cursor: pointer; z-index: 2; }
   .pk-b.hit { background: #7c3aed; }
   .ask-ov [data-ak] { touch-action: manipulation; }
+  .br-ov { position: fixed; inset: 0; z-index: 2147483300; background: rgba(15,23,42,.6); display: flex; align-items: center; justify-content: center; padding: 12px; } .br-box { background: #fff; color: #0f172a; border-radius: 18px; padding: 14px; width: min(520px, 100%); max-height: 92vh; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+  .br-h { display: flex; justify-content: space-between; align-items: center; font: 800 18px system-ui; } .br-x { border: 0; background: #1e293b; color: #fff; border-radius: 10px; min-width: 40px; min-height: 36px; font: 800 16px system-ui; }
+  .br-steps { margin: 0; padding-left: 20px; font: 500 14px/1.45 system-ui; color: #334155; } .br-acts { display: flex; flex-wrap: wrap; gap: 8px; } .br-acts button, .br-go { border: 2px solid #cbd5e1; background: #fff; color: #0f172a; border-radius: 12px; min-height: 42px; padding: 0 12px; font: 800 14px system-ui; display: inline-flex; align-items: center; text-decoration: none; cursor: pointer; }
+  .br-go { background: #d97757; border-color: #d97757; color: #fff; } .br-ok { background: #16a34a !important; border-color: #16a34a !important; color: #fff !important; flex: 1; justify-content: center; }
+  .br-q summary { font: 700 13px system-ui; color: #475569; cursor: pointer; } .br-q pre { white-space: pre-wrap; max-height: 160px; overflow: auto; background: #f1f5f9; border-radius: 8px; padding: 8px; font: 12px/1.4 ui-monospace, monospace; }
+  .br-ans { width: 100%; box-sizing: border-box; min-height: 120px; border: 2px solid #94a3b8; border-radius: 12px; padding: 10px; font: 15px/1.45 system-ui; flex: none !important; } .br-tip { color: #64748b; font: 600 12px system-ui; }
+  /* v820 · el botón «⬅ Volver / ✖ Cerrar» de arriba se ve siempre, en pantallas claras y oscuras */
+  .bo-top .bo-x, .bo-x { background: #1e293b !important; color: #fff !important; border: 2px solid rgba(148,163,184,.55) !important; box-shadow: 0 2px 6px rgba(0,0,0,.25) !important; opacity: 1 !important; visibility: visible !important; flex: none; }
   .pj-ov { position: fixed; inset: 0; z-index: 2147483200; background: #000; display: flex; align-items: center; justify-content: center; touch-action: none; user-select: none; } .pj-img { max-width: 100vw; max-height: 100vh; object-fit: contain; }
   .pj-bar { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 8px; align-items: center; background: rgba(20,20,20,.75); padding: 6px 10px; border-radius: 999px; } .pj-bar button { border: 0; border-radius: 999px; min-width: 44px; min-height: 40px; background: rgba(255,255,255,.14); color: #fff; font: 800 18px system-ui; cursor: pointer; } .pj-n { color: #fff; font: 700 15px system-ui; min-width: 60px; text-align: center; }
   .pj-tip { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,.55); font: 600 12px system-ui; text-align: center; pointer-events: none; animation: pjTip 6s forwards; } @keyframes pjTip { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
@@ -7993,7 +8001,7 @@
   };
   function roomHelpBtn(k) { return '<button class="rh-q" data-rhelp="' + k + '" title="Cómo se usa" aria-label="Cómo se usa">?</button>'; }
   document.addEventListener('click', function (ev) {
-    var b = ev.target.closest('[data-rhelp]'); if (!b) { var open = document.querySelector('.rh-pop'); if (open && !ev.target.closest('.rh-pop')) open.remove(); return; }
+    var b = ev.target.closest('[data-rhelp]'); if (!b) { var open = document.querySelector('.rh-pop'); if (open && !ev.target.closest('.rh-pop, .br-ov, .ask-ov')) open.remove(); return; }
     ev.stopPropagation(); var old = document.querySelector('.rh-pop'); if (old) { var same = old.dataset.k === b.dataset.rhelp; old.remove(); if (same) return; }
     var H = ROOMHELP[b.dataset.rhelp]; if (!H) return; var pop = document.createElement('div'); pop.className = 'rh-pop'; pop.dataset.k = b.dataset.rhelp;
     pop.innerHTML = '<b>' + esc(H[0]) + '</b><ol>' + H[1].map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol><div class="rh-acts"><button class="small" data-rhsay="1">🔊 Escuchar</button><button class="small" data-rhclose="1">Entendido</button></div>';
@@ -9246,7 +9254,7 @@
     if (k === 'next' || k === 'prev') { (synth&&synth.cancel()); var d = k === 'next' ? 1 : -1, j = mf.i + d; while (items[j] && items[j].kind !== 'para') j += d; if (items[j]) mf.i = j; mf.paused = false; mfStep(); return; }
     if (k === 'cfg') { mf.paused = true; (synth&&synth.cancel()); mfDraw(); mfOpen(); } }, true);
   // número de versión visible, para saber si el celular cargó lo último
-  var LECTOR_VER = 'v819 · 3 nov';
+  var LECTOR_VER = 'v820 · 3 nov';
   try { document.title = 'Integrated Vault — ' + LECTOR_VER; } catch (e) {}
   var VAULT_CH = 'familia';
   setTimeout(function () { if (VAULT_CH !== 'pruebas') return; var tb = $('topBar'); if (tb && !document.querySelector('.ch-badge')) { var b = document.createElement('span'); b.className = 'ch-badge'; b.textContent = '🧪 PRUEBAS'; b.title = 'Esta es la versión de pruebas: los cambios nuevos llegan acá primero. La familia usa la versión normal.'; tb.insertBefore(b, tb.firstChild); } }, 800);
@@ -12232,7 +12240,7 @@
     var sun = new T.DirectionalLight(0xfff4e0, 1.25); sun.position.set(16000, 24000, -11000); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); var sc = sun.shadow.camera; sc.left = -26000; sc.right = 26000; sc.top = 26000; sc.bottom = -26000; sc.near = 100; sc.far = 80000; sun.shadow.bias = -0.0005; sun.target.position.set(12000, 0, 15000); A3.S.add(sun); A3.S.add(sun.target); A3.sun = sun; };
   var _a3Build10 = a3Build; a3Build = function () { _a3Build10(); A3.world.traverse(function (o) { if (o.isMesh && !(o.material && o.material.map && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } }); if (A3.terrG) A3.terrG.traverse(function (o) { if (o.isMesh) o.receiveShadow = true; }); };
   // ================= 🔄 ACTUALIZACIÓN PARA TODOS: al publicar una versión nueva, cada aparato guarda y se cierra solo =================
-  var VBUILD = 819;
+  var VBUILD = 820;
   (async function () { try { if (!window.claude || typeof window.claude.use !== 'function') return; var d = await window.claude.use('db'); if (!d) return; var shown = false;
     d.doc('meta/version').onSnapshot(function (snap) { var v = snap && snap.exists && snap.data() && +snap.data().build; if (true || !v || v <= VBUILD || shown) return; var tried = +(sessionStorage.getItem('iv-upd') || 0); shown = true;
       var ov = document.createElement('div'); ov.className = 'upd-ov'; ov.innerHTML = tried >= v ? '<div class="upd-c"><b>🔄 Hay una versión nueva</b><p>Este aparato todavía muestra la anterior. Cerrá esta pestaña del navegador y abrí el Vault de nuevo.</p><button data-upd="x">Entendido</button></div>' : '<div class="upd-c"><b>🔄 Llegó una actualización del Vault</b><p>Guardo todo y cierro. En unos segundos volvés a entrar con tu clave, ya con lo nuevo.</p><div class="upd-n" id="updN">8</div><button data-upd="now">Cerrar ahora</button></div>'; document.body.appendChild(ov);
@@ -17022,7 +17030,7 @@
     setTimeout(function () { try { if (!vaultIsOpen) return; settings.puertaSeen = settings.puertaSeen || {}; if (!settings.puertaSeen[prof()]) { settings.puertaSeen[prof()] = 1; if (prof() === 'pf2' && !cur()) setCam('pf2'); SV('le-settings', settings); if (!cur()) puertaOpen(); } } catch (e) {} }, 4000);
     window.__puerta = { open: function () { puertaOpen(); }, cur: cur, set: setCam, mio: mio, add: addToMio, catalog: catalog, CAMINOS: CAMINOS };
   })();
-  var _dcRecordV390 = dcRecord; dcRecord = function (lbl, why, x, y) { if (lbl === '(pantalla tapada)' && /big-ov|ob-pop|aq-projs|aq-start|aq-guide|as-card|tm-ov|rh-pop|cf-pop|ak-pop|nv-bar|cpanel|sheet|fpane|hm-g|allTools|alltools|at-shade|pz-w|pzw|mb-bath|mbBath|mc-gm|ai-pop|mb-goals|mb-brand|pzStage|pz-stage|pz-bcv|familia|fam-|pr-ov|pzb-tbox/.test(why || '')) return; if (/^[‹›<>]$/.test(String(lbl).trim())) return; return _dcRecordV390(lbl, why, x, y); };
+  var _dcRecordV390 = dcRecord; dcRecord = function (lbl, why, x, y) { if (lbl === '(pantalla tapada)' && /big-ov|ob-pop|aq-projs|aq-start|aq-guide|as-card|tm-ov|rh-pop|cf-pop|ak-pop|nv-bar|cpanel|sheet|fpane|hm-g|allTools|alltools|at-shade|pz-w|pzw|mb-bath|mbBath|mc-gm|ai-pop|mb-goals|mb-brand|pzStage|pz-stage|pz-bcv|familia|fam-|pr-ov|pzb-tbox|br-ov|pj-ov/.test(why || '')) return; if (/^[‹›<>]$/.test(String(lbl).trim())) return; return _dcRecordV390(lbl, why, x, y); };
 
   // ================= v390 · ⛏️ PISOS VISIBLES EN TERRENO CON PENDIENTE: la casa se asienta en una plataforma (corte o relleno) =================
   var CUT = { R: [], U: null };
@@ -23308,7 +23316,30 @@
     f.limits = function () { return Promise.resolve({}); }; return f; }
   // sin IA: en vez de no hacer nada, avisa claro
   function aiStub() { var f = function () { aiBanner('off'); return Promise.reject({ code: 'no_ai', message: 'Claude no está conectado' }); }; f.json = f; f.limits = function () { return Promise.resolve({}); }; f.__w = true; f.__stub = true; return f; }
-  function aiInit() { var k = aiKey(); if (!IN_CLAUDE && k) { ai = aiWrap(aiApi(k), 'api'); AIST.mode = 'api'; aiSet('ok'); return; } }
+  // ================= v820 · 🌉 PUENTE CON CLAUDE: en la app instalada, sin clave, las herramientas de IA le preguntan a TU Claude (claude.ai) con la pregunta ya escrita, y vos pegás la respuesta =================
+  var BRG = { open: false };
+  function brText(input) { if (typeof input === 'string') return input; return (input || []).map(function (m) { var c = m.content; if (typeof c === 'string') return c; return (c || []).map(function (p) { return p.type === 'text' ? p.text : p.type === 'image' ? '[imagen: esta herramienta necesita que Claude vea una imagen]' : ''; }).join('\n'); }).join('\n\n'); }
+  function aiBridge() { var call = function (input, opts) { opts = opts || {}; var q = brText(input); if (/\[imagen:/.test(q)) return Promise.reject({ code: 'no_ai', message: 'imagen' }); if (BRG.open) return Promise.reject({ code: 'upstream_error', message: 'ya hay una pregunta abierta' });
+      return new Promise(function (ok, no) { BRG.open = true; var o = document.createElement('div'); o.className = 'br-ov'; var url = 'https://claude.ai/new?q=' + encodeURIComponent(q.length > 6000 ? q.slice(0, 6000) : q);
+        o.innerHTML = '<div class="br-box"><div class="br-h"><b>🤖 Preguntarle a tu Claude</b><button class="br-x" data-br="no">✕</button></div>' +
+          '<ol class="br-steps"><li>Tocá <b>Abrir Claude</b>: la pregunta ya va escrita. Enviala.</li><li>Cuando Claude termine, tocá <b>Copiar</b> abajo de su respuesta.</li><li>Volvé acá y tocá <b>📋 Pegar respuesta</b>.</li></ol>' +
+          '<div class="br-acts"><a class="br-go" target="_blank" rel="noopener" href="' + url + '">🚀 Abrir Claude con la pregunta</a><button data-br="copyq">📋 Copiar la pregunta</button></div>' +
+          '<details class="br-q"><summary>Ver la pregunta</summary><pre></pre></details>' +
+          '<textarea class="br-ans" placeholder="Acá va la respuesta de Claude…"></textarea><div class="br-acts"><button data-br="paste">📋 Pegar respuesta</button><button class="br-ok" data-br="ok">✓ Usar esta respuesta</button></div>' +
+          '<small class="br-tip">💡 Para que sea automático, sin copiar y pegar: 🤖 IA → «Conectar Claude con tu clave».</small></div>';
+        o.querySelector('pre').textContent = q; document.body.appendChild(o); var ta = o.querySelector('.br-ans');
+        var fin = function (v) { BRG.open = false; document.removeEventListener('visibilitychange', back); o.remove(); if (v == null) { no({ code: 'cancelled' }); return; } if (opts.onText) try { opts.onText({ text: v, delta: v }); } catch (e) {} ok({ text: v, truncated: false }); };
+        var paste = function () { if (!navigator.clipboard || !navigator.clipboard.readText) { ta.focus(); toast('Mantené apretado el cuadro y elegí «Pegar».'); return; } navigator.clipboard.readText().then(function (t) { if (t && t.trim() && t.trim() !== q.trim()) { ta.value = t.trim(); toast('📋 Respuesta pegada. Revisala y tocá «Usar esta respuesta».'); } else { ta.focus(); toast('Todavía no copiaste la respuesta de Claude.'); } }, function () { ta.focus(); toast('Mantené apretado el cuadro y elegí «Pegar».'); }); };
+        var back = function () { if (!document.hidden && !ta.value.trim()) paste(); }; document.addEventListener('visibilitychange', back);
+        o.addEventListener('click', function (e) { e.stopPropagation(); var b = e.target.closest('[data-br]'); if (!b) return; e.preventDefault(); var k = b.dataset.br;
+          if (k === 'no') fin(null); else if (k === 'paste') paste(); else if (k === 'copyq') { (navigator.clipboard ? navigator.clipboard.writeText(q) : Promise.reject()).then(function () { toast('📋 Pregunta copiada: pegala en Claude.'); }, function () { toast('No pude copiar.'); }); }
+          else if (k === 'ok') { var v = ta.value.trim(); if (!v) { toast('Primero pegá la respuesta de Claude.'); return; } fin(v); } }, true);
+      }); };
+    var f = function (input, opts) { return call(input, opts); };
+    f.json = async function (input, opts) { var r = await call(typeof input === 'string' ? input + '\n\nRespondé SOLO con JSON válido, sin texto antes ni después.' : input, opts), t = r.text, a = t.search(/[\[{]/), z = Math.max(t.lastIndexOf('}'), t.lastIndexOf(']')); try { return JSON.parse(a >= 0 ? t.slice(a, z + 1) : t); } catch (e) { throw { code: 'invalid_json', message: 'JSON', text: t }; } };
+    f.limits = function () { return Promise.resolve({}); }; f.__bridge = true; return f; }
+  function brOn() { try { return localStorage.getItem('iv-ai-bridge') !== 'no'; } catch (e) { return true; } }
+  function aiInit() { var k = aiKey(); if (!IN_CLAUDE && k) { ai = aiWrap(aiApi(k), 'api'); AIST.mode = 'api'; aiSet('ok'); return; } if (!IN_CLAUDE && brOn()) { ai = aiWrap(aiBridge(), 'bridge'); AIST.mode = 'bridge'; aiSet('ok'); } }
   aiInit();
   (function wait(n) { if (ai && !ai.__w) { ai = aiWrap(ai, 'claude'); AIST.mode = 'claude'; if (AIST.state === 'wait') aiSet('ok'); return; } if (ai && ai.__w) return; if (n > 30) { ai = aiStub(); AIST.mode = 'off'; aiSet('off'); return; } setTimeout(function () { wait(n + 1); }, 500); })(0);
   // chip de estado arriba
@@ -23320,17 +23351,19 @@
   function aiPanel() { var old = document.querySelector('.ai-pop'); if (old) old.remove(); var p = document.createElement('div'); p.className = 'rh-pop ai-pop'; var st = AIST.state, k = aiKey();
     var tools = ['🎓 Leer explicando', '🧑‍🏫 Profe Papá y Ateneo', '🦉 El búho de los chicos', '📝 Resúmenes y preguntas', '🗺️ Mapas mentales y líneas de tiempo', '⚖️ Juicio oral y debates', '🌐 Traducciones explicadas'];
     p.innerHTML = '<div class="xc-head"><b>🤖 Inteligencia artificial</b><button class="xc-x" data-aix="1">✖</button></div>' +
-      '<div class="ai-st ai-' + st + '"><b>' + (st === 'ok' ? '✅ Claude activo' : st === 'wait' ? '… Conectando con Claude' : '⚠️ Claude no disponible') + '</b><span>' + (AI_TXT[st] || 'Buscando a Claude…') + '</span><small>Modo: ' + (AIST.mode === 'claude' ? 'dentro de Claude (usa la cuenta de quien abre la app)' : AIST.mode === 'api' ? 'clave propia de Claude (API)' : 'sin IA') + '</small></div>' +
+      '<div class="ai-st ai-' + st + '"><b>' + (st === 'ok' ? '✅ Claude activo' : st === 'wait' ? '… Conectando con Claude' : '⚠️ Claude no disponible') + '</b><span>' + (AI_TXT[st] || 'Buscando a Claude…') + '</span><small>Modo: ' + (AIST.mode === 'claude' ? 'dentro de Claude (usa la cuenta de quien abre la app)' : AIST.mode === 'api' ? 'clave propia de Claude (API), automático' : AIST.mode === 'bridge' ? 'puente con tu Claude (claude.ai): la pregunta se abre en Claude y pegás la respuesta' : 'sin IA') + '</small></div>' +
       '<div class="ai-sec"><b>Herramientas que usan Claude</b><div class="ai-tools">' + tools.map(function (t) { return '<span class="' + (st === 'ok' ? 'on' : '') + '">' + (st === 'ok' ? '🟢 ' : '⚪ ') + t + '</span>'; }).join('') + '</div><small>Todo lo demás (lectura en voz alta, Biblias y leyes descargadas, mecanografía, juegos, diseñador, notas) funciona <b>sin IA y sin internet</b>.</small></div>' +
       (IN_CLAUDE ? '<div class="ai-sec"><b>🔐 Estás dentro de Claude</b><small>La IA usa la cuenta de Claude de la persona que abrió la app. Si se terminan sus mensajes, la app lo avisa con «sin tokens».</small></div>' :
-        '<div class="ai-sec"><b>🔑 Conectar Claude con tu clave</b><small>Sacá una clave en <b>console.anthropic.com → API Keys</b>. Se guarda solo en este aparato. Lo que consultes se cobra en esa cuenta.</small><div class="ai-key"><input id="aiKey" type="password" placeholder="sk-ant-…" value="' + escA(k) + '"><button class="iconbtn primary" data-ai="save">Guardar y probar</button>' + (k ? '<button class="small" data-ai="del">Quitar</button>' : '') + '</div></div>') +
+        '<div class="ai-sec"><b>🌉 Puente con tu Claude (gratis, con tu cuenta)</b><small>Sin clave: cada herramienta de IA abre <b>claude.ai</b> con la pregunta ya escrita; copiás la respuesta y la pegás en la app. Usa tu plan de Claude, sin costo extra.</small><div class="ai-key"><button class="iconbtn' + (brOn() ? ' primary' : '') + '" data-ai="brg">' + (brOn() ? '✅ Puente activado (tocá para apagarlo)' : '⚪ Activar el puente') + '</button></div></div>' +
+        '<div class="ai-sec"><b>🔑 Automático: conectar Claude con una clave</b><small>Con clave, las respuestas llegan solas, sin copiar y pegar. Pasos: 1) entrá a <b>console.anthropic.com</b> con tu correo; 2) <b>Billing</b>: cargá saldo (desde USD 5) y poné un <b>límite mensual</b> (ej.: USD 10) para que nunca gaste de más; 3) <b>API Keys → Create Key</b>; 4) copiala y pegala acá. Se guarda <b>solo en este aparato</b>, nunca en GitHub. Cada pregunta cuesta centavos.</small><div class="ai-key"><input id="aiKey" type="password" placeholder="sk-ant-…" value="' + escA(k) + '"><button class="iconbtn primary" data-ai="save">Guardar y probar</button>' + (k ? '<button class="small" data-ai="del">Quitar</button>' : '') + '</div></div>') +
       '<div class="ai-sec"><button class="iconbtn" data-ai="test">🧪 Probar Claude ahora</button> <span id="aiTestOut"></span></div>' +
       '<div class="ai-sec"><b>🌐 Consultar en internet (sin IA)</b><div class="ai-key"><input id="aiNetQ" placeholder="¿Qué querés buscar?"></div><div class="ai-net" id="aiNet">' + NET.map(function (n) { return '<a target="_blank" rel="noopener noreferrer" data-net="' + n[0] + '" href="' + netHref(n[0], '') + '">' + n[1] + '</a>'; }).join('') + '</div><small>Se abre en otra pestaña. Si dentro de Claude no se abre, tocá 📋 para copiar el enlace y pegalo en el navegador. <button class="small" data-ai="copy">📋 Copiar enlace de Google</button></small></div>';
     document.body.appendChild(p); p.style.left = Math.max(8, (innerWidth - p.offsetWidth) / 2) + 'px'; p.style.top = Math.max(8, (innerHeight - p.offsetHeight) / 2) + 'px';
     var q = p.querySelector('#aiNetQ'); q.addEventListener('input', function () { p.querySelectorAll('[data-net]').forEach(function (a) { a.href = netHref(a.dataset.net, q.value.trim()); }); });
     p.onclick = async function (e) { var b = e.target.closest('[data-ai], [data-aix]'); if (!b) return; if (b.dataset.aix) { p.remove(); return; } var a = b.dataset.ai, out = p.querySelector('#aiTestOut');
       if (a === 'save') { var v = p.querySelector('#aiKey').value.trim(); if (!/^sk-ant-/.test(v)) { toast('La clave de Claude empieza con «sk-ant-».'); return; } try { localStorage.setItem('iv-ai-key', v); } catch (e2) {} ai = aiWrap(aiApi(v), 'api'); AIST.mode = 'api'; a = 'test'; }
-      if (a === 'del') { try { localStorage.removeItem('iv-ai-key'); } catch (e2) {} ai = aiStub(); AIST.mode = 'off'; aiSet('off'); aiPanel(); return; }
+      if (a === 'del') { try { localStorage.removeItem('iv-ai-key'); } catch (e2) {} if (brOn()) { ai = aiWrap(aiBridge(), 'bridge'); AIST.mode = 'bridge'; aiSet('ok'); } else { ai = aiStub(); AIST.mode = 'off'; aiSet('off'); } aiPanel(); return; }
+      if (a === 'brg') { var onB = !brOn(); try { localStorage.setItem('iv-ai-bridge', onB ? 'si' : 'no'); } catch (e2) {} if (!aiKey()) { if (onB) { ai = aiWrap(aiBridge(), 'bridge'); AIST.mode = 'bridge'; aiSet('ok'); } else { ai = aiStub(); AIST.mode = 'off'; aiSet('off'); } } aiPanel(); return; }
       if (a === 'copy') { var u = netHref('google', q.value.trim()); try { await navigator.clipboard.writeText(u); toast('📋 Enlace copiado: pegalo en el navegador.'); } catch (e3) { prompt('Copiá este enlace:', u); } return; }
       if (a === 'test') { if (!ai || ai.__stub) { out.textContent = AI_TXT.off; return; } out.textContent = '⏳ Probando…'; try { var r = await ai('Respondé solo con la palabra: listo', { modelTier: 'quick' }); out.textContent = '✅ Claude respondió: «' + String(r.text || '').trim().slice(0, 40) + '»'; aiSet('ok'); } catch (e4) { out.textContent = aiErr(e4); } setTimeout(function () { var s2 = p.querySelector('.ai-st'); if (s2) { s2.className = 'ai-st ai-' + AIST.state; s2.querySelector('b').textContent = AIST.state === 'ok' ? '✅ Claude activo' : '⚠️ Claude no disponible'; s2.querySelector('span').textContent = AI_TXT[AIST.state] || ''; s2.querySelector('small').textContent = 'Modo: ' + (AIST.mode === 'claude' ? 'dentro de Claude (usa la cuenta de quien abre la app)' : AIST.mode === 'api' ? 'clave propia de Claude (API)' : 'sin IA'); } }, 50); } }; }
   document.addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('[data-aipanel]'); if (!b) return; ev.stopPropagation(); var bn = b.closest('.ai-banner'); if (bn) bn.remove(); aiPanel(); }, true);
@@ -23817,7 +23850,7 @@
 </body></html>
 </body></html>
 <script>
-(function () { if (window.claude) return; window.__WEB_BUILD = 819;
+(function () { if (window.claude) return; window.__WEB_BUILD = 820;
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
   function check() { fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (v) { if (v && v.build > window.__WEB_BUILD && !document.getElementById('webUpd')) { var d = document.createElement('div'); d.id = 'webUpd'; d.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;background:#7c3aed;color:#fff;padding:10px 16px;border-radius:14px;font:700 14px system-ui;box-shadow:0 10px 30px rgba(0,0,0,.35)'; var n = 8; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; document.body.appendChild(d); var t = setInterval(function () { n--; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; if (n <= 0) { clearInterval(t); try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 600); } }, 1000); } }).catch(function () {}); }
   var dip = null; window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dip = e; show(); });
