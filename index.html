@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Integrated Vault — v827 · 3 nov</title>
+<title>Integrated Vault — v828 · 3 nov</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
@@ -2726,6 +2726,7 @@
   .pk-b { position: absolute; top: 0; width: 9%; height: 62%; background: #0f172a; border-radius: 0 0 5px 5px; transform: translateX(-50%); cursor: pointer; z-index: 2; }
   .pk-b.hit { background: #7c3aed; }
   .ask-ov [data-ak] { touch-action: manipulation; }
+  #aqLock { position: fixed; z-index: 9300; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top) + 64px); display: flex; align-items: center; gap: 8px; padding: 5px 6px 5px 12px; border-radius: 999px; font: 600 12.5px system-ui; box-shadow: 0 4px 14px rgba(0,0,0,.35); white-space: nowrap; } #aqLock.lk-on { background: #0f172a; color: #e2e8f0; border: 2px solid #38bdf8; } #aqLock.lk-off { background: #fef3c7; color: #78350f; border: 2px solid #f59e0b; } #aqLock button { border: 0; border-radius: 999px; padding: 6px 12px; font: 800 12.5px system-ui; cursor: pointer; } #aqLock.lk-on button { background: #f59e0b; color: #1c1917; } #aqLock.lk-off button { background: #0f172a; color: #fff; }
   .safe-b { display: block; width: 100%; margin: 6px 0; padding: 10px; border: 2px solid #fbbf24; border-radius: 12px; background: #fef3c7; color: #78350f; font: 800 13px system-ui; cursor: pointer; text-align: center; }
   .px-row { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 8px 0; } .px-row button { min-height: 52px; border-radius: 14px; border: 2px solid #38bdf8; background: linear-gradient(180deg, #0ea5e9, #0369a1); color: #fff; font: 800 15px system-ui; cursor: pointer; } .px-row button[data-pxs=recv] { border-color: #4ade80; background: linear-gradient(180deg, #22c55e, #15803d); }
   .hm-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; margin: 4px 0 10px; } .hm-bar > .iconbtn { flex: none; } .hm-more { flex: 1 1 220px; min-width: 0; } .hm-more > summary { list-style: none; cursor: pointer; padding: 10px 14px; border-radius: 12px; border: 2px dashed #cbd5e1; font: 700 14px system-ui; color: #475569; background: rgba(148,163,184,.08); } .hm-more > summary::-webkit-details-marker { display: none; } .hm-more[open] > summary { border-style: solid; margin-bottom: 8px; } .hm-more[open] { flex-basis: 100%; } .hm-more-in .lib-acts { display: flex; flex-wrap: wrap; gap: 8px; } .hm-more-in .lib-acts .iconbtn { max-width: 100%; white-space: normal; } .hm-more-in { display: flex; flex-direction: column; gap: 8px; } .hm-more-in .lib-acts { margin: 0; }
@@ -9259,7 +9260,7 @@
     if (k === 'next' || k === 'prev') { (synth&&synth.cancel()); var d = k === 'next' ? 1 : -1, j = mf.i + d; while (items[j] && items[j].kind !== 'para') j += d; if (items[j]) mf.i = j; mf.paused = false; mfStep(); return; }
     if (k === 'cfg') { mf.paused = true; (synth&&synth.cancel()); mfDraw(); mfOpen(); } }, true);
   // número de versión visible, para saber si el celular cargó lo último
-  var LECTOR_VER = 'v827 · 3 nov';
+  var LECTOR_VER = 'v828 · 3 nov';
   try { document.title = 'Integrated Vault — ' + LECTOR_VER; } catch (e) {}
   var VAULT_CH = 'familia';
   setTimeout(function () { if (VAULT_CH !== 'pruebas') return; var tb = $('topBar'); if (tb && !document.querySelector('.ch-badge')) { var b = document.createElement('span'); b.className = 'ch-badge'; b.textContent = '🧪 PRUEBAS'; b.title = 'Esta es la versión de pruebas: los cambios nuevos llegan acá primero. La familia usa la versión normal.'; tb.insertBefore(b, tb.firstChild); } }, 800);
@@ -12245,7 +12246,7 @@
     var sun = new T.DirectionalLight(0xfff4e0, 1.25); sun.position.set(16000, 24000, -11000); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); var sc = sun.shadow.camera; sc.left = -26000; sc.right = 26000; sc.top = 26000; sc.bottom = -26000; sc.near = 100; sc.far = 80000; sun.shadow.bias = -0.0005; sun.target.position.set(12000, 0, 15000); A3.S.add(sun); A3.S.add(sun.target); A3.sun = sun; };
   var _a3Build10 = a3Build; a3Build = function () { _a3Build10(); A3.world.traverse(function (o) { if (o.isMesh && !(o.material && o.material.map && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } }); if (A3.terrG) A3.terrG.traverse(function (o) { if (o.isMesh) o.receiveShadow = true; }); };
   // ================= 🔄 ACTUALIZACIÓN PARA TODOS: al publicar una versión nueva, cada aparato guarda y se cierra solo =================
-  var VBUILD = 827;
+  var VBUILD = 828;
   (async function () { try { if (!window.claude || typeof window.claude.use !== 'function') return; var d = await window.claude.use('db'); if (!d) return; var shown = false;
     d.doc('meta/version').onSnapshot(function (snap) { var v = snap && snap.exists && snap.data() && +snap.data().build; if (true || !v || v <= VBUILD || shown) return; var tried = +(sessionStorage.getItem('iv-upd') || 0); shown = true;
       var ov = document.createElement('div'); ov.className = 'upd-ov'; ov.innerHTML = tried >= v ? '<div class="upd-c"><b>🔄 Hay una versión nueva</b><p>Este aparato todavía muestra la anterior. Cerrá esta pestaña del navegador y abrí el Vault de nuevo.</p><button data-upd="x">Entendido</button></div>' : '<div class="upd-c"><b>🔄 Llegó una actualización del Vault</b><p>Guardo todo y cierro. En unos segundos volvés a entrar con tu clave, ya con lo nuevo.</p><div class="upd-n" id="updN">8</div><button data-upd="now">Cerrar ahora</button></div>'; document.body.appendChild(ov);
@@ -17035,7 +17036,7 @@
     setTimeout(function () { try { if (!vaultIsOpen) return; settings.puertaSeen = settings.puertaSeen || {}; if (!settings.puertaSeen[prof()]) { settings.puertaSeen[prof()] = 1; if (prof() === 'pf2' && !cur()) setCam('pf2'); SV('le-settings', settings); if (!cur()) puertaOpen(); } } catch (e) {} }, 4000);
     window.__puerta = { open: function () { puertaOpen(); }, cur: cur, set: setCam, mio: mio, add: addToMio, catalog: catalog, CAMINOS: CAMINOS };
   })();
-  var _dcRecordV390 = dcRecord; dcRecord = function (lbl, why, x, y) { if (lbl === '(pantalla tapada)' && /big-ov|ob-pop|aq-projs|aq-start|aq-guide|as-card|tm-ov|rh-pop|cf-pop|ak-pop|nv-bar|cpanel|sheet|fpane|hm-g|allTools|alltools|at-shade|pz-w|pzw|mb-bath|mbBath|mc-gm|ai-pop|mb-goals|mb-brand|pzStage|pz-stage|pz-bcv|familia|fam-|pr-ov|pzb-tbox|br-ov|pj-ov|aqTramo|aq-pop|aq-projs/.test(why || '')) return; if (/^[‹›<>]$/.test(String(lbl).trim())) return; return _dcRecordV390(lbl, why, x, y); };
+  var _dcRecordV390 = dcRecord; dcRecord = function (lbl, why, x, y) { if (lbl === '(pantalla tapada)' && /big-ov|ob-pop|aq-projs|aq-start|aq-guide|as-card|tm-ov|rh-pop|cf-pop|ak-pop|nv-bar|cpanel|sheet|fpane|hm-g|allTools|alltools|at-shade|pz-w|pzw|mb-bath|mbBath|mc-gm|ai-pop|mb-goals|mb-brand|pzStage|pz-stage|pz-bcv|familia|fam-|pr-ov|pzb-tbox|br-ov|pj-ov|aqTramo|aq-pop|aq-projs|aqLock/.test(why || '')) return; if (/^[‹›<>]$/.test(String(lbl).trim())) return; return _dcRecordV390(lbl, why, x, y); };
 
   // ================= v390 · ⛏️ PISOS VISIBLES EN TERRENO CON PENDIENTE: la casa se asienta en una plataforma (corte o relleno) =================
   var CUT = { R: [], U: null };
@@ -23620,6 +23621,20 @@
   // ================= v827 · 🤫 AL ENTRAR AL DISEÑADOR SOLO SE VE EL PLANO: ninguna ventana (configuración, tramos, menús) se abre sola; se abren cuando vos tocás =================
   var QUIET = { t: 0, user: 0 }; document.addEventListener('pointerdown', function (e) { if (e.isTrusted) QUIET.user = Date.now(); }, true);
   var _quietOpen = arqOpen; arqOpen = function () { QUIET.t = Date.now(); var r = _quietOpen.apply(this, arguments); var n = 0, iv = setInterval(function () { n++; if (n > 30 || QUIET.user > QUIET.t) { clearInterval(iv); return; } try { document.querySelectorAll('.cf-pop, .aq-pop, .ob-pop, #aqTramo').forEach(function (e) { e.remove(); }); var cf = document.getElementById('arqcfg'); if (cf && !cf.hidden && typeof bigClose === 'function') bigClose('arqcfg'); document.documentElement.classList.remove('pop-open'); } catch (e) {} }, 200); return r; };
+  // ================= v828 · 🔒 MODO MIRAR EN EL DISEÑADOR: al entrar solo se puede mover y hacer zoom; tocar el plano no hace nada hasta que elegís una herramienta =================
+  var LK = { on: true, d: null };
+  function lkChip() { var a = document.getElementById('arq'); var c = document.getElementById('aqLock'); if (!a || a.hidden) { if (c) c.remove(); return; } if (!c) { c = document.createElement('div'); c.id = 'aqLock'; document.body.appendChild(c); c.addEventListener('click', function (e) { var b = e.target.closest('[data-lk]'); if (!b) return; e.stopPropagation(); e.preventDefault(); if (b.dataset.lk === 'lock') lkSet(true); else lkSet(false, 'sel'); }, true); }
+    c.className = LK.on ? 'lk-on' : 'lk-off'; c.innerHTML = LK.on ? '<span>🔒 <b>Solo mirar</b>: mover y zoom</span><button data-lk="edit">✏️ Editar</button>' : '<span>✏️ <b>Editando</b></span><button data-lk="lock">🔒 Solo mirar</button>'; }
+  function lkSet(on, tool) { LK.on = !!on; try { if (ARQ) { if (on) { ARQ.sel = null; ARQ.tool = ARQ.view === '3d' ? 'orbit' : 'pan'; var t = document.getElementById('aqTramo'); if (t) t.remove(); } else if (tool) ARQ.tool = tool; arqRender(); } } catch (e) {} lkChip(); if (!on) toast('✏️ Edición activada. Para volver a solo mirar: 🔒.'); }
+  window.__lock = { set: lkSet, st: function () { return LK; } };
+  var _lkOpen = arqOpen; arqOpen = function () { var r = _lkOpen.apply(this, arguments); LK.on = true; setTimeout(function () { lkSet(true); }, 450); return r; };
+  setInterval(function () { try { lkChip(); if (LK.on && ARQ) { var want = ARQ.view === '3d' ? 'orbit' : 'pan'; if (ARQ.tool !== want) ARQ.tool = want; if (ARQ.sel) { ARQ.sel = null; try { arqRender(); } catch (e) {} } var t = document.getElementById('aqTramo'); if (t) t.remove(); } } catch (e) {} }, 300);
+  function lkOnPlan(t) { return t && t.closest && t.closest('#aqSvg, #arq canvas, #arq .aq-cv, #arq .aqp-main'); }
+  window.addEventListener('pointerdown', function (e) { if (!LK.on || !lkOnPlan(e.target)) return; LK.d = { x: e.clientX, y: e.clientY, t: Date.now(), id: e.pointerId }; }, true);
+  window.addEventListener('pointerup', function (e) { if (!LK.on || !lkOnPlan(e.target) || !LK.d) return; var mv = Math.hypot(e.clientX - LK.d.x, e.clientY - LK.d.y); if (mv < 10) { e.stopImmediatePropagation(); } }, true);
+  ['click', 'dblclick', 'contextmenu'].forEach(function (k) { window.addEventListener(k, function (e) { if (LK.on && lkOnPlan(e.target)) { e.stopImmediatePropagation(); e.preventDefault(); } }, true); });
+  // elegir una herramienta = habilitar la edición con esa herramienta
+  document.addEventListener('click', function (e) { if (!LK.on || !e.isTrusted) return; var b = e.target.closest && e.target.closest('#arq [data-aqt], [data-gdt]'); if (!b) return; LK.on = false; lkChip(); }, true);
   // ================= v689 · ☁️ REPOSITORIO CENTRAL de proyectos (nube propia del Baúl: los mismos planos desde cualquier computadora; NUNCA borra ni pisa: suma y gana el más nuevo) + 🕰️ MÁQUINA DEL TIEMPO (fecha y hora exacta, con segundos) + 📅 FILTRO POR FECHA en «Mis proyectos» =================
   (function () {
     var REPO = { db: null, state: 'init', last: 0, busy: false, err: '', t: null, remote: {} };
@@ -23961,7 +23976,7 @@
 })();
 </script>
 <script>
-(function () { if (window.claude) return; window.__WEB_BUILD = 827;
+(function () { if (window.claude) return; window.__WEB_BUILD = 828;
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
   function check() { fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (v) { if (v && v.build > window.__WEB_BUILD && !document.getElementById('webUpd')) { var d = document.createElement('div'); d.id = 'webUpd'; d.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;background:#7c3aed;color:#fff;padding:10px 16px;border-radius:14px;font:700 14px system-ui;box-shadow:0 10px 30px rgba(0,0,0,.35)'; var n = 8; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; document.body.appendChild(d); var t = setInterval(function () { n--; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; if (n <= 0) { clearInterval(t); try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 600); } }, 1000); } }).catch(function () {}); }
   var dip = null; window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dip = e; show(); });
