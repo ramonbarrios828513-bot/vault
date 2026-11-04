@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Integrated Vault — v863 · 4 nov</title>
+<title>Integrated Vault — v864 · 4 nov</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
@@ -4750,17 +4750,21 @@
   // ---------- dictado ----------
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition, rec = null;
   if (!SR) { $('btnMic').style.display = 'none'; $('btnIdeaMic').style.display = 'none'; el.hint.textContent = 'Para dictar, tocá el cuadro y usá el micrófono del teclado.'; }
+  // v864 · dictado firme en celulares: frases cortas que se van sumando (sin repetir palabras), el texto aparece mientras hablás, y sigue escuchando hasta que tocás el micrófono otra vez
   function dictate(ta, hintEl, btn, onChange) {
     hintEl = hintEl || { textContent: '' };
-    if (listening) { try { rec.stop(); } catch (e) {} return; }
+    if (listening) { listening = false; try { rec.stop(); } catch (e) {} return; }
     if (speaking) pauseSpeech();
-    rec = new SR(); rec.lang = 'es-PY'; rec.interimResults = true; rec.continuous = true;
-    var base = ta.value ? ta.value.replace(/\s+$/, '') + ' ' : '';
-    rec.onresult = function (ev) { var fin = '', tmp = ''; for (var i = 0; i < ev.results.length; i++) { var r = ev.results[i]; if (r.isFinal) fin += r[0].transcript + ' '; else tmp += r[0].transcript; } ta.value = base + fin + tmp; if (onChange) onChange(); };
-    rec.onend = function () { listening = false; btn.setAttribute('aria-pressed', 'false'); hintEl.textContent = ''; if (onChange) onChange(); };
-    rec.onerror = function (ev) { listening = false; btn.setAttribute('aria-pressed', 'false'); hintEl.textContent = ev.error === 'not-allowed' ? 'Permití el micrófono en el navegador, o dictá con el micrófono del teclado.' : 'No se pudo escuchar. Probá de nuevo o dictá con el teclado.'; };
-    try { rec.start(); listening = true; btn.setAttribute('aria-pressed', 'true'); hintEl.textContent = 'Escuchando… tocá el micrófono de nuevo para terminar.'; }
-    catch (e) { hintEl.textContent = 'No se pudo iniciar el dictado. Usá el micrófono del teclado.'; }
+    var MOB = /Android|iPhone|iPad/i.test(navigator.userAgent), base = ta.value ? ta.value.replace(/\s+$/, '') + ' ' : '', said = '', t0 = Date.now(), quiet = 0;
+    var put = function (tmp) { ta.value = (base + said + (tmp || '')).replace(/\s+/g, ' ').replace(/^\s+/, ''); try { ta.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {} if (onChange) onChange(); };
+    var go = function () { rec = new SR(); rec.lang = 'es-PY'; rec.interimResults = true; rec.continuous = !MOB; rec.maxAlternatives = 1; var got = false;
+      rec.onresult = function (ev) { var fin = '', tmp = ''; for (var i = ev.resultIndex; i < ev.results.length; i++) { var r = ev.results[i]; if (r.isFinal) fin += r[0].transcript + ' '; else tmp += r[0].transcript; } if (fin) { said += fin; got = true; } put(tmp); };
+      rec.onend = function () { if (listening && (Date.now() - t0 < 120000) && quiet < 3) { if (!got) quiet++; else quiet = 0; setTimeout(function () { if (listening) { try { go(); } catch (e) { stop(); } } }, 120); return; } stop(); };
+      rec.onerror = function (ev) { if (ev.error === 'no-speech' || ev.error === 'aborted') return; listening = false; btn.setAttribute('aria-pressed', 'false'); hintEl.textContent = ev.error === 'not-allowed' ? 'Permití el micrófono (mirá el cartel rojo arriba).' : 'No se pudo escuchar. Probá de nuevo o dictá con el teclado.'; };
+      try { rec.start(); } catch (e) { stop(); } };
+    var stop = function () { listening = false; btn.setAttribute('aria-pressed', 'false'); hintEl.textContent = ''; put(''); };
+    try { listening = true; btn.setAttribute('aria-pressed', 'true'); hintEl.textContent = 'Escuchando… tocá el micrófono de nuevo para terminar.'; go(); }
+    catch (e) { listening = false; hintEl.textContent = 'No se pudo iniciar el dictado. Usá el micrófono del teclado.'; }
   }
   function toggleMic() { dictate(el.note, el.hint, $('btnMic'), saveNote); }
 
@@ -9331,7 +9335,7 @@
     if (k === 'next' || k === 'prev') { (synth&&synth.cancel()); var d = k === 'next' ? 1 : -1, j = mf.i + d; while (items[j] && items[j].kind !== 'para') j += d; if (items[j]) mf.i = j; mf.paused = false; mfStep(); return; }
     if (k === 'cfg') { mf.paused = true; (synth&&synth.cancel()); mfDraw(); mfOpen(); } }, true);
   // número de versión visible, para saber si el celular cargó lo último
-  var LECTOR_VER = 'v863 · 4 nov';
+  var LECTOR_VER = 'v864 · 4 nov';
   try { document.title = 'Integrated Vault — ' + LECTOR_VER; } catch (e) {}
   var VAULT_CH = 'familia';
   setTimeout(function () { if (VAULT_CH !== 'pruebas') return; var tb = $('topBar'); if (tb && !document.querySelector('.ch-badge')) { var b = document.createElement('span'); b.className = 'ch-badge'; b.textContent = '🧪 PRUEBAS'; b.title = 'Esta es la versión de pruebas: los cambios nuevos llegan acá primero. La familia usa la versión normal.'; tb.insertBefore(b, tb.firstChild); } }, 800);
@@ -12317,7 +12321,7 @@
     var sun = new T.DirectionalLight(0xfff4e0, 1.25); sun.position.set(16000, 24000, -11000); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); var sc = sun.shadow.camera; sc.left = -26000; sc.right = 26000; sc.top = 26000; sc.bottom = -26000; sc.near = 100; sc.far = 80000; sun.shadow.bias = -0.0005; sun.target.position.set(12000, 0, 15000); A3.S.add(sun); A3.S.add(sun.target); A3.sun = sun; };
   var _a3Build10 = a3Build; a3Build = function () { _a3Build10(); A3.world.traverse(function (o) { if (o.isMesh && !(o.material && o.material.map && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } }); if (A3.terrG) A3.terrG.traverse(function (o) { if (o.isMesh) o.receiveShadow = true; }); };
   // ================= 🔄 ACTUALIZACIÓN PARA TODOS: al publicar una versión nueva, cada aparato guarda y se cierra solo =================
-  var VBUILD = 863;
+  var VBUILD = 864;
   (async function () { try { if (!window.claude || typeof window.claude.use !== 'function') return; var d = await window.claude.use('db'); if (!d) return; var shown = false;
     d.doc('meta/version').onSnapshot(function (snap) { var v = snap && snap.exists && snap.data() && +snap.data().build; if (true || !v || v <= VBUILD || shown) return; var tried = +(sessionStorage.getItem('iv-upd') || 0); shown = true;
       var ov = document.createElement('div'); ov.className = 'upd-ov'; ov.innerHTML = tried >= v ? '<div class="upd-c"><b>🔄 Hay una versión nueva</b><p>Este aparato todavía muestra la anterior. Cerrá esta pestaña del navegador y abrí el Vault de nuevo.</p><button data-upd="x">Entendido</button></div>' : '<div class="upd-c"><b>🔄 Llegó una actualización del Vault</b><p>Guardo todo y cierro. En unos segundos volvés a entrar con tu clave, ya con lo nuevo.</p><div class="upd-n" id="updN">8</div><button data-upd="now">Cerrar ahora</button></div>'; document.body.appendChild(ov);
@@ -24182,15 +24186,15 @@
         AS.raf = requestAnimationFrame(loop); })(); return true;
     } catch (e) { var n = e && e.name; asPanel('done', '', n === 'NotAllowedError' ? esc(MIC_ERR['not-allowed']) + '<br><small>En la compu: tocá el 🔒 a la izquierda de la dirección → Micrófono → Permitir, y recargá.</small>' : n === 'NotFoundError' ? '🎤 No hay ningún micrófono conectado a este aparato.' : n === 'NotReadableError' ? '🎤 El micrófono está ocupado por otra app (Zoom, WhatsApp, Teams…). Cerrala y probá de nuevo.' : 'No pude abrir el micrófono (' + esc(n || e) + ').'); return false; } }
   async function asListen() { if (!SR0) { asPanel('done', '', '🎤 Este navegador no tiene dictado. Escribí tu pedido abajo, o abrí el Baúl en Google Chrome.'); return; } try { if (AS.rec) { AS.on = false; AS.rec.abort(); } } catch (e) {} try { sayStop(); } catch (e) {}
-    AS.fin = ''; AS.tmp = ''; AS.on = true; AS.t0 = Date.now(); asPanel('listen'); var ok = await asMeter(); if (!ok) { AS.on = false; return; }
+    AS.fin = ''; AS.tmp = ''; AS.on = true; AS.t0 = Date.now(); asPanel('listen'); var MOB = /Android|iPhone|iPad/i.test(navigator.userAgent); var ok = await asMeter(); if (!ok) { AS.on = false; return; } if (MOB) { asMeterStop(); var lv = document.querySelector('#asst .as-lv'); if (lv) lv.style.display = 'none'; }
     var finish = function () { if (!AS.on) return; AS.on = false; clearTimeout(AS.silT); try { AS.rec && AS.rec.stop(); } catch (e) {} asMeterStop(); var q = (AS.fin + ' ' + AS.tmp).trim(); if (q) asHandle(q); else asPanel('done', '', '🤫 No entendí nada. Si la barrita verde se movía, hablá un poco más fuerte y claro; si no se movía, el micrófono no capta (revisá cuál está elegido).'); };
     AS.finish = finish;
-    var start = function () { var r = new SR(); r.__quiet = true; r.lang = 'es-PY'; r.interimResults = true; r.continuous = true; r.maxAlternatives = 1; AS.rec = r;
-      r.onresult = function (ev) { var f = '', t = ''; for (var i = ev.resultIndex; i < ev.results.length; i++) { if (ev.results[i].isFinal) f += ev.results[i][0].transcript + ' '; else t += ev.results[i][0].transcript; } if (f) AS.fin += f; AS.tmp = t; var qd = document.querySelector('#asst .as-heard'); if (qd) qd.textContent = (AS.fin + AS.tmp).trim(); clearTimeout(AS.silT); AS.silT = setTimeout(finish, 1800); };
+    var start = function () { var r = new SR(); r.__quiet = true; r.lang = 'es-PY'; r.interimResults = true; r.continuous = !MOB; r.maxAlternatives = 1; AS.rec = r;
+      r.onresult = function (ev) { var f = '', t = ''; for (var i = ev.resultIndex; i < ev.results.length; i++) { if (ev.results[i].isFinal) f += ev.results[i][0].transcript + ' '; else t += ev.results[i][0].transcript; } if (f) AS.fin += f; AS.tmp = t; var said = (AS.fin + AS.tmp).trim(), qd = document.querySelector('#asst .as-heard'); if (qd) qd.textContent = said; var ai0 = $('asIn'); if (ai0) ai0.value = said; clearTimeout(AS.silT); AS.silT = setTimeout(finish, 1800); };
       r.onerror = function (ev) { var e = ev.error; if (e === 'no-speech' || e === 'aborted') return; if (e === 'language-not-supported') { try { localStorage.setItem('iv-sr-lang', 'es-ES'); } catch (x) {} return; } AS.on = false; asMeterStop(); asPanel('done', '', esc(MIC_ERR[e] || ('No pude escuchar (' + e + ').'))); };
       r.onend = function () { if (!AS.on) return; if ((AS.fin + AS.tmp).trim()) { finish(); return; } if (Date.now() - AS.t0 < 25000) { try { start(); } catch (e) { finish(); } } else finish(); };
       try { r.start(); } catch (e) { setTimeout(function () { try { r.start(); } catch (x) { finish(); } }, 300); } };
-    start(); }
+    if (MOB) setTimeout(start, 350); else start(); }
   document.addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('#asstFab, #asst [data-as]'); if (!b) return; ev.stopPropagation(); ev.preventDefault(); var k = b.id === 'asstFab' ? 'mic' : b.dataset.as;
     if (k === 'x') { AS.on = false; try { if (AS.rec) AS.rec.abort(); } catch (e) {} asMeterStop(); $('asst').style.display = 'none'; return; } if (k === 'done') { if (AS.finish) AS.finish(); return; } if (k === 'mic') { asListen(); return; } if (k === 'rep') { try { sayES(AS.last); } catch (e) {} return; } if (k === 'bib') { $('asst').style.display = 'none'; try { openBibleRef(AS.ref); } catch (e) {} return; } if (k === 'stop') { try { sayStop(); } catch (e) {} return; } if (k === 'go') { var i = $('asIn'); if (i && i.value.trim()) asHandle(i.value); } }, true);
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' && ev.target && ev.target.id === 'asIn') { ev.preventDefault(); if (ev.target.value.trim()) asHandle(ev.target.value); } }, true);
@@ -24656,7 +24660,7 @@
 })();
 </script>
 <script>
-(function () { if (window.claude) return; window.__WEB_BUILD = 863;
+(function () { if (window.claude) return; window.__WEB_BUILD = 864;
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
   function check() { fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (v) { if (v && v.build > window.__WEB_BUILD && !document.getElementById('webUpd')) { var d = document.createElement('div'); d.id = 'webUpd'; d.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;background:#7c3aed;color:#fff;padding:10px 16px;border-radius:14px;font:700 14px system-ui;box-shadow:0 10px 30px rgba(0,0,0,.35)'; var n = 8; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; document.body.appendChild(d); var t = setInterval(function () { n--; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; if (n <= 0) { clearInterval(t); try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 600); } }, 1000); } }).catch(function () {}); }
   var dip = null; window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dip = e; show(); });
