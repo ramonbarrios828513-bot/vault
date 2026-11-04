@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Integrated Vault — v848 · 3 nov</title>
+<title>Integrated Vault — v849 · 3 nov</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
@@ -2726,6 +2726,8 @@
   .pk-b { position: absolute; top: 0; width: 9%; height: 62%; background: #0f172a; border-radius: 0 0 5px 5px; transform: translateX(-50%); cursor: pointer; z-index: 2; }
   .pk-b.hit { background: #7c3aed; }
   .ask-ov [data-ak] { touch-action: manipulation; }
+  #undoBar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 9600; display: flex; align-items: center; gap: 6px; background: #0f172a; color: #fff; padding: 8px 10px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.4); font: 700 14px system-ui; width: max-content; max-width: calc(100vw - 16px); flex-wrap: nowrap; white-space: nowrap; } #undoBar button { border: 0; border-radius: 12px; padding: 9px 10px; font: 800 15px system-ui; background: #fbbf24; color: #1e1b4b; } #undoBar button[data-undo=go] { background: #334155; color: #fff; }
+  #pzBoard #pzbCols { flex-wrap: wrap !important; max-width: 100% !important; }
   .ca-hs { overflow-x: auto; } .mb-hd.ch, .mb-row.ch { grid-template-columns: 1fr 90px 34px; } .ca-tb tr.g td { background: #f0fdf4; } .ca-tb tr.neg td { background: #fef2f2; }
   .ca-col { flex-direction: column; align-items: stretch; } .ca-col textarea { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 10px; border: 2px solid #94a3b8; font: 700 16px system-ui; background: #fff; color: #0f172a; } .ca-bars i.neg { background: #f87171; } .ca-big small + b + small { display: block; }
   .mb-hd, .mb-row { display: grid; grid-template-columns: 1fr 64px 92px 34px; gap: 4px; align-items: center; } .mb-hd span { font: 700 11px system-ui; color: #64748b; } .mb-row { margin: 4px 0; } .mb-row input { width: 100%; min-width: 0; padding: 9px 6px; border-radius: 10px; border: 2px solid #94a3b8; font: 700 15px system-ui; background: #fff; color: #0f172a; box-sizing: border-box; } .mb-q, .mb-c { text-align: right; } .mb-del { border: 0; background: #fee2e2; color: #b91c1c; border-radius: 10px; height: 38px; font: 800 14px system-ui; } .mb-add { margin-top: 6px; padding: 9px 12px; border-radius: 10px; border: 2px dashed #2563eb; background: #eff6ff; color: #1d4ed8; font: 800 14px system-ui; }
@@ -9315,7 +9317,7 @@
     if (k === 'next' || k === 'prev') { (synth&&synth.cancel()); var d = k === 'next' ? 1 : -1, j = mf.i + d; while (items[j] && items[j].kind !== 'para') j += d; if (items[j]) mf.i = j; mf.paused = false; mfStep(); return; }
     if (k === 'cfg') { mf.paused = true; (synth&&synth.cancel()); mfDraw(); mfOpen(); } }, true);
   // número de versión visible, para saber si el celular cargó lo último
-  var LECTOR_VER = 'v848 · 3 nov';
+  var LECTOR_VER = 'v849 · 3 nov';
   try { document.title = 'Integrated Vault — ' + LECTOR_VER; } catch (e) {}
   var VAULT_CH = 'familia';
   setTimeout(function () { if (VAULT_CH !== 'pruebas') return; var tb = $('topBar'); if (tb && !document.querySelector('.ch-badge')) { var b = document.createElement('span'); b.className = 'ch-badge'; b.textContent = '🧪 PRUEBAS'; b.title = 'Esta es la versión de pruebas: los cambios nuevos llegan acá primero. La familia usa la versión normal.'; tb.insertBefore(b, tb.firstChild); } }, 800);
@@ -12301,7 +12303,7 @@
     var sun = new T.DirectionalLight(0xfff4e0, 1.25); sun.position.set(16000, 24000, -11000); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); var sc = sun.shadow.camera; sc.left = -26000; sc.right = 26000; sc.top = 26000; sc.bottom = -26000; sc.near = 100; sc.far = 80000; sun.shadow.bias = -0.0005; sun.target.position.set(12000, 0, 15000); A3.S.add(sun); A3.S.add(sun.target); A3.sun = sun; };
   var _a3Build10 = a3Build; a3Build = function () { _a3Build10(); A3.world.traverse(function (o) { if (o.isMesh && !(o.material && o.material.map && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } }); if (A3.terrG) A3.terrG.traverse(function (o) { if (o.isMesh) o.receiveShadow = true; }); };
   // ================= 🔄 ACTUALIZACIÓN PARA TODOS: al publicar una versión nueva, cada aparato guarda y se cierra solo =================
-  var VBUILD = 848;
+  var VBUILD = 849;
   (async function () { try { if (!window.claude || typeof window.claude.use !== 'function') return; var d = await window.claude.use('db'); if (!d) return; var shown = false;
     d.doc('meta/version').onSnapshot(function (snap) { var v = snap && snap.exists && snap.data() && +snap.data().build; if (true || !v || v <= VBUILD || shown) return; var tried = +(sessionStorage.getItem('iv-upd') || 0); shown = true;
       var ov = document.createElement('div'); ov.className = 'upd-ov'; ov.innerHTML = tried >= v ? '<div class="upd-c"><b>🔄 Hay una versión nueva</b><p>Este aparato todavía muestra la anterior. Cerrá esta pestaña del navegador y abrí el Vault de nuevo.</p><button data-upd="x">Entendido</button></div>' : '<div class="upd-c"><b>🔄 Llegó una actualización del Vault</b><p>Guardo todo y cierro. En unos segundos volvés a entrar con tu clave, ya con lo nuevo.</p><div class="upd-n" id="updN">8</div><button data-upd="now">Cerrar ahora</button></div>'; document.body.appendChild(ov);
@@ -20578,7 +20580,7 @@
     function view() { return { s: B.s, oy: B.oy }; }
     function redraw() { if (!B.ctx) return; var pg = cur(); renderInto(B.ctx, pg, view(), B.cv.width, B.cv.height); var c = B.ctx;
       c.save(); c.fillStyle = (pg.bg || 'verde') === 'blanco' ? 'rgba(0,0,0,.45)' : 'rgba(255,255,255,.55)'; c.font = '700 ' + (18 * B.s) + 'px system-ui'; c.textAlign = 'right'; c.fillText(pg.n + ' · ' + (B.page + 1) + '/' + pages().length, B.cv.width - 26 * B.s, B.cv.height - 12 * B.s); c.restore(); sbar(); }
-    function sbar() { var th = Q('pzbTh'); if (!th) return; var H = pgH(cur()), f = Math.min(1, B.VH / H); th.style.height = Math.max(8, f * 100) + '%'; th.style.top = (H > B.VH ? B.oy / H * 100 : 0) + '%'; }
+    function sbar() { var th = Q('pzbTh'); if (!th) return; var H = pgH(cur()), f = Math.min(1, B.VH / H); th.style.height = Math.max(8, f * 100) + '%'; th.style.top = (H > B.VH ? B.oy / H * 100 : 0) + '%'; var sb = Q('pzbSb'); if (sb) sb.classList.toggle('full', f >= 0.97); }
     function fit() { var wrap = Q('pzbWrap'), cv = Q('pzbCv'); if (!wrap || !cv) return; var r = wrap.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1); if (r.width < 10) return; cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); B.cv = cv; B.ctx = cv.getContext('2d'); B.s = cv.width / B.W; B.VH = cv.height / B.s; setOy(B.oy); }
     function pt(ev) { var r = B.cv.getBoundingClientRect(); return [(ev.clientX - r.left) / r.width * B.W, (ev.clientY - r.top) / r.width * B.W + B.oy]; }
     // ---- correr la hoja ----
@@ -20598,6 +20600,7 @@
       '.pzb-board{position:relative;border-radius:6px;box-shadow:inset 0 0 0 3px rgba(0,0,0,.35),inset 0 0 60px rgba(0,0,0,.35);overflow:hidden;aspect-ratio:16/10;touch-action:none;cursor:crosshair}',
       '.pzb-board canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}',
       '.pzb-sb{position:absolute;z-index:2;top:8px;bottom:8px;right:5px;width:12px;border-radius:6px;background:rgba(255,255,255,.14);cursor:pointer;touch-action:none}',
+      '.pzb-sb{transition:opacity .2s,width .2s}.pzb-sb.full{opacity:.25;width:6px}',
       '.pzb-sb i{position:absolute;left:1px;right:1px;border-radius:5px;background:rgba(255,255,255,.7);box-shadow:0 1px 3px rgba(0,0,0,.4)}',
       '.pzb-tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 4px}',
       '.pzb-tools .grp{display:flex;gap:4px;align-items:center;padding:4px 6px;border-radius:12px;background:rgba(0,0,0,.08)}',
@@ -23930,6 +23933,22 @@
   window.__calc = { adv: function (t) { return caAdvOut(t); }, mb: function () { return caMb(); }, open: caOpen, lab: caLab, st: caSt, N: caN };
   try { if (!TOOLREG.some(function (t) { return t[1] === 'Calculadora inteligente'; })) TOOLREG.unshift(['🧮', 'Calculadora inteligente', 'calculadora descuento laboratorio precio farmacia precio publico bonificacion nota de credito costo real iva prestamo frances aleman cuota interes compuesto ahorro', function () { caOpen(); }]); } catch (e) {}
   (function () { var add = function () { var g = document.querySelector('#menuPane .mn-grid'); if (g && !g.querySelector('[data-caopen]')) { var b = document.createElement('button'); b.className = 'mn-b'; b.dataset.caopen = '1'; b.innerHTML = '<span>🧮</span>Calculadora inteligente (descuentos, préstamos, interés)'; g.insertBefore(b, g.firstChild); } }; try { new MutationObserver(function () { clearTimeout(add._t); add._t = setTimeout(add, 300); }).observe(document.body, { childList: true, subtree: true }); } catch (e) {} })();
+  // ================= v849 · ↩️ DESHACER ENVÍO: en los chats, unos segundos para arrepentirse antes de que el mensaje salga =================
+  var UNDO = { pairs: { cpSend: 'cpQ', aiAsk: 'aiQ', wrAnsGo: 'wrAns', rpGo: 'rpQ', taGo: 'taQ', feGo: 'feQ', kidGo: 'kidQ', auGo: 'auQ', scGo: 'scQ', owGo: 'owQ', prGo: 'prQ', tmGo: 'tmQ', atJSend: 'atJMsg' }, secs: 4, cur: null };
+  function undoOn() { try { return localStorage.getItem('iv-undo') !== 'no'; } catch (e) { return true; } }
+  function undoTa(btnId) { return UNDO.pairs[btnId] ? $(UNDO.pairs[btnId]) : null; }
+  function undoCancel(msg) { var c = UNDO.cur; if (!c) return; clearInterval(c.t); UNDO.cur = null; var bar = $('undoBar'); if (bar) bar.remove(); if (msg) { try { c.ta.focus(); } catch (e) {} toast(msg); } }
+  function undoFire() { var c = UNDO.cur; if (!c) return; undoCancel(); c.btn._undoOk = true; try { c.btn.click(); } finally { c.btn._undoOk = false; } }
+  function undoStart(btn, ta) { undoCancel(); var left = UNDO.secs, bar = document.createElement('div'); bar.id = 'undoBar'; document.body.appendChild(bar);
+    var paint = function () { bar.innerHTML = '<span>📨 Se envía en <b>' + left + '</b>…</span><button data-undo="no">↩️ Deshacer</button><button data-undo="go">Enviar ya</button>'; };
+    UNDO.cur = { btn: btn, ta: ta, t: setInterval(function () { left--; if (left <= 0) undoFire(); else paint(); }, 1000) }; paint(); }
+  document.addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('#undoBar [data-undo]'); if (b) { ev.stopPropagation(); ev.preventDefault(); if (b.dataset.undo === 'go') undoFire(); else undoCancel('↩️ No se envió. Corregí el texto y volvé a enviar.'); return; }
+    var btn = ev.target.closest && ev.target.closest('button[id]'); if (!btn || btn._undoOk || !UNDO.pairs[btn.id] || !undoOn()) return; var ta = undoTa(btn.id); if (!ta || !String(ta.value || '').trim()) return; ev.stopImmediatePropagation(); ev.preventDefault(); undoStart(btn, ta); }, true);
+  document.addEventListener('keydown', function (ev) { if (ev.key !== 'Enter' || ev.shiftKey || ev.isComposing || !undoOn()) return; var t = ev.target; if (!t || t.tagName !== 'TEXTAREA') return; var bid = Object.keys(UNDO.pairs).find(function (k) { return UNDO.pairs[k] === t.id; }); if (!bid) return; var btn = $(bid); if (!btn || !String(t.value || '').trim()) return; try { if (matchMedia('(pointer: coarse)').matches) return; } catch (e) {} ev.stopImmediatePropagation(); ev.preventDefault(); undoStart(btn, t); }, true);
+  // si vuelve a escribir en el cuadro mientras cuenta, se frena (quiere corregir)
+  document.addEventListener('input', function (ev) { var c = UNDO.cur; if (c && ev.target === c.ta) undoCancel('✏️ Envío frenado: seguí corrigiendo y enviá cuando quieras.'); }, true);
+  try { if (!TOOLREG.some(function (t) { return t[1] === 'Deshacer envío'; })) TOOLREG.push(['↩️', 'Deshacer envío', 'deshacer envio mensaje enviar sin querer editar corregir chat', function () { var on = !undoOn(); try { localStorage.setItem('iv-undo', on ? 'si' : 'no'); } catch (e) {} toast(on ? '↩️ Activado: al enviar tenés ' + UNDO.secs + ' segundos para deshacer.' : 'Desactivado: los mensajes se envían al instante.'); }]); } catch (e) {}
+  window.__undo = UNDO;
   // ================= v839 · 🏆 JUEGOS DEL SABER: «¿Quién sabe más?» (preguntas de 4 opciones o verdadero/falso, con comodines: 50:50, público, amigo y cambiar) y 🔤 Sopa de letras — Biblia, Código del Trabajo, Constitución, Derecho y Construcción =================
   var SB_T = { biblia: ['📖', 'Biblia'], trabajo: ['👷', 'Código del Trabajo'], const: ['🇵🇾', 'Constitución Nacional'], derecho: ['⚖️', 'Derecho y abogacía'], obra: ['🏗️', 'Construcción'] };
   // banco propio (funciona sin IA): [pregunta, [correcta, otra, otra, otra], explicación]
@@ -24355,7 +24374,7 @@
 })();
 </script>
 <script>
-(function () { if (window.claude) return; window.__WEB_BUILD = 848;
+(function () { if (window.claude) return; window.__WEB_BUILD = 849;
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
   function check() { fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (v) { if (v && v.build > window.__WEB_BUILD && !document.getElementById('webUpd')) { var d = document.createElement('div'); d.id = 'webUpd'; d.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;background:#7c3aed;color:#fff;padding:10px 16px;border-radius:14px;font:700 14px system-ui;box-shadow:0 10px 30px rgba(0,0,0,.35)'; var n = 8; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; document.body.appendChild(d); var t = setInterval(function () { n--; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; if (n <= 0) { clearInterval(t); try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 600); } }, 1000); } }).catch(function () {}); }
   var dip = null; window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dip = e; show(); });
