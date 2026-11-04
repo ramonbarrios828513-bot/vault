@@ -1,6 +1,6 @@
 // Baúl · funciona sin internet: guarda la app y los libros que ya abriste; la app se actualiza cuando hay conexión
-var V = 'baul-v2', BOOKS = 'baul-libros-v1';
-var SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
+var V = 'baul-v3', BOOKS = 'baul-libros-v1';
+var SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon3d-192.png', './icons/icon3d-512.png'];
 self.addEventListener('install', function (e) { e.waitUntil(caches.open(V).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); })); });
 self.addEventListener('activate', function (e) { e.waitUntil(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k !== V && k !== BOOKS && k.indexOf('baul-') === 0; }).map(function (k) { return caches.delete(k); })); }).then(function () { return self.clients.claim(); })); });
 self.addEventListener('fetch', function (e) { var u = new URL(e.request.url); if (e.request.method !== 'GET' || u.origin !== location.origin) return;

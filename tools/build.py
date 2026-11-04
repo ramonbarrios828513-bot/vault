@@ -36,7 +36,7 @@ w = re.sub(r'\b(%s)\b' % '|'.join(k.upper() for k in SHOW), lambda m: {k.upper()
 m = re.search(r'var VBUILD = (\d+)', w); build = int(m.group(1)) if m else 0
 # 2) instalable en el celular + funciona sin internet + se actualiza solo desde GitHub
 head = ('<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#7c3aed">'
-        '<link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes">'
+        '<link rel="apple-touch-icon" href="icons/apple-touch-icon-3d.png"><link rel="icon" type="image/png" href="icons/favicon-3d.png"><meta name="mobile-web-app-capable" content="yes">'
         '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Baúl">')
 w = w.replace('<meta name=viewport', head + '<meta name=viewport', 1)
 tail = '''<script>
