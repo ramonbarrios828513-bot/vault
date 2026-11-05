@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Nissifarma Ruta</title>
+<meta name="description" content="Prototipo del despachador inteligente de deliverys: km, salidas, notificaciones y sugerencia de quién va.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root { --bg: #0b1220; --pn: #111a2e; --pn2: #172238; --li: #26324a; --tx: #e8eef8; --mu: #93a3bd; --pr: #14b8a6; --ok: #22c55e; --wa: #f59e0b; --bad: #ef4444; --bl: #3b82f6; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--tx); font: 14.5px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; background: #0f1a30; border-bottom: 1px solid var(--li); }
+.top h1 { font-size: 17px; margin: 0 8px 0 0; } .clock { font: 800 18px ui-monospace, monospace; color: var(--pr); }
+.b { min-height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--li); background: var(--pn2); color: var(--tx); font: 700 13px system-ui; cursor: pointer; }
+.b.pr { background: var(--pr); border-color: var(--pr); color: #04201c; } .b.red { background: var(--bad); border-color: var(--bad); color: #fff; } .b.ok { background: var(--ok); border-color: var(--ok); color: #052e16; } .b.on { outline: 2px solid var(--pr); }
+.b:disabled { opacity: .45; cursor: default; }
+.demo { font-size: 12px; color: #fde68a; background: #422006; border: 1px solid #a16207; border-radius: 99px; padding: 3px 10px; }
+.tabsM { display: none; gap: 6px; padding: 8px 12px; } .tabsM button { flex: 1; }
+.wrap { display: grid; grid-template-columns: 1fr 400px 350px; height: calc(100vh - 54px); }
+#map { height: 100%; } .col { overflow-y: auto; border-left: 1px solid var(--li); background: var(--pn); }
+.tabs { display: flex; gap: 4px; padding: 8px; position: sticky; top: 0; background: var(--pn); z-index: 5; border-bottom: 1px solid var(--li); flex-wrap: wrap; } .tabs button { flex: 1 1 auto; min-height: 34px; border-radius: 8px; border: 1px solid var(--li); background: var(--pn2); color: var(--tx); font: 700 12.5px system-ui; cursor: pointer; } .tabs button.on { background: var(--pr); color: #04201c; border-color: var(--pr); }
+.pad { padding: 10px; }
+.it { background: var(--pn2); border: 1px solid var(--li); border-left: 4px solid var(--li); border-radius: 12px; padding: 9px 10px; margin-bottom: 8px; } .it.r { border-left-color: var(--bad); } .it.y { border-left-color: var(--wa); } .it.g { border-left-color: var(--ok); } .it.bl { border-left-color: var(--bl); }
+.it small, .mu { color: var(--mu); } .it .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 11.5px; font-weight: 800; background: var(--li); } .pill.r { background: #7f1d1d; color: #fecaca; } .pill.y { background: #78350f; color: #fde68a; } .pill.g { background: #14532d; color: #bbf7d0; } .pill.bl { background: #1e3a8a; color: #bfdbfe; }
+.sug { margin-top: 6px; padding: 6px 8px; border-radius: 8px; background: #0b2b29; border: 1px dashed var(--pr); font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; } th, td { padding: 6px 4px; border-bottom: 1px solid var(--li); text-align: right; } th:first-child, td:first-child { text-align: left; } th { color: var(--mu); font-weight: 700; }
+label.c { display: grid; grid-template-columns: 1fr 90px; gap: 8px; align-items: center; margin: 6px 0; font-size: 13px; } label.c input { width: 100%; padding: 7px; border-radius: 8px; border: 1px solid var(--li); background: #0b1220; color: var(--tx); font: 700 14px system-ui; text-align: right; }
+.phone { background: #05080f; padding: 14px; } .ph { max-width: 330px; margin: 0 auto; background: #f1f5f4; color: #0f172a; border-radius: 34px; border: 8px solid #1e293b; min-height: 640px; overflow: hidden; display: flex; flex-direction: column; }
+.ph-h { background: #0f766e; color: #fff; padding: 12px 14px 10px; } .ph-h b { font-size: 16px; } .ph-h small { display: block; opacity: .85; }
+.ph-b { padding: 10px; flex: 1; overflow-y: auto; } .ph .card { background: #fff; border-radius: 14px; padding: 10px; margin-bottom: 8px; border: 1px solid #e2e8f0; }
+.ph .bb { width: 100%; min-height: 48px; border: 0; border-radius: 12px; background: #0f766e; color: #fff; font: 800 15px system-ui; margin-top: 6px; cursor: pointer; } .ph .bb.sec { background: #e2e8f0; color: #0f172a; } .ph .bb.red { background: #dc2626; } .ph .bb:disabled { opacity: .45; }
+.ph .noti { background: #fff7ed; border: 1px solid #fdba74; border-radius: 12px; padding: 8px 10px; margin-bottom: 6px; font-size: 13px; }
+.ph .st { display: inline-block; padding: 2px 10px; border-radius: 99px; background: #ccfbf1; color: #115e59; font-weight: 800; font-size: 12px; }
+.ph .km { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12.5px; } .ph .km div { background: #f8fafc; border-radius: 10px; padding: 6px 8px; } .ph .km b { display: block; font-size: 16px; }
+.mi { font-size: 22px; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); } .mi span { display: block; font: 800 10px system-ui; color: #fff; background: rgba(0,0,0,.65); border-radius: 6px; padding: 1px 4px; margin-top: 1px; white-space: nowrap; }
+.leaflet-container { background: #0b1220; }
+@media (max-width: 1250px) { .wrap { grid-template-columns: 1fr 380px; } .wrap .phone { display: none; } .wrap.showPhone .phone { display: block; position: fixed; inset: 54px 0 0 auto; width: 360px; z-index: 900; overflow-y: auto; border-left: 1px solid var(--li); } }
+@media (max-width: 820px) { .demo { font-size: 10.5px; } .top h1 { font-size: 15px; } .tabsM { display: flex; } .wrap { display: block; height: auto; } .wrap > * { display: none; } .wrap.m-map #mapBox { display: block; height: 62vh; } .wrap.m-cen .cen { display: block; } .wrap.m-ph .phone { display: block; position: static; width: auto; } .col { border-left: 0; } }
+</style>
+</head>
+<body>
+<div class="top"><h1>🛵 Nissifarma Ruta</h1><span class="clock" id="clk">08:00</span>
+  <button class="b" data-sp="0" title="Pausa">⏸</button><button class="b" data-sp="15">x15</button><button class="b on" data-sp="30">x30</button><button class="b" data-sp="60">x60</button>
+  <button class="b pr" data-act="newF">🧾 Simular factura impresa</button><button class="b" data-act="newT">🔁 Simular transferencia</button><button class="b" data-act="newOut">🚪 Simular salida sin aviso</button>
+  <span class="demo">MODO SIMULACIÓN · después se conecta al sistema de Alberto</span><button class="b" id="tgPh" data-act="tgPh" style="display:none">📱 App deliverista</button></div>
+<div class="tabsM"><button class="b on" data-m="map">🗺️ Mapa</button><button class="b" data-m="cen">📋 Central</button><button class="b" data-m="ph">📱 App</button></div>
+<div class="wrap m-map" id="wrap"><div id="mapBox"><div id="map"></div></div><div class="col cen" id="cen"></div><div class="col phone" id="phone"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function () {
+'use strict';
+var $ = function (s) { return document.querySelector(s); };
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function gs(n) { return 'Gs. ' + Math.round(n).toLocaleString('es-PY'); }
+function hav(a, b) { var R = 6371, r = Math.PI / 180, dLa = (b.lat - a.lat) * r, dLo = (b.lng - a.lng) * r, x = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLo / 2) * Math.sin(dLo / 2); return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x)); }
+function km(n) { return n.toFixed(1).replace('.', ',') + ' km'; }
+var rnd = (function () { var s = 7; return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; })();
+
+// ---------- configuración (reglas que el director cambia) ----------
+var CFG = { pct: 30, comb: 40, gratis: 8000, transf: 10000, geo: 80, aband: 15, limDel: 60, limTr: 240, autoU: 2, autoN: 5, velKmh: 28 };
+// Ubicaciones aproximadas: se corrigen arrastrando cada sucursal en el mapa (pestaña Reglas).
+var SUC = [{ id: 'fr', n: 'Franco', lat: -25.5630, lng: -54.6110 }, { id: 'k7', n: 'KM 7 Central', lat: -25.5047, lng: -54.6720 }, { id: 'k8', n: 'KM 8', lat: -25.5072, lng: -54.6845 }, { id: 'k11', n: 'KM 11', lat: -25.4985, lng: -54.7120 }, { id: 'sa', n: 'Santa Ana', lat: -25.5250, lng: -54.6300 }];
+function suc(id) { return SUC.find(function (s) { return s.id === id; }); }
+var T = new Date(); T.setHours(8, 0, 0, 0); var T0 = T.getTime(), SPEED = 30;
+function now() { return T.getTime(); }
+function hhmm(ms) { var d = new Date(ms); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+function mins(ms) { return Math.round(ms / 60000); }
+function ago(ms) { var m = mins(now() - ms); return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min'; }
+
+var ST = { base: ['🟢', 'Libre en base', 'g'], ir: ['🔵', 'Yendo a retirar', 'bl'], ret: ['🔵', 'Retirando', 'bl'], camino: ['🔵', 'En camino', 'bl'], ent: ['🔵', 'Entregando', 'bl'], vuelta: ['🟢', 'Volviendo a base', 'g'], dilig: ['🟡', 'Diligencia autorizada', 'y'], sin: ['🟠', 'Salida sin justificar', 'y'], aband: ['🔴', 'Posible abandono', 'r'], aprob: ['🟡', 'Salida aprobada', 'y'] };
+function mk(id, n, base) { var s = suc(base); return { id: id, n: n, base: base, lat: s.lat, lng: s.lng, st: 'base', job: null, tgt: null, wait: 0, trail: [[s.lat, s.lng]], km: { viaje: 0, vuelta: 0, dilig: 0, sin: 0 }, trips: 0, pago: 0, combTope: 0, gratis: 0, transf: 0, sinN: 0, abN: 0, outAt: 0, motivo: '', inside: true, qr: null }; }
+var MOTOS = [mk('m1', 'Juan', 'k8'), mk('m2', 'Pedro', 'k8'), mk('m3', 'Lucas', 'k7'), mk('m4', 'Ana', 'fr')];
+var PH = 'm1', MANUAL = true;
+function moto(id) { return MOTOS.find(function (m) { return m.id === id; }); }
+var JOBS = [], FEED = [], NOTI = {}, NJ = 4567;
+function feed(ic, txt, lvl, ref) { FEED.unshift({ t: now(), ic: ic, txt: txt, lvl: lvl || '', ref: ref || null }); if (FEED.length > 80) FEED.pop(); }
+function notify(mid, txt) { (NOTI[mid] = NOTI[mid] || []).unshift({ t: now(), txt: txt }); if (NOTI[mid].length > 12) NOTI[mid].pop(); if (mid === PH && navigator.vibrate) try { navigator.vibrate(120); } catch (e) {} }
+function near(s, kmR) { var a = rnd() * Math.PI * 2, d = (0.5 + rnd() * kmR) / 111; return { lat: s.lat + Math.sin(a) * d, lng: s.lng + Math.cos(a) * d / Math.cos(s.lat * Math.PI / 180) }; }
+var CLI = ['Sra. Benítez', 'Sr. Ramírez', 'Familia Duarte', 'Sra. Ortiz', 'Sr. Giménez', 'Sra. Acosta', 'Sr. Villalba', 'Sra. Cáceres', 'Sr. Insfrán', 'Sra. Rolón'];
+
+// ---------- crear trabajos ----------
+function newFact(sid, urgent, agoMin) { var s = suc(sid || ['k8', 'k8', 'k7', 'k11', 'sa', 'fr'][Math.floor(rnd() * 6)]), p = near(s, 2.5), monto = Math.round((40 + rnd() * 400) / 5) * 5000, gratis = monto >= 300000 && rnd() < .5;
+  var J = { id: 'J' + (++NJ), tipo: 'delivery', from: s.id, to: { n: CLI[Math.floor(rnd() * CLI.length)], lat: p.lat, lng: p.lng }, fact: '001-00' + (SUC.indexOf(s) + 1) + '-000' + NJ, monto: monto, valDel: gratis ? 0 : 15000 + Math.round(rnd() * 3) * 5000, gratis: gratis, urgent: !!urgent, created: now() - (agoMin || 0) * 60000, st: 'pend', moto: null };
+  JOBS.push(J); feed('🧾', 'Factura impresa ' + J.fact + ' en <b>' + s.n + '</b> → ' + esc(J.to.n) + (J.urgent ? ' · <span class="pill r">URGENTE</span>' : '') + (J.gratis ? ' · <span class="pill g">delivery gratis</span>' : ''), J.urgent ? 'r' : 'bl', J.id); suggest(J, true); return J; }
+function newTransf(a, b, agoMin) { var A = suc(a || 'k7'), B = suc(b || 'k11'); var J = { id: 'J' + (++NJ), tipo: 'transfer', from: A.id, to: { n: B.n, lat: B.lat, lng: B.lng, suc: B.id }, fact: 'Remito R-' + NJ, monto: 1200000 + Math.round(rnd() * 20) * 100000, valDel: 0, urgent: false, created: now() - (agoMin || 0) * 60000, st: 'pend', moto: null };
+  JOBS.push(J); feed('🔁', 'Transferencia ' + A.n + ' → ' + B.n + ' (' + J.fact + ', ' + gs(J.monto) + ')' + (agoMin ? ' · procesada hace ' + ago(J.created) : ''), 'bl', J.id); suggest(J, true); return J; }
+
+// ---------- el cerebro: prioridad y sugerencia ----------
+function prio(J) { var wH = (now() - J.created) / 3600000, lim = J.tipo === 'delivery' ? CFG.limDel : CFG.limTr, late = (now() - J.created) / 60000 > lim; var p = (J.urgent ? 50 : 0) + Math.round(wH * 10) + (J.tipo === 'delivery' ? 20 : J.tipo === 'transfer' ? 10 : 5) + (late ? 40 : 0); return { p: p, late: late, why: [J.urgent ? 'urgente +50' : '', 'espera ' + ago(J.created) + ' +' + Math.round(wH * 10), J.tipo === 'delivery' ? 'delivery +20' : 'transferencia +10', late ? 'pasó el límite +40' : ''].filter(Boolean).join(' · ') }; }
+function cands(J) { var P = suc(J.from); return MOTOS.filter(function (m) { return (m.st === 'base' || m.st === 'vuelta') && !(m.id === PH && MANUAL && m.job); }).map(function (m) { var d = hav(m, P), sc = d * 10 + m.trips * 4 + (m.st === 'vuelta' ? 2 : 0); if (J.tipo === 'transfer' && m.base === J.to.suc) sc -= 6; return { m: m, d: d, sc: sc }; }).sort(function (a, b) { return a.sc - b.sc; }); }
+function suggest(J, notifyIt) { var C = cands(J); J.sug = C[0] ? C[0].m.id : null; J.sugWhy = C[0] ? C[0].m.n + ': ' + ST[C[0].m.st][1].toLowerCase() + ', a ' + km(C[0].d) + ' del retiro, ' + C[0].m.trips + ' viaje(s) hoy' + (J.tipo === 'transfer' && C[0].m.base === J.to.suc ? ', vuelve a su base' : '') : 'No hay deliverista libre ahora: queda primero en la cola';
+  if (notifyIt && J.sug) notify(J.sug, '🧾 ' + (J.tipo === 'delivery' ? 'Delivery' : 'Transferencia') + ' sugerido para vos: ' + suc(J.from).n + ' → ' + J.to.n + (J.urgent ? ' (URGENTE)' : '')); }
+function assign(J, mid, auto) { var m = moto(mid); if (!m || J.st !== 'pend') return; J.st = 'asig'; J.moto = mid; J.asigAt = now(); m.job = J.id; notify(mid, '✅ Te asignaron ' + J.fact + ': retirá en ' + suc(J.from).n + '.'); feed(auto ? '🤖' : '👤', (auto ? 'Asignado automáticamente' : 'Asignado') + ' ' + J.fact + ' a <b>' + m.n + '</b>' + (auto ? ' (nadie confirmó a tiempo)' : ''), 'g', J.id);
+  if (!(mid === PH && MANUAL)) startJob(m, J); }
+function startJob(m, J) { var P = suc(J.from); if (hav(m, P) * 1000 < CFG.geo) { m.st = 'ret'; m.wait = (m.id === PH && MANUAL) ? 0 : 60; m.tgt = null; } else { m.st = 'ir'; m.tgt = { lat: P.lat, lng: P.lng }; } }
+
+// ---------- simulación ----------
+var OUTP = {};
+function tick(dtS) { if (!dtS) return; T = new Date(now() + dtS * 1000);
+  JOBS.forEach(function (J) { if (J.st !== 'pend') return; suggest(J, false); var lim = (J.urgent ? CFG.autoU : CFG.autoN) * 60000, since = now() - Math.max(J.created, J.seen || J.created); if (!J.seen) J.seen = now(); if (now() - J.seen > lim && J.sug) assign(J, J.sug, true);
+    var P = prio(J); if (P.late && !J.lateWarn) { J.lateWarn = 1; feed('⏰', J.fact + ' (' + suc(J.from).n + ') pasó el límite de espera: ' + ago(J.created) + ' sin salir', 'r', J.id); } });
+  JOBS.forEach(function (J) { if (J.st === 'asig' && !J.noGo && now() - J.asigAt > 10 * 60000) { var mm = moto(J.moto); if (mm && mm.st === 'base') { J.noGo = 1; feed('⏳', '<b>' + mm.n + '</b> tiene asignado ' + J.fact + ' hace 10 min y todavía no salió', 'r', J.id); notify(mm.id, '⏳ Tenés un pedido asignado hace 10 min. ¿Salís ya?'); } } });
+  MOTOS.forEach(function (m) { var B = suc(m.base);
+    if (m.tgt) { var step = CFG.velKmh / 3600 * dtS, d = hav(m, m.tgt); var bucket = m.st === 'vuelta' ? 'vuelta' : m.st === 'dilig' || m.st === 'aprob' ? 'dilig' : m.st === 'sin' || m.st === 'aband' ? 'sin' : 'viaje'; var mv = Math.min(step, d); if (d > 0.001) { var f = mv / d; m.lat += (m.tgt.lat - m.lat) * f; m.lng += (m.tgt.lng - m.lng) * f; m.km[bucket] += mv; var L = m.trail[m.trail.length - 1]; if (hav({ lat: L[0], lng: L[1] }, m) > 0.05) m.trail.push([m.lat, m.lng]); }
+      if (hav(m, m.tgt) < 0.01) arrive(m); }
+    else if (m.wait > 0) { m.wait -= dtS; if (m.wait <= 0) afterWait(m); }
+    var inside = hav(m, B) * 1000 < CFG.geo; if (m.inside && !inside && m.st === 'base') { m.st = 'sin'; m.outAt = now(); m.sinN++; feed('🚪', '<b>' + m.n + '</b> salió de ' + B.n + ' sin factura, remito ni QR de salida', 'y', m.id); notify(m.id, '⚠️ Saliste sin pedido ni QR de salida. Indicá el motivo.'); }
+    if (inside && (m.st === 'sin' || m.st === 'aband' || m.st === 'aprob' || m.st === 'dilig') && !m.tgt) { feed('↩️', '<b>' + m.n + '</b> volvió a ' + B.n + ' (' + mins(now() - m.outAt) + ' min fuera)', 'g', m.id); m.st = 'base'; m.motivo = ''; }
+    if (m.st === 'sin' && now() - m.outAt > CFG.aband * 60000) { m.st = 'aband'; m.abN++; feed('🚨', '<b>' + m.n + '</b>: posible <b>abandono de trabajo</b> — ' + mins(now() - m.outAt) + ' min fuera de ' + B.n + ' sin justificar', 'r', m.id); notify(m.id, '🚨 Hace ' + CFG.aband + ' min que estás fuera sin justificar. Volvé o avisá a la sucursal.'); }
+    m.inside = inside; });
+  // guion de la simulación
+  var mn = mins(now() - T0); SCN.forEach(function (e) { if (!e.done && mn >= e.at) { e.done = 1; e.f(); } }); if (mn > 30 && mn % 11 === 0 && !OUTP[mn]) { OUTP[mn] = 1; newFact(null, rnd() < .25); } }
+function arrive(m) { m.tgt = null; var J = JOBS.find(function (j) { return j.id === m.job; });
+  if (m.st === 'ir') { m.st = 'ret'; m.wait = 60; if (m.id === PH && MANUAL) m.wait = 0; feed('📍', m.n + ' llegó a ' + suc(J.from).n + ' a retirar ' + J.fact, 'bl', J.id); return; }
+  if (m.st === 'camino') { m.st = 'ent'; m.wait = 60; feed('📍', '<b>' + m.n + '</b> llegó a destino: ' + esc(J.to.n) + (m.id === PH && MANUAL ? ' · esperando foto de entrega' : ''), 'bl', J.id); if (m.id === PH && MANUAL) m.wait = 0; return; }
+  if (m.st === 'vuelta') { m.st = 'base'; return; }
+  if (m.st === 'dilig' || m.st === 'aprob') { if (hav(m, suc(m.base)) * 1000 < CFG.geo) { feed('↩️', '<b>' + m.n + '</b> volvió a ' + suc(m.base).n + ' (' + mins(now() - m.outAt) + ' min fuera)', 'g', m.id); m.st = 'base'; m.motivo = ''; m.inside = true; } else m.tgt = { lat: suc(m.base).lat, lng: suc(m.base).lng }; return; } }
+function afterWait(m) { var J = JOBS.find(function (j) { return j.id === m.job; }); if (!J) return;
+  if (m.st === 'ret') { J.st = 'ret'; J.retAt = now(); feed('📷', m.n + ' retiró ' + J.fact + ' (foto + firma)', 'bl', J.id); m.st = 'camino'; J.st = 'camino'; m.tgt = { lat: J.to.lat, lng: J.to.lng }; return; }
+  if (m.st === 'ent') finish(m, J); }
+function finish(m, J) { J.st = 'ent'; J.entAt = now(); m.trips++; var pay = 0; if (J.tipo === 'delivery') { if (J.gratis) { pay = CFG.gratis; m.gratis++; } else { pay = J.valDel * CFG.pct / 100; m.combTope += J.valDel * CFG.comb / 100; } } else { pay = CFG.transf; m.transf++; } m.pago += pay;
+  feed('✅', '<b>' + m.n + '</b> entregó ' + J.fact + ' en ' + mins(J.entAt - J.created) + ' min · le corresponde ' + gs(pay), 'g', J.id); m.job = null;
+  var nx = JOBS.find(function (j) { return j.st === 'asig' && j.moto === m.id; }); if (nx) { m.job = nx.id; startJob(m, nx); return; }
+  var B = suc(J.tipo === 'transfer' && J.to.suc ? m.base : m.base); m.st = 'vuelta'; m.tgt = { lat: B.lat, lng: B.lng }; }
+function outNoReason(mid) { var m = moto(mid || 'm3'); if (m.st !== 'base') { m = MOTOS.find(function (x) { return x.st === 'base' && x.id !== PH; }); } if (!m) return; var p = near(suc(m.base), 1.2); m.tgt = p; m.wanderer = 1; }
+function qrOut(mid, motivo) { var m = moto(mid); if (!m || m.st !== 'base') return false; m.st = 'dilig'; m.outAt = now(); m.motivo = motivo; m.tgt = near(suc(m.base), 1.5); m.inside = false; feed('🎫', '<b>' + m.n + '</b> salió con QR de salida: ' + esc(motivo), 'y', m.id); return true; }
+var SCN = [
+  { at: 2, f: function () { newFact('k8', true); } },
+  { at: 4, f: function () { newTransf('k7', 'k11', 160); } },
+  { at: 6, f: function () { outNoReason('m3'); } },
+  { at: 9, f: function () { newFact('k8', false); } },
+  { at: 14, f: function () { newFact('k11', false); } },
+  { at: 20, f: function () { newFact('fr', true); } }
+];
+
+// ---------- mapa ----------
+var MAP = L.map('map', { zoomControl: true }).setView([-25.515, -54.66], 13); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(MAP);
+var SM = {}, SC = {}, MM = {}, MT = {}, JM = {};
+function drawSuc() { SUC.forEach(function (s) { if (SC[s.id]) { SC[s.id].setLatLng(s).setRadius(CFG.geo); return; } SC[s.id] = L.circle(s, { radius: CFG.geo, color: '#14b8a6', weight: 1, fillOpacity: .12 }).addTo(MAP); SM[s.id] = L.marker(s, { draggable: true, icon: L.divIcon({ className: '', html: '<div class="mi">🏪<span>' + s.n + '</span></div>', iconSize: [70, 34], iconAnchor: [35, 14] }) }).addTo(MAP).on('dragend', function (e) { var p = e.target.getLatLng(); s.lat = p.lat; s.lng = p.lng; SC[s.id].setLatLng(p); MOTOS.forEach(function (m) { if (m.base === s.id && m.st === 'base') { m.lat = p.lat; m.lng = p.lng; } }); feed('⚙️', 'Ubicación de ' + s.n + ' corregida', '', null); }); }); }
+function drawMap() { MOTOS.forEach(function (m) { var S = ST[m.st], html = '<div class="mi">🛵<span style="background:' + (S[2] === 'r' ? '#b91c1c' : S[2] === 'y' ? '#b45309' : S[2] === 'bl' ? '#1d4ed8' : '#15803d') + '">' + m.n + '</span></div>';
+    if (!MM[m.id]) { MM[m.id] = L.marker(m, { icon: L.divIcon({ className: '', html: html, iconSize: [60, 36], iconAnchor: [30, 14] }), zIndexOffset: 500 }).addTo(MAP); MT[m.id] = L.polyline(m.trail, { color: '#60a5fa', weight: 2, opacity: .6 }).addTo(MAP); }
+    else { MM[m.id].setLatLng(m); if (MM[m.id]._h !== html) { MM[m.id].setIcon(L.divIcon({ className: '', html: html, iconSize: [60, 36], iconAnchor: [30, 14] })); MM[m.id]._h = html; } MT[m.id].setLatLngs(m.trail.concat([[m.lat, m.lng]])); MT[m.id].setStyle({ color: m.st === 'sin' || m.st === 'aband' ? '#ef4444' : m.st === 'dilig' || m.st === 'aprob' ? '#f59e0b' : '#60a5fa' }); } });
+  JOBS.forEach(function (J) { var on = J.st !== 'ent'; if (on && !JM[J.id]) JM[J.id] = L.marker(J.to, { icon: L.divIcon({ className: '', html: '<div class="mi">' + (J.tipo === 'delivery' ? '🏠' : '📦') + '</div>', iconSize: [24, 24], iconAnchor: [12, 12] }) }).addTo(MAP).bindTooltip(J.fact + ' · ' + J.to.n); if (!on && JM[J.id]) { MAP.removeLayer(JM[J.id]); delete JM[J.id]; } }); }
+drawSuc();
+
+// ---------- central ----------
+var CTAB = 'cola';
+function rCen() { var h = '<div class="tabs">' + [['cola', '📋 Cola'], ['alert', '🔔 Alertas'], ['motos', '🛵 Motos'], ['inf', '📊 Informe'], ['cfg', '⚙️ Reglas']].map(function (t) { var n = t[0] === 'alert' ? MOTOS.filter(function (m) { return m.st === 'sin' || m.st === 'aband'; }).length : t[0] === 'cola' ? JOBS.filter(function (j) { return j.st === 'pend'; }).length : 0; return '<button data-ct="' + t[0] + '" class="' + (CTAB === t[0] ? 'on' : '') + '">' + t[1] + (n ? ' (' + n + ')' : '') + '</button>'; }).join('') + '</div><div class="pad">';
+  if (CTAB === 'cola') { var P = JOBS.filter(function (j) { return j.st === 'pend'; }).map(function (j) { return { j: j, p: prio(j) }; }).sort(function (a, b) { return b.p.p - a.p.p; }); var A = JOBS.filter(function (j) { return j.st !== 'pend' && j.st !== 'ent'; });
+    h += '<p class="mu">🧠 Ordenado por prioridad. La sugerencia mira quién está libre, más cerca y con menos viajes. Si nadie confirma, se asigna solo (urgente: ' + CFG.autoU + ' min · normal: ' + CFG.autoN + ' min).</p>';
+    if (!P.length) h += '<div class="it g">✅ No hay pedidos esperando.</div>';
+    P.forEach(function (x, i) { var J = x.j, cl = x.p.late || J.urgent ? 'r' : x.p.p > 40 ? 'y' : 'bl', C = cands(J), left = Math.max(0, Math.ceil(((J.urgent ? CFG.autoU : CFG.autoN) * 60000 - (now() - (J.seen || now()))) / 60000));
+      h += '<div class="it ' + cl + '"><b>#' + (i + 1) + ' · ' + (J.tipo === 'delivery' ? '🧾 Delivery' : '🔁 Transferencia') + '</b> <span class="pill ' + cl + '">prioridad ' + x.p.p + '</span>' + (J.urgent ? ' <span class="pill r">URGENTE</span>' : '') + '<br>' + suc(J.from).n + ' → ' + esc(J.to.n) + '<br><small>' + J.fact + ' · ' + gs(J.monto) + (J.tipo === 'delivery' ? ' · delivery ' + (J.gratis ? 'gratis' : gs(J.valDel)) : '') + ' · procesada ' + hhmm(J.created) + ' (hace ' + ago(J.created) + ')</small><br><small>Por qué: ' + x.p.why + '</small>' +
+        '<div class="sug">🤖 <b>Sugerido:</b> ' + esc(J.sugWhy) + (J.sug ? ' <small>· se asigna solo en ' + left + ' min</small>' : '') + '</div><div class="acts">' + (J.sug ? '<button class="b ok" data-asg="' + J.id + '|' + J.sug + '">✅ Confirmar a ' + moto(J.sug).n + '</button>' : '') + C.slice(1, 3).map(function (c) { return '<button class="b" data-asg="' + J.id + '|' + c.m.id + '">' + c.m.n + ' (' + km(c.d) + ')</button>'; }).join('') + '</div></div>'; });
+    if (A.length) { h += '<h4>🚚 En curso</h4>'; A.forEach(function (J) { var m = moto(J.moto); h += '<div class="it ' + (J.noGo ? 'r' : 'bl') + '"><b>' + J.fact + '</b> · ' + (m ? m.n : '') + ' · ' + (J.st === 'asig' && m.st === 'base' ? 'asignado, todavía no salió' + (J.noGo ? ' ⚠️' : '') : ST[m.st][1]) + '<br><small>' + suc(J.from).n + ' → ' + esc(J.to.n) + ' · asignado ' + hhmm(J.asigAt) + '</small></div>'; }); } }
+  if (CTAB === 'alert') { var S = MOTOS.filter(function (m) { return m.st === 'sin' || m.st === 'aband'; }); S.forEach(function (m) { h += '<div class="it ' + (m.st === 'aband' ? 'r' : 'y') + '"><b>' + ST[m.st][0] + ' ' + m.n + ' · ' + ST[m.st][1] + '</b><br><small>Salió de ' + suc(m.base).n + ' a las ' + hhmm(m.outAt) + ' · hace ' + mins(now() - m.outAt) + ' min · ' + km(m.km.sin) + ' sin justificar hoy</small><div class="acts"><button class="b ok" data-ap="' + m.id + '|Banco">✅ Aprobar: banco</button><button class="b ok" data-ap="' + m.id + '|Oficina / el jefe lo necesita">✅ Aprobar: oficina</button><button class="b red" data-rj="' + m.id + '">❌ No justificada: que vuelva</button></div></div>'; });
+    h += '<h4>Historial</h4>' + FEED.map(function (f) { return '<div class="it ' + f.lvl + '"><small>' + hhmm(f.t) + '</small> ' + f.ic + ' ' + f.txt + '</div>'; }).join(''); }
+  if (CTAB === 'motos') MOTOS.forEach(function (m) { var S = ST[m.st], J = JOBS.find(function (j) { return j.id === m.job; }); h += '<div class="it ' + S[2] + '"><b>' + S[0] + ' ' + m.n + '</b> <small>· base ' + suc(m.base).n + (m.id === PH ? ' · 📱 en el celular de la derecha' : '') + '</small><br>' + S[1] + (J ? ' · ' + J.fact : '') + (m.motivo ? ' · ' + esc(m.motivo) : '') + '<br><small>Hoy: ' + m.trips + ' viaje(s) · ' + km(m.km.viaje + m.km.vuelta) + ' en viajes · ' + km(m.km.dilig) + ' diligencias · <b style="color:' + (m.km.sin > 0 ? '#fca5a5' : 'inherit') + '">' + km(m.km.sin) + ' sin justificar</b></small><div class="acts"><select data-qrm="' + m.id + '" class="b"><option value="">🎫 Activar QR de salida…</option><option>Banco</option><option>Oficina</option><option>El jefe lo necesita</option><option>Compra para la sucursal</option><option>Otro</option></select></div></div>'; });
+  if (CTAB === 'inf') { h += '<p class="mu">Informe del día hasta las ' + hhmm(now()) + '. Pago calculado con las reglas de ⚙️ (el salario va aparte).</p><table><tr><th>Deliverista</th><th>Viajes</th><th>Km viaje</th><th>Km diligencia</th><th>Km sin justificar</th><th>Salidas sin aviso</th><th>Abandonos</th><th>Pago extra</th><th>Tope comb.</th></tr>' + MOTOS.map(function (m) { return '<tr><td>' + m.n + '</td><td>' + m.trips + '</td><td>' + km(m.km.viaje + m.km.vuelta) + '</td><td>' + km(m.km.dilig) + '</td><td' + (m.km.sin ? ' style="color:#fca5a5"' : '') + '>' + km(m.km.sin) + '</td><td>' + m.sinN + '</td><td' + (m.abN ? ' style="color:#fca5a5"' : '') + '>' + m.abN + '</td><td>' + gs(m.pago) + '</td><td>' + gs(m.combTope) + '</td></tr>'; }).join('') + '</table><p class="mu">⛽ El combustible se paga hasta el tope, solo contra facturas de combustible con foto.</p>';
+    var E = JOBS.filter(function (j) { return j.st === 'ent'; }); if (E.length) { var av = E.reduce(function (s, j) { return s + (j.entAt - j.created); }, 0) / E.length; h += '<div class="it g">⏱ Tiempo promedio de factura a entrega: <b>' + mins(av) + ' min</b> · ' + E.length + ' entregas</div>'; } }
+  if (CTAB === 'cfg') { var F = [['pct', '% del cobro del delivery para el deliverista'], ['comb', '% para combustible (tope)'], ['gratis', 'Gs. fijo por delivery gratis'], ['transf', 'Gs. fijo por transferencia'], ['geo', 'Radio de la sucursal (metros)'], ['aband', 'Minutos fuera sin justificar = posible abandono'], ['limDel', 'Límite de espera delivery (min)'], ['limTr', 'Límite de espera transferencia (min)'], ['autoU', 'Asignar solo si nadie confirma: urgente (min)'], ['autoN', 'Asignar solo si nadie confirma: normal (min)']];
+    h += '<p class="mu">Todo se cambia acá sin programar. En el sistema real, solo el director lo puede tocar.</p>' + F.map(function (f) { return '<label class="c">' + f[1] + '<input type="number" data-cfg="' + f[0] + '" value="' + CFG[f[0]] + '"></label>'; }).join('') + '<p class="mu">📍 Las sucursales están en lugares aproximados: <b>arrastralas en el mapa</b> a su lugar real.</p><label class="c">Celular de la derecha controla a<select class="b" data-phm="1">' + MOTOS.map(function (m) { return '<option value="' + m.id + '"' + (m.id === PH ? ' selected' : '') + '>' + m.n + '</option>'; }).join('') + '</select></label>'; }
+  var el = $('#cen'), y = el.scrollTop; el.innerHTML = h + '</div>'; el.scrollTop = y; }
+
+// ---------- app del deliverista ----------
+function rPh() { var m = moto(PH), S = ST[m.st], J = JOBS.find(function (j) { return j.id === m.job; }), N = NOTI[PH] || [], mySug = JOBS.filter(function (j) { return j.st === 'pend' && j.sug === PH; });
+  var h = '<div class="ph"><div class="ph-h"><b>🛵 ' + m.n + '</b><small>Base ' + suc(m.base).n + ' · turno desde 08:00 · selfie ✅</small></div><div class="ph-b"><div class="card"><span class="st">' + S[0] + ' ' + S[1] + '</span>' + (m.motivo ? ' <small>' + esc(m.motivo) + '</small>' : '') + '</div>';
+  if (m.st === 'sin' || m.st === 'aband') h += '<div class="card" style="border-color:#dc2626"><b>⚠️ Saliste sin pedido ni QR de salida</b><p style="font-size:13px">La central ya fue avisada. Volvé a la sucursal o pedí que te aprueben la salida.</p></div>';
+  if (J) { var sf = suc(J.from); h += '<div class="card"><b>' + (J.tipo === 'delivery' ? '🧾 Delivery' : '🔁 Transferencia') + ' ' + J.fact + '</b>' + (J.urgent ? ' <span class="st" style="background:#fee2e2;color:#991b1b">URGENTE</span>' : '') + '<div style="font-size:13px;margin-top:4px">Retirar: <b>' + sf.n + '</b><br>Entregar: <b>' + esc(J.to.n) + '</b><br>' + (J.tipo === 'delivery' ? 'Cobro delivery: ' + (J.gratis ? 'gratis (ticket firmado)' : gs(J.valDel)) : 'Mercadería: ' + gs(J.monto)) + '</div>';
+    if (m.st === 'base' && J.st === 'asig') h += '<button class="bb" data-pa="go">▶ Ir a retirar</button>';
+    if (m.st === 'ir') h += '<button class="bb" disabled>🧭 Yendo a ' + sf.n + '…</button>';
+    if (m.st === 'ret') h += '<button class="bb" data-pa="ret">📷 Retiré: foto de factura + firma</button>';
+    if (m.st === 'camino') h += '<button class="bb" disabled>🧭 En camino (GPS)…</button><p style="font-size:12px;color:#475569">La llegada se marca sola al entrar al radio del destino.</p>';
+    if (m.st === 'ent') h += '<button class="bb" data-pa="ent">📷 Entregado: foto' + (J.tipo === 'transfer' ? ' + firma de quien recibe' : '') + '</button>';
+    h += '</div>'; }
+  else if (m.st === 'base') { if (mySug.length) mySug.forEach(function (j) { h += '<div class="card" style="border-color:#f59e0b"><b>🔔 Pedido sugerido para vos</b><div style="font-size:13px">' + suc(j.from).n + ' → ' + esc(j.to.n) + (j.urgent ? ' · URGENTE' : '') + '</div><button class="bb" data-pa="acc|' + j.id + '">✅ Aceptar</button></div>'; });
+    else h += '<div class="card" style="font-size:13px">Sin pedidos por ahora. Cuando se imprima una factura con delivery, te llega acá.</div>';
+    h += m.qr ? '<button class="bb sec" data-pa="qr">🎫 Escanear QR de salida (' + esc(m.qr) + ')</button>' : '<button class="bb sec" disabled>🎫 Sin QR de salida activo</button>'; }
+  if (m.st === 'vuelta') h += '<div class="card" style="font-size:13px">↩️ Volviendo a base. Si sale otro pedido, te llega acá.</div>';
+  h += '<div class="card"><b>Hoy</b><div class="km"><div>Viajes<b>' + m.trips + '</b></div><div>Km en viajes<b>' + km(m.km.viaje + m.km.vuelta) + '</b></div><div>Km diligencias<b>' + km(m.km.dilig) + '</b></div><div>Km sin justificar<b style="color:' + (m.km.sin ? '#dc2626' : 'inherit') + '">' + km(m.km.sin) + '</b></div><div>Extra ganado<b>' + gs(m.pago) + '</b></div><div>Tope combustible<b>' + gs(m.combTope) + '</b></div></div><button class="bb sec" disabled>⛽ Subir factura de combustible (foto)</button></div>';
+  h += '<div class="card"><b>🔔 Notificaciones</b>' + (N.length ? N.map(function (n) { return '<div class="noti"><small>' + hhmm(n.t) + '</small> ' + esc(n.txt) + '</div>'; }).join('') : '<div style="font-size:13px;color:#475569">Nada nuevo.</div>') + '</div>';
+  h += '<label style="font-size:12px;display:flex;gap:6px;align-items:center"><input type="checkbox" data-man="1"' + (MANUAL ? ' checked' : '') + '> Manejo yo a ' + m.n + ' (si lo destildás, se mueve solo)</label></div></div>';
+  var el = $('#phone'), y = el.scrollTop; el.innerHTML = h; el.scrollTop = y; }
+
+// ---------- eventos ----------
+document.addEventListener('click', function (ev) { var b = ev.target.closest('button'); if (!b) return; var d = b.dataset;
+  if (d.sp != null) { SPEED = +d.sp; document.querySelectorAll('[data-sp]').forEach(function (x) { x.classList.toggle('on', x === b); }); return; }
+  if (d.m) { $('#wrap').className = 'wrap m-' + d.m; document.querySelectorAll('[data-m]').forEach(function (x) { x.classList.toggle('on', x === b); }); if (d.m === 'map') setTimeout(function () { MAP.invalidateSize(); }, 50); return; }
+  if (d.act === 'newF') { newFact(null, rnd() < .3); CTAB = 'cola'; } if (d.act === 'newT') { var a = SUC[Math.floor(rnd() * 5)], z = SUC.filter(function (s) { return s !== a; })[Math.floor(rnd() * 4)]; newTransf(a.id, z.id, Math.round(rnd() * 200)); CTAB = 'cola'; }
+  if (d.act === 'newOut') { var mm = MOTOS.find(function (x) { return x.st === 'base' && x.id !== PH; }); if (mm) outNoReason(mm.id); else alert('No hay deliveristas libres en base para simular.'); }
+  if (d.act === 'tgPh') { $('#wrap').classList.toggle('showPhone'); }
+  if (d.ct) CTAB = d.ct;
+  if (d.asg) { var p = d.asg.split('|'), J = JOBS.find(function (j) { return j.id === p[0]; }); assign(J, p[1], false); }
+  if (d.ap) { var q = d.ap.split('|'), m = moto(q[0]); m.st = 'aprob'; m.motivo = q[1]; m.tgt = null; feed('✅', 'Salida de <b>' + m.n + '</b> aprobada: ' + esc(q[1]) + ' (los km pasan a diligencia desde ahora)', 'g', m.id); notify(m.id, '✅ La central aprobó tu salida: ' + q[1]); m.tgt = { lat: suc(m.base).lat, lng: suc(m.base).lng }; }
+  if (d.rj) { var r = moto(d.rj); r.motivo = 'No justificada'; r.tgt = { lat: suc(r.base).lat, lng: suc(r.base).lng }; feed('❌', 'Salida de <b>' + r.n + '</b> marcada como NO justificada. Se le pidió volver.', 'r', r.id); notify(r.id, '❌ Tu salida no fue aprobada. Volvé a la sucursal.'); }
+  if (d.pa) { var me = moto(PH), J2 = JOBS.find(function (j) { return j.id === me.job; }), pa = d.pa.split('|');
+    if (pa[0] === 'acc') { var jj = JOBS.find(function (j) { return j.id === pa[1]; }); assign(jj, PH, false); }
+    if (pa[0] === 'go' && J2) startJob(me, J2);
+    if (pa[0] === 'ret' && J2) { me.wait = 0.01; }
+    if (pa[0] === 'ent' && J2) finish(me, J2);
+    if (pa[0] === 'qr') { var mot = me.qr; me.qr = null; qrOut(PH, mot); } }
+  rCen(); rPh(); drawMap(); });
+document.addEventListener('change', function (ev) { var t = ev.target;
+  if (t.dataset.cfg) { CFG[t.dataset.cfg] = +t.value || 0; if (t.dataset.cfg === 'geo') drawSuc(); feed('⚙️', 'Regla cambiada: ' + t.parentNode.firstChild.textContent + ' = ' + t.value, '', null); }
+  if (t.dataset.qrm && t.value) { var m = moto(t.dataset.qrm); if (m.id === PH && MANUAL) { m.qr = t.value; notify(PH, '🎫 La sucursal activó un QR de salida: ' + t.value + '. Escanealo para salir.'); feed('🎫', 'QR de salida activado para <b>' + m.n + '</b>: ' + esc(t.value) + ' (vence en 10 min)', 'y', m.id); } else if (!qrOut(m.id, t.value)) alert(m.n + ' no está libre en la base.'); }
+  if (t.dataset.man) MANUAL = t.checked;
+  if (t.dataset.phm) { PH = t.value; }
+  rCen(); rPh(); drawMap(); });
+var last = Date.now(), lastDraw = 0, DOWN = false; document.addEventListener('pointerdown', function () { DOWN = true; }); document.addEventListener('pointerup', function () { setTimeout(function () { DOWN = false; }, 50); });
+setInterval(function () { var n = Date.now(), dt = (n - last) / 1000; last = n; var sim = dt * SPEED; for (var i = 0; i < 4; i++) tick(sim / 4); $('#clk').textContent = hhmm(now()); drawMap();
+  if (n - lastDraw > 1000 && !DOWN) { lastDraw = n; var act = document.activeElement; if (!act || !act.closest || !act.closest('#cen input, #cen select')) rCen(); rPh(); } }, 250);
+if (innerWidth <= 1250 && innerWidth > 820) $('#tgPh').style.display = '';
+rCen(); rPh(); drawMap(); setTimeout(function () { MAP.invalidateSize(); }, 200);
+})();
+</script>
+</body>
+</html>
