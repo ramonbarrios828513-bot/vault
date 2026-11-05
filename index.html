@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Integrated Vault — v913 · 5 nov</title>
+<title>Integrated Vault — v914 · 5 nov</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
@@ -9485,7 +9485,7 @@
     if (k === 'next' || k === 'prev') { (synth&&synth.cancel()); var d = k === 'next' ? 1 : -1, j = mf.i + d; while (items[j] && items[j].kind !== 'para') j += d; if (items[j]) mf.i = j; mf.paused = false; mfStep(); return; }
     if (k === 'cfg') { mf.paused = true; (synth&&synth.cancel()); mfDraw(); mfOpen(); } }, true);
   // número de versión visible, para saber si el celular cargó lo último
-  var LECTOR_VER = 'v913 · 5 nov';
+  var LECTOR_VER = 'v914 · 5 nov';
   try { document.title = 'Integrated Vault — ' + LECTOR_VER; } catch (e) {}
   var VAULT_CH = 'familia';
   setTimeout(function () { if (VAULT_CH !== 'pruebas') return; var tb = $('topBar'); if (tb && !document.querySelector('.ch-badge')) { var b = document.createElement('span'); b.className = 'ch-badge'; b.textContent = '🧪 PRUEBAS'; b.title = 'Esta es la versión de pruebas: los cambios nuevos llegan acá primero. La familia usa la versión normal.'; tb.insertBefore(b, tb.firstChild); } }, 800);
@@ -10705,7 +10705,7 @@
   var CY_STOP = { quiero: 1, saber: 1, sobre: 1, de: 1, del: 1, la: 1, el: 1, los: 1, las: 1, un: 1, una: 1, que: 1, como: 1, donde: 1, ir: 1, a: 1, al: 1, en: 1, mi: 1, me: 1, para: 1, ver: 1, abrir: 1, llevame: 1, busco: 1, buscar: 1, y: 1, o: 1, por: 1, favor: 1, hacer: 1, algo: 1, quisiera: 1, necesito: 1 };
   function cyFind(q) { var ws = cyNx(q).split(/\s+/).filter(function (w) { return w && !CY_STOP[w] && !/^\d+$/.test(w); }); if (!ws.length) return []; return cyIndex().map(function (x) { var sc = 0; ws.forEach(function (w) { var stem = w.length > 4 ? w.slice(0, w.length - 1) : w; if (x.hay.indexOf(' ' + w) >= 0 || x.hay.indexOf(w) === 0) sc += 3; else if (x.hay.indexOf(stem) >= 0) sc += 2; }); if (x.n.a) sc += .5; return { x: x, sc: sc }; }).filter(function (o) { return o.sc >= 2; }).sort(function (a, b) { return b.sc - a.sc || a.x.p.length - b.x.p.length; }).slice(0, 8).map(function (o) { return o.x; }); }
   function cyRun(a) { if (!a) return false; var i = a.indexOf(':'), k = i < 0 ? a : a.slice(0, i), v = i < 0 ? '' : a.slice(i + 1);
-    try { localStorage.setItem('iv-city-last', JSON.stringify(CY.path)); } catch (e) {}
+    try { localStorage.setItem('iv-city-last', JSON.stringify(CY.path)); localStorage.setItem('iv-city-last-t', String(Date.now())); } catch (e) {}
     var go = function () { try {
       if (k === 'bib') { openMat('biblia-rv1909'); return; }
       if (k === 'bibt') { openMat('biblia-rv1909'); setTimeout(function () { try { var T = TOOLREG.find(function (t) { return t[1].indexOf(v) === 0; }); if (T) T[3](); } catch (e) { toast('No pude abrir eso: ' + (e.message || e)); } }, 1800); return; }
@@ -10731,20 +10731,20 @@
   function cyRes() { var box = $('cyRes'); if (!box) return; var L = CY.q.trim() ? cyFind(CY.q) : []; var RF = CY.q.trim() ? cyRef(CY.q) : null; box.innerHTML = !CY.q.trim() ? '' : (L.length || RF) ? '<div class="cy-res">' + (RF ? '<button data-cyref="' + escA(RF.ref) + '"><span>📖</span><b>Leer ' + esc(RF.lab) + '</b><small>🧭 ⛪ Templo › 📖 La Biblia</small></button>' : '') + L.map(function (x) { return '<button data-cygo="' + escA(JSON.stringify(x.p)) + '"><span>' + (x.n.e || '') + '</span><b>' + esc(x.n.t || x.n.n) + '</b><small>🧭 ' + x.route.map(esc).join(' › ') + '</small></button>'; }).join('') + '</div>' : '<div class="cy-res"><p>No encontré «' + esc(CY.q) + '». Probá con otra palabra (ej.: banco, ley, biblia, plano, juego).</p></div>'; }
   function cyGo(p) { CY.q = ''; var node = cyNode(p); if (node && node.a && !node.rooms) { CY.path = p.slice(0, -1); cyPaint(true); var last = p[p.length - 1]; setTimeout(function () { var b = document.querySelector('#ciudad [data-cyr="' + last + '"]'); if (b) b.classList.add('cy-hl'); toast('🧭 Llegaste: ' + (node.t || node.n)); }, 250); setTimeout(function () { cyRun(node.a); }, 1100); return; } CY.path = p; cyPaint(true); }
   function cyAutoOn() { try { return localStorage.getItem('iv-city-auto') !== '0'; } catch (e) { return true; } }
-  function cyOpen(keep) { var a = bigEl('ciudad', 'cy'); a.classList.add('cy-ov'); if (!keep) { try { CY.path = JSON.parse(localStorage.getItem('iv-city-last') || '[]') || []; if (!cyNode(CY.path)) CY.path = []; } catch (e) { CY.path = []; } } cyPaint(true); }
+  function cyOpen(keep) { var a = bigEl('ciudad', 'cy'); a.classList.add('cy-ov'); if (!keep) { try { var t0 = +(localStorage.getItem('iv-city-last-t') || 0), fresh = Date.now() - t0 < 2 * 60e3 && !CY.newEntry; CY.newEntry = false; CY.path = fresh ? (JSON.parse(localStorage.getItem('iv-city-last') || '[]') || []) : []; if (!cyNode(CY.path)) CY.path = []; } catch (e) { CY.path = []; } } cyPaint(true); }
   document.addEventListener('click', function (ev) { var t = ev.target; var b = t.closest && t.closest('#ciudad [data-cy], #ciudad [data-cyb], #ciudad [data-cyr], #ciudad [data-cycr], #ciudad [data-cygo], #ciudad [data-cyref], [data-cyopen]'); if (!b) return; ev.stopPropagation(); ev.preventDefault(); var d = b.dataset;
     if (d.cyopen) { cyOpen(); return; }
     if (d.cyb) { CY.path = [d.cyb]; cyPaint(true); return; }
     if (d.cyr) { var n = cyNode(CY.path.concat([+d.cyr])); if (!n) return; if (n.rooms) { CY.path = CY.path.concat([+d.cyr]); cyPaint(true); return; } b.classList.add('cy-hl'); setTimeout(function () { cyRun(n.a); }, 140); return; }
     if (d.cycr) { var lv = +d.cycr; CY.path = lv < 0 ? [] : CY.path.slice(0, lv + 1); cyPaint(true); return; }
     if (d.cygo) { cyGo(JSON.parse(d.cygo)); return; } if (d.cyref) { CY.q = ''; cyClose(); var rr = d.cyref; setTimeout(function () { try { openBibleRef(rr); } catch (e) {} }, 60); return; }
-    var k = d.cy; if (k === 'x') { cyClose(); return; } if (k === 'back') { CY.path = CY.path.slice(0, -1); try { localStorage.setItem('iv-city-last', JSON.stringify(CY.path)); } catch (e) {} cyPaint(true); return; }
+    var k = d.cy; if (k === 'x') { cyClose(); return; } if (k === 'back') { CY.path = CY.path.slice(0, -1); try { localStorage.setItem('iv-city-last', JSON.stringify(CY.path)); localStorage.setItem('iv-city-last-t', String(Date.now())); } catch (e) {} cyPaint(true); return; }
     if (k === 'list') { cyClose(); settings.homeTab = 'files'; SV('le-settings', settings); try { renderHome(); } catch (e) {} return; }
     if (k === 'mode') { try { localStorage.setItem('iv-city-mode', cyNight() ? 'dia' : 'noche'); } catch (e) {} cyPaint(); return; }
     if (k === 'mic') { var q = $('cyQ'); try { if (window.__kbd && window.__kbd.on()) { window.__kbd.help(q); return; } dictate(q, null, b, function () { CY.q = q.value; cyRes(); }); } catch (e) { q.focus(); } } }, true);
   document.addEventListener('change', function (ev) { if (ev.target && ev.target.id === 'cyAuto') { try { localStorage.setItem('iv-city-auto', ev.target.checked ? '1' : '0'); } catch (e) {} toast(ev.target.checked ? '🏙️ Al abrir el Baúl vas a entrar a la ciudad.' : '📋 Al abrir el Baúl vas a ver la pantalla principal.'); } }, true);
   // al entrar: la ciudad (si está activada); el botón 🏙️ en la pantalla principal y en el menú
-  var CYE = { was: false }; setInterval(function () { try { if (vaultIsOpen && !CYE.was) { CYE.was = true; setTimeout(function () { try { if (!vaultIsOpen || !cyAutoOn() || (typeof kidsOn === 'function' && kidsOn())) return; if (document.querySelector('.big-ov:not([hidden]):not(#ciudad), .ask-ov, #rsOffer')) return; cyOpen(); } catch (e) {} }, 1200); } if (!vaultIsOpen) { CYE.was = false; var c = $('ciudad'); if (c && !c.hidden) cyClose(); } } catch (e) {} }, 500);
+  var CYE = { was: false }; setInterval(function () { try { if (vaultIsOpen && !CYE.was) { CYE.was = true; setTimeout(function () { try { if (!vaultIsOpen || !cyAutoOn() || (typeof kidsOn === 'function' && kidsOn())) return; if (document.querySelector('.big-ov:not([hidden]):not(#ciudad), .ask-ov, #rsOffer')) return; CY.newEntry = true; cyOpen(); } catch (e) {} }, 1200); } if (!vaultIsOpen) { CYE.was = false; var c = $('ciudad'); if (c && !c.hidden) cyClose(); } } catch (e) {} }, 500);
   (function () { var add = function () { var g = document.querySelector('#menuPane .mn-grid'); if (g && !g.querySelector('[data-cyopen]')) { var b = document.createElement('button'); b.className = 'mn-b'; b.dataset.cyopen = '1'; b.innerHTML = '<span>🏙️</span>Ciudad Nissi (mapa de todo + GPS)'; g.insertBefore(b, g.firstChild); } }; try { new MutationObserver(add).observe(document.body, { childList: true, subtree: true }); } catch (e) {} })();
   try { if (!TOOLREG.some(function (t) { return t[1] === 'Ciudad Nissi'; })) TOOLREG.unshift(['🏙️', 'Ciudad Nissi', 'ciudad mapa gps templo universidad escuela plaza justicia banco edificios', function () { cyOpen(); }]); } catch (e) {}
   // v886 · 🏆 Juegos del saber: al tocar un tema aparece enseguida «▶ Jugar» con ese tema (antes solo se marcaba y parecía que no hacía nada)
@@ -13939,7 +13939,7 @@
     var sun = new T.DirectionalLight(0xfff4e0, 1.25); sun.position.set(16000, 24000, -11000); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); var sc = sun.shadow.camera; sc.left = -26000; sc.right = 26000; sc.top = 26000; sc.bottom = -26000; sc.near = 100; sc.far = 80000; sun.shadow.bias = -0.0005; sun.target.position.set(12000, 0, 15000); A3.S.add(sun); A3.S.add(sun.target); A3.sun = sun; };
   var _a3Build10 = a3Build; a3Build = function () { _a3Build10(); A3.world.traverse(function (o) { if (o.isMesh && !(o.material && o.material.map && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } }); if (A3.terrG) A3.terrG.traverse(function (o) { if (o.isMesh) o.receiveShadow = true; }); };
   // ================= 🔄 ACTUALIZACIÓN PARA TODOS: al publicar una versión nueva, cada aparato guarda y se cierra solo =================
-  var VBUILD = 913;
+  var VBUILD = 914;
   (async function () { try { if (!window.claude || typeof window.claude.use !== 'function') return; var d = await window.claude.use('db'); if (!d) return; var shown = false;
     d.doc('meta/version').onSnapshot(function (snap) { var v = snap && snap.exists && snap.data() && +snap.data().build; if (true || !v || v <= VBUILD || shown) return; var tried = +(sessionStorage.getItem('iv-upd') || 0); shown = true;
       var ov = document.createElement('div'); ov.className = 'upd-ov'; ov.innerHTML = tried >= v ? '<div class="upd-c"><b>🔄 Hay una versión nueva</b><p>Este aparato todavía muestra la anterior. Cerrá esta pestaña del navegador y abrí el Vault de nuevo.</p><button data-upd="x">Entendido</button></div>' : '<div class="upd-c"><b>🔄 Llegó una actualización del Vault</b><p>Guardo todo y cierro. En unos segundos volvés a entrar con tu clave, ya con lo nuevo.</p><div class="upd-n" id="updN">8</div><button data-upd="now">Cerrar ahora</button></div>'; document.body.appendChild(ov);
@@ -26425,7 +26425,7 @@
 })();
 </script>
 <script>
-(function () { if (window.claude) return; window.__WEB_BUILD = 913;
+(function () { if (window.claude) return; window.__WEB_BUILD = 914;
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
   function check() { fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (v) { if (v && v.build > window.__WEB_BUILD && !document.getElementById('webUpd')) { var d = document.createElement('div'); d.id = 'webUpd'; d.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;background:#7c3aed;color:#fff;padding:10px 16px;border-radius:14px;font:700 14px system-ui;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer'; if (window.__vaultOpen && window.__vaultOpen()) { /* v880: con el Baúl abierto NO se recarga solo (antes te sacaba y había que volver a entrar) */ d.textContent = '⬆️ Hay una versión nueva (v' + v.build + '). Se instala la próxima vez que entres · tocá acá para actualizar ahora'; d.onclick = function () { try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 400); }; document.body.appendChild(d); setTimeout(function () { d.style.display = 'none'; }, 12000); return; } var n = 8; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; document.body.appendChild(d); var t = setInterval(function () { n--; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; if (n <= 0) { clearInterval(t); try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 600); } }, 1000); } }).catch(function () {}); }
   var dip = null; window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dip = e; show(); });
