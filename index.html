@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Integrated Vault — v912 · 5 nov</title>
+<title>Integrated Vault — v913 · 5 nov</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
@@ -9485,7 +9485,7 @@
     if (k === 'next' || k === 'prev') { (synth&&synth.cancel()); var d = k === 'next' ? 1 : -1, j = mf.i + d; while (items[j] && items[j].kind !== 'para') j += d; if (items[j]) mf.i = j; mf.paused = false; mfStep(); return; }
     if (k === 'cfg') { mf.paused = true; (synth&&synth.cancel()); mfDraw(); mfOpen(); } }, true);
   // número de versión visible, para saber si el celular cargó lo último
-  var LECTOR_VER = 'v912 · 5 nov';
+  var LECTOR_VER = 'v913 · 5 nov';
   try { document.title = 'Integrated Vault — ' + LECTOR_VER; } catch (e) {}
   var VAULT_CH = 'familia';
   setTimeout(function () { if (VAULT_CH !== 'pruebas') return; var tb = $('topBar'); if (tb && !document.querySelector('.ch-badge')) { var b = document.createElement('span'); b.className = 'ch-badge'; b.textContent = '🧪 PRUEBAS'; b.title = 'Esta es la versión de pruebas: los cambios nuevos llegan acá primero. La familia usa la versión normal.'; tb.insertBefore(b, tb.firstChild); } }, 800);
@@ -13939,7 +13939,7 @@
     var sun = new T.DirectionalLight(0xfff4e0, 1.25); sun.position.set(16000, 24000, -11000); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); var sc = sun.shadow.camera; sc.left = -26000; sc.right = 26000; sc.top = 26000; sc.bottom = -26000; sc.near = 100; sc.far = 80000; sun.shadow.bias = -0.0005; sun.target.position.set(12000, 0, 15000); A3.S.add(sun); A3.S.add(sun.target); A3.sun = sun; };
   var _a3Build10 = a3Build; a3Build = function () { _a3Build10(); A3.world.traverse(function (o) { if (o.isMesh && !(o.material && o.material.map && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } }); if (A3.terrG) A3.terrG.traverse(function (o) { if (o.isMesh) o.receiveShadow = true; }); };
   // ================= 🔄 ACTUALIZACIÓN PARA TODOS: al publicar una versión nueva, cada aparato guarda y se cierra solo =================
-  var VBUILD = 912;
+  var VBUILD = 913;
   (async function () { try { if (!window.claude || typeof window.claude.use !== 'function') return; var d = await window.claude.use('db'); if (!d) return; var shown = false;
     d.doc('meta/version').onSnapshot(function (snap) { var v = snap && snap.exists && snap.data() && +snap.data().build; if (true || !v || v <= VBUILD || shown) return; var tried = +(sessionStorage.getItem('iv-upd') || 0); shown = true;
       var ov = document.createElement('div'); ov.className = 'upd-ov'; ov.innerHTML = tried >= v ? '<div class="upd-c"><b>🔄 Hay una versión nueva</b><p>Este aparato todavía muestra la anterior. Cerrá esta pestaña del navegador y abrí el Vault de nuevo.</p><button data-upd="x">Entendido</button></div>' : '<div class="upd-c"><b>🔄 Llegó una actualización del Vault</b><p>Guardo todo y cierro. En unos segundos volvés a entrar con tu clave, ya con lo nuevo.</p><div class="upd-n" id="updN">8</div><button data-upd="now">Cerrar ahora</button></div>'; document.body.appendChild(ov);
@@ -25986,6 +25986,12 @@
         var adm = false; try { adm = permAdmin(); } catch (e) {} el.innerHTML = HS_G.filter(function (g) { return g[0] === side; }).map(function (g) { return '<section class="' + g[3] + '"><h4>' + g[1] + ' ' + g[2] + '</h4><div>' + g[4].filter(function (b) { return b[4] !== 'adm' || adm; }).map(function (b) { return '<button data-' + b[0] + '="' + b[1] + '"><span>' + b[2] + '</span>' + b[3] + '</button>'; }).join('') + '</div></section>'; }).join(''); } el.style.display = ''; }); if (on) hsPlace(); }
   // v870 · los paneles laterales se pegan a la columna central (misma distancia a cada lado) y nunca tapan la barra de desplazamiento
   function hsPlace() { var L = $('homeSideL'), R = $('homeSideR'), col = $('homeList'), sc = $('rcol') || (col && col.closest('.rcol')) || document.querySelector('.rcol'); if (!L || !R || !col) return; var c = col.getBoundingClientRect(); if (!c.width) return; var scR = innerWidth; if (sc) { var r = sc.getBoundingClientRect(); scR = r.right - (sc.offsetWidth - sc.clientWidth) - 6; if (sc.offsetWidth === sc.clientWidth) scR = r.right - 18; } var gap = 22, room = Math.min(c.left - gap - 8, scR - c.right - gap); var w = Math.max(168, Math.min(230, room)); var hide = room < 160; [L, R].forEach(function (e) { e.style.visibility = hide ? 'hidden' : ''; e.style.width = w + 'px'; }); L.style.left = Math.max(8, c.left - gap - w) + 'px'; L.style.right = 'auto'; R.style.left = (c.right + gap) + 'px'; R.style.right = 'auto'; var top = 70; if (sc) top = Math.max(64, sc.getBoundingClientRect().top + 8); L.style.top = R.style.top = top + 'px'; }
+  // v913 · 🏠 pantalla principal centrada: los tres bloques (izquierda, centro, derecha) quedan centrados en la pantalla y casi sin espacio vacío a los costados
+  (function () { var _hp = hsPlace; hsPlace = function () { var col = $('homeList'), box = col && col.parentElement, L = $('homeSideL'), R = $('homeSideR'), on = false; try { on = !!(box && L && R && document.body.classList.contains('home-clean') && innerWidth >= 1300 && !document.getElementById('hsInline') && col.getBoundingClientRect().width); } catch (e) {} if (!on) { if (box && box.dataset.hc) { box.style.maxWidth = box.style.width = box.style.marginLeft = box.style.marginRight = ''; delete box.dataset.hc; } return _hp(); }
+      var m = 10, gap = 14, w = Math.max(196, Math.min(250, Math.round(innerWidth * 0.155))), cw = Math.min(1200, innerWidth - 2 * (m + w + gap)), left0 = Math.round((innerWidth - (cw + 2 * (w + gap))) / 2), cl = left0 + w + gap, padL = parseFloat(getComputedStyle(box).paddingLeft) || 0, padR = parseFloat(getComputedStyle(box).paddingRight) || 0;
+      box.dataset.hc = 1; box.style.boxSizing = 'border-box'; box.style.width = (cw + padL + padR) + 'px'; box.style.maxWidth = 'none'; box.style.marginRight = '0'; box.style.marginLeft = '0'; var bl = box.getBoundingClientRect().left; box.style.marginLeft = Math.round(cl - padL - bl) + 'px';
+      var top = 70, sc = document.querySelector('.rcol'); if (sc) top = Math.max(64, sc.getBoundingClientRect().top + 8);
+      [L, R].forEach(function (e) { e.style.visibility = ''; e.style.width = w + 'px'; e.style.right = 'auto'; e.style.top = top + 'px'; }); L.style.left = left0 + 'px'; R.style.left = (cl + cw + gap) + 'px'; }; })();
   setInterval(hsPaint, 700); addEventListener('resize', hsPaint);
   // v881 · 📱 en el celular (y pantallas chicas) la entrada muestra los mismos grupos de botones de la notebook (Estudio, Trabajo, Familia, Más) arriba de «Mis archivos»; y al entrar siempre abre esa pantalla principal
   function hsInline() { try { var big = innerWidth >= 1300, box = $('homeList'), tab = settings.homeTab || 'files', inl = document.getElementById('hsInline'); var want = !big && vaultIsOpen && box && tab === 'files' && document.body.classList.contains('home-clean') && !document.querySelector('.big-ov:not([hidden])');
@@ -26419,7 +26425,7 @@
 })();
 </script>
 <script>
-(function () { if (window.claude) return; window.__WEB_BUILD = 912;
+(function () { if (window.claude) return; window.__WEB_BUILD = 913;
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
   function check() { fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (v) { if (v && v.build > window.__WEB_BUILD && !document.getElementById('webUpd')) { var d = document.createElement('div'); d.id = 'webUpd'; d.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;background:#7c3aed;color:#fff;padding:10px 16px;border-radius:14px;font:700 14px system-ui;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer'; if (window.__vaultOpen && window.__vaultOpen()) { /* v880: con el Baúl abierto NO se recarga solo (antes te sacaba y había que volver a entrar) */ d.textContent = '⬆️ Hay una versión nueva (v' + v.build + '). Se instala la próxima vez que entres · tocá acá para actualizar ahora'; d.onclick = function () { try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 400); }; document.body.appendChild(d); setTimeout(function () { d.style.display = 'none'; }, 12000); return; } var n = 8; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; document.body.appendChild(d); var t = setInterval(function () { n--; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; if (n <= 0) { clearInterval(t); try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 600); } }, 1000); } }).catch(function () {}); }
   var dip = null; window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dip = e; show(); });
