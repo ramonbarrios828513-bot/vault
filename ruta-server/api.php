@@ -32,6 +32,23 @@ $db->exec('CREATE TABLE IF NOT EXISTS cmd (id INTEGER PRIMARY KEY, dev INTEGER, 
 $db->exec('CREATE TABLE IF NOT EXISTS tarea (id INTEGER PRIMARY KEY, dev INTEGER, t INTEGER, tipo TEXT, titulo TEXT, desde TEXT, hacia TEXT, detalle TEXT, estado TEXT, upd INTEGER)');
 $db->exec('CREATE TABLE IF NOT EXISTS cfg (k TEXT PRIMARY KEY, v TEXT)');
 $db->exec('CREATE TABLE IF NOT EXISTS msg (id INTEGER PRIMARY KEY, dev INTEGER, t INTEGER, de TEXT, txt TEXT, leido INTEGER DEFAULT 0)');
+// ---- Marcación de asistencia (celular fijo de la sucursal y celular propio) ----
+$db->exec('CREATE TABLE IF NOT EXISTS func (id INTEGER PRIMARY KEY, cod TEXT UNIQUE, nombre TEXT, suc TEXT, pin TEXT, activo INTEGER DEFAULT 1, upd INTEGER)');
+$db->exec('CREATE TABLE IF NOT EXISTS marca (id INTEGER PRIMARY KEY, cod TEXT, dev INTEGER, t INTEGER, recibido INTEGER, tipo TEXT, lat REAL, lon REAL, acc REAL, sim INTEGER, foto TEXT, nota TEXT, motivo TEXT, monto REAL, quien TEXT, suc_gps TEXT, modo TEXT, estado TEXT)');
+$db->exec('CREATE INDEX IF NOT EXISTS marca_t ON marca(t)');
+$db->exec('CREATE TABLE IF NOT EXISTS intento (dev INTEGER, t INTEGER)');
+try { $db->exec('ALTER TABLE dev ADD COLUMN func TEXT'); } catch (Throwable $e) { }
+function marcCfg(PDO $db): array { return cfg($db, 'marc', ['tipos' => [
+  ['id' => 'entrada', 'n' => 'Entrada', 'ic' => '🟢', 'campo' => 'e'],
+  ['id' => 'desc', 'n' => 'Salgo a descansar', 'ic' => '☕', 'campo' => 'sd'],
+  ['id' => 'vuelve', 'n' => 'Vuelvo del descanso', 'ic' => '↩️', 'campo' => 'vd'],
+  ['id' => 'salida', 'n' => 'Salida', 'ic' => '🔴', 'campo' => 's'],
+  ['id' => 'extra_ini', 'n' => 'Empiezo horas extra', 'ic' => '⏱️', 'aprob' => 1, 'nota' => 1],
+  ['id' => 'extra_fin', 'n' => 'Termino horas extra', 'ic' => '⏹️'],
+  ['id' => 'ausencia', 'n' => 'Aviso que voy a faltar', 'ic' => '🤒', 'motivo' => 1, 'aprob' => 1, 'sinFoto' => 1, 'fecha' => 1],
+  ['id' => 'cobertura', 'n' => 'Pido que me cubran', 'ic' => '🔄', 'quien' => 1, 'nota' => 1, 'aprob' => 1, 'sinFoto' => 1, 'fecha' => 1],
+], 'motivos' => ['Enfermedad / reposo', 'Permiso', 'Vacaciones', 'Trámite personal', 'Otro motivo'], 'selfie' => 1]); }
+function sucGps(PDO $db, $lat, $lon): ?string { if ($lat === null || $lon === null) return null; foreach (cfg($db, 'sucs', []) as $sc) { if (isset($sc['lat'], $sc['lon']) && dist((float) $lat, (float) $lon, (float) $sc['lat'], (float) $sc['lon']) <= (float) ($sc['r'] ?? 80)) return (string) $sc['n']; } return ''; }
 
 function cfg(PDO $db, string $k, $def = null) { $s = $db->prepare('SELECT v FROM cfg WHERE k=?'); $s->execute([$k]); $v = $s->fetchColumn(); return $v === false ? $def : json_decode($v, true); }
 function setcfg(PDO $db, string $k, $v): void { $s = $db->prepare('INSERT INTO cfg(k,v) VALUES(?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v'); $s->execute([$k, json_encode($v, JSON_UNESCAPED_UNICODE)]); }
@@ -45,7 +62,7 @@ $in = json_decode(file_get_contents('php://input') ?: '{}', true) ?: [];
 if ($a === 'foto') { if (($_GET['k'] ?? '') !== ADMIN_KEY) fail('clave', 403); $f = basename((string) ($_GET['f'] ?? '')); $p = __DIR__ . '/data/fotos/' . $f; if (!$f || !is_file($p)) fail('no existe', 404); header('Content-Type: image/jpeg'); readfile($p); exit; }
 
 // ---------- celulares ----------
-$devActions = ['hola', 'ping', 'ev', 'tareas', 'tarea', 'cmd_ok', 'msgs', 'msg'];
+$devActions = ['hola', 'ping', 'ev', 'tareas', 'tarea', 'cmd_ok', 'msgs', 'msg', 'm_hola', 'm_marca', 'm_hoy'];
 if (in_array($a, $devActions, true)) {
   $tok = $_SERVER['HTTP_X_TOKEN'] ?? ($in['token'] ?? '');
   $s = $db->prepare('SELECT * FROM dev WHERE token=? AND activo=1'); $s->execute([$tok]); $D = $s->fetch();
@@ -73,6 +90,22 @@ if (in_array($a, $devActions, true)) {
     out(['ok' => true]); }
   if ($a === 'msgs') { $s = $db->prepare('SELECT id,t,de,txt FROM msg WHERE (dev=? OR dev=0) AND id>? ORDER BY id LIMIT 200'); $s->execute([$id, (int) ($in['desde'] ?? 0)]); out(['ok' => true, 'msgs' => $s->fetchAll()]); }
   if ($a === 'msg') { $txt = trim(mb_substr((string) ($in['txt'] ?? ''), 0, 1000)); if ($txt === '') fail('vacío'); $s = $db->prepare("INSERT INTO msg(dev,t,de,txt) VALUES(?,?,'cel',?)"); $s->execute([$id, now(), $txt]); out(['ok' => true, 'id' => (int) $db->lastInsertId()]); }
+  if ($a === 'm_hola') { $M = marcCfg($db); $own = $D['func'] ?? ''; if ($own) { $s = $db->prepare('SELECT cod,nombre,suc FROM func WHERE cod=? AND activo=1'); $s->execute([$own]); } else { $s = $db->query('SELECT cod,nombre,suc FROM func WHERE activo=1 ORDER BY nombre'); }
+    out(['ok' => true, 'disp' => $D['nombre'], 'suc' => $D['suc'], 'modo' => $own ? 'propio' : 'kiosco', 'funcs' => $s->fetchAll(), 'tipos' => $M['tipos'], 'motivos' => $M['motivos'], 'selfie' => (int) ($M['selfie'] ?? 1), 'srv' => now()]); }
+  if ($a === 'm_marca' || $a === 'm_hoy') {
+    $s = $db->prepare('SELECT COUNT(*) FROM intento WHERE dev=? AND t>?'); $s->execute([$id, now() - 600000]); if ((int) $s->fetchColumn() >= 6) fail('Demasiados PIN equivocados. Esperá 10 minutos.', 429);
+    $cod = (string) ($in['cod'] ?? ''); if (!empty($D['func'])) $cod = $D['func'];
+    $s = $db->prepare('SELECT * FROM func WHERE cod=? AND activo=1'); $s->execute([$cod]); $F = $s->fetch();
+    if (!$F || !$F['pin'] || !password_verify((string) ($in['pin'] ?? ''), $F['pin'])) { $db->prepare('INSERT INTO intento(dev,t) VALUES(?,?)')->execute([$id, now()]); fail('PIN incorrecto', 403); }
+    $t0 = strtotime('today') * 1000;
+    if ($a === 'm_hoy') { $s = $db->prepare('SELECT tipo,t,estado,nota,motivo FROM marca WHERE cod=? AND t>=? ORDER BY t'); $s->execute([$cod, $t0]); out(['ok' => true, 'nombre' => $F['nombre'], 'hoy' => $s->fetchAll()]); }
+    $tipo = preg_replace('/[^a-z0-9_]/', '', (string) ($in['tipo'] ?? '')); $T = null; foreach (marcCfg($db)['tipos'] as $x) if (($x['id'] ?? '') === $tipo) $T = $x; if (!$T) fail('Tipo de marca desconocido');
+    $foto = savePhoto($in['foto'] ?? null); if (!$foto && empty($T['sinFoto']) && (int) (marcCfg($db)['selfie'] ?? 1)) fail('Falta la selfie');
+    $lat = isset($in['lat']) ? (float) $in['lat'] : null; $lon = isset($in['lon']) ? (float) $in['lon'] : null; $t = (int) ($in['t'] ?? now()); if ($t > now() + 120000 || $t < now() - 3 * 86400e3) $t = now();
+    $q = $db->prepare('INSERT INTO marca(cod,dev,t,recibido,tipo,lat,lon,acc,sim,foto,nota,motivo,monto,quien,suc_gps,modo,estado) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    $q->execute([$cod, $id, $t, now(), $tipo, $lat, $lon, isset($in['acc']) ? (float) $in['acc'] : null, !empty($in['sim']) ? 1 : 0, $foto, mb_substr((string) ($in['nota'] ?? ''), 0, 500), mb_substr((string) ($in['motivo'] ?? ''), 0, 120), isset($in['monto']) && $in['monto'] !== '' ? (float) $in['monto'] : null, mb_substr((string) ($in['quien'] ?? ''), 0, 120), sucGps($db, $lat, $lon), !empty($D['func']) ? 'propio' : 'kiosco', !empty($T['aprob']) ? 'pend' : 'ok']);
+    out(['ok' => true, 'id' => (int) $db->lastInsertId(), 'nombre' => $F['nombre'], 'pend' => !empty($T['aprob'])]);
+  }
   if ($a === 'tareas') { $s = $db->prepare("SELECT * FROM tarea WHERE dev=? AND estado NOT IN ('hecha','anulada') ORDER BY t"); $s->execute([$id]); out(['ok' => true, 'tareas' => $s->fetchAll()]); }
   if ($a === 'tarea') { $est = preg_replace('/[^a-z_]/', '', (string) ($in['estado'] ?? '')); $s = $db->prepare('UPDATE tarea SET estado=?, upd=? WHERE id=? AND dev=?'); $s->execute([$est, now(), (int) ($in['id'] ?? 0), $id]);
     $q = $db->prepare("INSERT INTO ev(dev,t,tipo,lat,lon,nota,foto,ref,estado) VALUES(?,?,?,?,?,?,?,?,'ok')"); $q->execute([$id, now(), 'tarea_' . $est, $in['lat'] ?? null, $in['lon'] ?? null, (string) ($in['nota'] ?? ''), savePhoto($in['foto'] ?? null), (int) ($in['id'] ?? 0)]);
@@ -84,7 +117,7 @@ if (($_SERVER['HTTP_X_ADMIN'] ?? ($in['admin'] ?? '')) !== ADMIN_KEY || ADMIN_KE
 
 if ($a === 'estado') {
   $t = now(); $sucs = cfg($db, 'sucs', []); $app = cfg($db, 'app', ['selfieMin' => 3, 'sinSenalMin' => 10]);
-  $devs = $db->query('SELECT id,nombre,suc,rol,activo,token FROM dev ORDER BY nombre')->fetchAll(); $out = [];
+  $devs = $db->query('SELECT id,nombre,suc,rol,activo,token,func FROM dev ORDER BY nombre')->fetchAll(); $out = [];
   foreach ($devs as $d) {
     $id = (int) $d['id'];
     $s = $db->prepare('SELECT t,lat,lon,acc,spd,sim,bat FROM pos WHERE dev=? ORDER BY t DESC LIMIT 1'); $s->execute([$id]); $p = $s->fetch() ?: null;
@@ -113,8 +146,8 @@ if ($a === 'estado') {
   }
   out(['ok' => true, 't' => $t, 'devs' => $out, 'sucs' => $sucs, 'app' => $app]);
 }
-if ($a === 'dev_add') { $tok = strtoupper(substr(bin2hex(random_bytes(6)), 0, 10)); $s = $db->prepare('INSERT INTO dev(token,nombre,suc,rol,activo,creado) VALUES(?,?,?,?,1,?)'); $s->execute([$tok, trim((string) ($in['nombre'] ?? 'Celular')), trim((string) ($in['suc'] ?? '')), trim((string) ($in['rol'] ?? 'delivery')), now()]); out(['ok' => true, 'token' => $tok]); }
-if ($a === 'dev_upd') { $s = $db->prepare('UPDATE dev SET nombre=COALESCE(?,nombre), suc=COALESCE(?,suc), rol=COALESCE(?,rol), activo=COALESCE(?,activo) WHERE id=?'); $s->execute([$in['nombre'] ?? null, $in['suc'] ?? null, $in['rol'] ?? null, isset($in['activo']) ? (int) $in['activo'] : null, (int) ($in['id'] ?? 0)]); out(['ok' => true]); }
+if ($a === 'dev_add') { $tok = strtoupper(substr(bin2hex(random_bytes(6)), 0, 10)); $s = $db->prepare('INSERT INTO dev(token,nombre,suc,rol,activo,creado,func) VALUES(?,?,?,?,1,?,?)'); $s->execute([$tok, trim((string) ($in['nombre'] ?? 'Celular')), trim((string) ($in['suc'] ?? '')), trim((string) ($in['rol'] ?? 'delivery')), now(), trim((string) ($in['func'] ?? '')) ?: null]); out(['ok' => true, 'token' => $tok]); }
+if ($a === 'dev_upd') { $s = $db->prepare('UPDATE dev SET nombre=COALESCE(?,nombre), suc=COALESCE(?,suc), rol=COALESCE(?,rol), activo=COALESCE(?,activo), func=COALESCE(?,func) WHERE id=?'); $s->execute([$in['nombre'] ?? null, $in['suc'] ?? null, $in['rol'] ?? null, isset($in['activo']) ? (int) $in['activo'] : null, isset($in['func']) ? (trim((string) $in['func']) ?: '') : null, (int) ($in['id'] ?? 0)]); out(['ok' => true]); }
 if ($a === 'dev_token') { $s = $db->prepare('SELECT token FROM dev WHERE id=?'); $s->execute([(int) ($in['id'] ?? 0)]); out(['ok' => true, 'token' => $s->fetchColumn()]); }
 if ($a === 'cmd_add') { $tipo = preg_replace('/[^a-z_]/', '', (string) ($in['tipo'] ?? 'selfie')); $s = $db->prepare("INSERT INTO cmd(dev,t,tipo,dato,estado) VALUES(?,?,?,?,'pend')"); $s->execute([(int) ($in['dev'] ?? 0), now(), $tipo, (string) ($in['dato'] ?? '')]); out(['ok' => true, 'id' => (int) $db->lastInsertId()]); }
 if ($a === 'permiso') { $ok = !empty($in['ok']); $s = $db->prepare("UPDATE ev SET estado=? WHERE id=? AND tipo='permiso'"); $s->execute([$ok ? 'aprob' : 'rech', (int) ($in['id'] ?? 0)]); $s = $db->prepare('SELECT dev,nota FROM ev WHERE id=?'); $s->execute([(int) ($in['id'] ?? 0)]); $e = $s->fetch();
@@ -128,4 +161,14 @@ if ($a === 'msgs_dir') { $dv = (int) ($in['dev'] ?? 0); $s = $db->prepare('SELEC
 if ($a === 'msg_dir') { $txt = trim(mb_substr((string) ($in['txt'] ?? ''), 0, 1000)); if ($txt === '') fail('vacío'); $dv = (int) ($in['dev'] ?? 0); $s = $db->prepare("INSERT INTO msg(dev,t,de,txt) VALUES(?,?,'dir',?)"); $s->execute([$dv, now(), $txt]); out(['ok' => true]); }
 if ($a === 'cfg_get') out(['ok' => true, 'sucs' => cfg($db, 'sucs', []), 'app' => cfg($db, 'app', ['selfieMin' => 3, 'sinSenalMin' => 10])]);
 if ($a === 'cfg_set') { if (isset($in['sucs'])) setcfg($db, 'sucs', $in['sucs']); if (isset($in['app'])) setcfg($db, 'app', $in['app']); out(['ok' => true]); }
+// ---- marcación: administrador ----
+if ($a === 'f_sync') { $n = 0; $q = $db->prepare('INSERT INTO func(cod,nombre,suc,activo,upd) VALUES(?,?,?,?,?) ON CONFLICT(cod) DO UPDATE SET nombre=excluded.nombre, suc=excluded.suc, activo=excluded.activo, upd=excluded.upd'); $qp = $db->prepare('UPDATE func SET pin=? WHERE cod=?');
+  foreach (($in['funcs'] ?? []) as $f) { $cod = trim((string) ($f['cod'] ?? '')); if ($cod === '') continue; $q->execute([$cod, trim((string) ($f['nombre'] ?? '')), trim((string) ($f['suc'] ?? '')), isset($f['activo']) ? (int) $f['activo'] : 1, now()]); if (!empty($f['pin']) && preg_match('/^\d{4,8}$/', (string) $f['pin'])) $qp->execute([password_hash((string) $f['pin'], PASSWORD_DEFAULT), $cod]); $n++; }
+  if (!empty($in['soloEstos'])) { $cods = array_map(fn($f) => (string) ($f['cod'] ?? ''), $in['funcs'] ?? []); if ($cods) { $ph = implode(',', array_fill(0, count($cods), '?')); $db->prepare("UPDATE func SET activo=0 WHERE cod NOT IN ($ph)")->execute($cods); } }
+  if (isset($in['marc']) && is_array($in['marc'])) setcfg($db, 'marc', $in['marc']);
+  out(['ok' => true, 'n' => $n]); }
+if ($a === 'f_list') out(['ok' => true, 'funcs' => $db->query('SELECT cod,nombre,suc,activo,(pin IS NOT NULL) AS conPin FROM func ORDER BY nombre')->fetchAll(), 'marc' => marcCfg($db)]);
+if ($a === 'm_list') { $d0 = (int) ($in['desde'] ?? (now() - 86400e3)); $d1 = (int) ($in['hasta'] ?? now() + 60000); $s = $db->prepare('SELECT marca.*, func.nombre FROM marca LEFT JOIN func ON func.cod=marca.cod WHERE marca.t BETWEEN ? AND ? ORDER BY marca.t LIMIT 50000'); $s->execute([$d0, $d1]); out(['ok' => true, 'marcas' => $s->fetchAll()]); }
+if ($a === 'm_estado') { $s = $db->prepare('UPDATE marca SET estado=? WHERE id=?'); $s->execute([!empty($in['ok']) ? 'aprob' : 'rech', (int) ($in['id'] ?? 0)]); out(['ok' => true]); }
+if ($a === 'marc_cfg') { if (isset($in['marc']) && is_array($in['marc'])) setcfg($db, 'marc', $in['marc']); out(['ok' => true, 'marc' => marcCfg($db)]); }
 fail('acción desconocida');

@@ -2,9 +2,18 @@ NISSIFARMA RUTA — SERVIDOR (para tu hosting)
 
 1. Abrí config.php y cambiá CAMBIAR-ESTA-CLAVE por una clave larga y secreta.
 2. Subí esta carpeta completa (ruta-server) a tu hosting, por ejemplo como public_html/ruta
-   (con el Administrador de archivos de cPanel o por FTP). Necesita PHP 7.4 o más nuevo con SQLite (casi todos los hostings lo tienen).
+   (con el Administrador de archivos o por FTP). Necesita PHP 7.4 o más nuevo con SQLite (casi todos los hostings lo tienen).
 3. Abrí en el navegador: https://TU-DOMINIO/ruta/panel.html y entrá con la clave.
 4. En el panel: 🏪 Sucursales → tocá el mapa para marcar cada sucursal.
 5. ➕ Nuevo celular → te da la dirección y el código para escribir en la app del celular.
+
+MARCACIÓN DE ASISTENCIA (selfie + ubicación)
+6. En el Baúl → Planilla → 📲 Marcaciones: escribí la dirección (https://TU-DOMINIO/ruta/) y la clave,
+   generá los PIN y tocá «📤 Enviar funcionarios, PIN y tipos al servidor».
+7. Celular FIJO de cada sucursal: en el panel ➕ Nuevo celular, rol «kiosco», sucursal (ej.: KM7), sin código de funcionario.
+   En ese celular abrí https://TU-DOMINIO/ruta/marcar.html, escribí el código y agregalo a la pantalla de inicio.
+8. Celular PROPIO de un funcionario: ➕ Nuevo celular con su código (ej.: F008). Abre la misma página marcar.html.
+9. En el panel → 🕒 Marcaciones ves las marcas del día con selfie y si estaba en la sucursal; ahí aprobás
+   ausencias, coberturas y horas extra. Después en el Baúl → 📲 Marcaciones → «📥 Traer marcas».
 
 Los datos quedan en la carpeta data/ (protegida). Hacé copia de esa carpeta cada tanto.

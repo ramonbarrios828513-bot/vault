@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#0b1220">
+<title>Marcar asistencia · Nissifarma</title>
+<style>
+:root{--bg:#0b1220;--pn:#111c33;--ln:#263247;--tx:#e2e8f0;--mu:#94a3b8;--ok:#22c55e;--er:#ef4444;--ac:#2563eb}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--tx);font:600 16px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:560px;margin:0 auto;padding:14px 16px 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}header b{font-size:18px}header small{color:var(--mu);display:block;font-weight:600}
+.clock{font:800 44px system-ui;text-align:center;margin:6px 0 2px;letter-spacing:1px}.date{text-align:center;color:var(--mu);margin-bottom:14px}
+button{border:0;border-radius:14px;padding:14px;background:#334155;color:#fff;font:800 16px system-ui;cursor:pointer}button.pri{background:var(--ac)}button.ok{background:#15803d}button.ghost{background:transparent;border:1px solid var(--ln);color:var(--mu)}
+input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid #475569;background:#1e293b;color:#fff;font:600 16px system-ui;margin:6px 0}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:8px}.names button{text-align:left;padding:14px 12px;background:#1e293b;border:1px solid var(--ln)}.names button small{display:block;color:var(--mu);font-weight:600;font-size:12px;margin-top:2px}
+.sec{color:var(--mu);font-size:13px;margin:14px 2px 6px;text-transform:uppercase;letter-spacing:.5px}
+.pin{display:flex;justify-content:center;gap:12px;margin:16px 0}.pin i{width:18px;height:18px;border-radius:50%;border:2px solid #64748b}.pin i.on{background:#fff;border-color:#fff}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pad button{font-size:26px;padding:18px 0;background:#1e293b}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:10px}.acts button{padding:18px 10px;font-size:16px;background:#1e293b;border:1px solid var(--ln);text-align:left}.acts button.sug{background:var(--ac);border-color:#60a5fa}.acts button em{display:block;font-style:normal;font-size:28px;margin-bottom:4px}
+.hoy{background:var(--pn);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:14px;color:var(--mu)}.hoy b{color:var(--tx)}
+video,canvas,#shot{width:100%;max-height:52vh;object-fit:cover;border-radius:16px;background:#000;display:block;transform:scaleX(-1)}#shot{transform:none}
+.big{font:800 22px system-ui;text-align:center;margin:18px 0 6px}.ok-c{color:var(--ok)}.er-c{color:#fca5a5}.mu{color:var(--mu);font-size:14px;text-align:center}
+.cnt{position:relative}.cnt span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 90px system-ui;color:#fff;text-shadow:0 2px 12px #000}
+.q{position:fixed;left:10px;bottom:10px;background:#3b2a0b;color:#fde68a;padding:8px 12px;border-radius:10px;font-size:13px;display:none}
+.row{display:flex;gap:8px}.row>*{flex:1}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="q" id="q"></div>
+<script>
+'use strict';
+var API = 'api.php', LS = function (k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem('mk_' + k) || 'null'); localStorage.setItem('mk_' + k, JSON.stringify(v)); } catch (e) { return null; } };
+var S = { tok: LS('tok'), info: LS('info'), cur: null, pin: '', hoy: [], tipo: null, idle: 0 }, $app = document.getElementById('app');
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function hm(t) { var d = new Date(t); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+function ymd(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+async function call(a, body) { var r = await fetch(API + '?a=' + a, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Token': S.tok || '' }, body: JSON.stringify(body || {}) }); var j = await r.json().catch(function () { return { ok: false, error: 'Respuesta inválida del servidor' }; }); if (!j.ok) { var e = new Error(j.error || 'Error'); e.srv = true; throw e; } return j; }
+// ---------- cola sin internet ----------
+function queue() { return LS('cola') || []; }
+function showQ() { var n = queue().length, q = document.getElementById('q'); q.style.display = n ? 'block' : 'none'; q.textContent = '⏳ ' + n + ' marca(s) sin enviar — se mandan solas cuando vuelva internet'; }
+async function flush() { var Q = queue(); if (!Q.length) return; var rest = []; for (var i = 0; i < Q.length; i++) { try { await call('m_marca', Q[i]); } catch (e) { if (!e.srv) rest.push(Q[i]); } } LS('cola', rest); showQ(); }
+setInterval(flush, 30000); window.addEventListener('online', flush);
+// ---------- pantallas ----------
+function setup(err) { $app.innerHTML = '<header><div><b>🕒 Marcar asistencia</b><small>Nissifarma</small></div></header><p>Escribí el <b>código de este celular</b> (te lo da el panel: ➕ Nuevo celular).</p><input id="tk" placeholder="Código" autocapitalize="characters" value="' + esc(S.tok || '') + '"><button class="pri" style="width:100%" id="go">Conectar</button>' + (err ? '<p class="er-c">' + esc(err) + '</p>' : '');
+  document.getElementById('go').onclick = async function () { S.tok = document.getElementById('tk').value.trim().toUpperCase(); LS('tok', S.tok); try { await load(); home(); } catch (e) { setup(e.message); } }; }
+async function load() { var j = await call('m_hola'); S.info = j; LS('info', j); return j; }
+function home() { S.cur = null; S.pin = ''; var I = S.info; if (!I) return setup();
+  if (I.modo === 'propio' && I.funcs[0]) { S.cur = I.funcs[0]; return pinScr(); }
+  var mine = I.funcs.filter(function (f) { return (f.suc || '').toUpperCase() === (I.suc || '').toUpperCase(); }), other = I.funcs.filter(function (f) { return mine.indexOf(f) < 0; });
+  $app.innerHTML = '<header><div><b>🕒 Marcar asistencia</b><small>' + esc(I.disp || '') + (I.suc ? ' · ' + esc(I.suc) : '') + '</small></div><button class="ghost" id="cfg">⚙️</button></header><div class="clock" id="clk"></div><div class="date" id="dt"></div><div class="sec">¿Quién sos?</div><div class="names">' + mine.map(nb).join('') + '</div>' + (other.length ? '<div class="sec">De otra sucursal (coberturas)</div><input id="bus" placeholder="🔎 Buscar nombre"><div class="names" id="oth">' + other.map(nb).join('') + '</div>' : '');
+  tick(); $app.querySelectorAll('[data-c]').forEach(function (b) { b.onclick = function () { S.cur = I.funcs.find(function (f) { return f.cod === b.dataset.c; }); pinScr(); }; });
+  var bus = document.getElementById('bus'); if (bus) bus.oninput = function () { var v = bus.value.toLowerCase(); document.querySelectorAll('#oth [data-c]').forEach(function (b) { b.style.display = b.textContent.toLowerCase().indexOf(v) >= 0 ? '' : 'none'; }); };
+  document.getElementById('cfg').onclick = function () { if (confirm('¿Cambiar el código de este celular?')) setup(); };
+  load().then(function (j) { if (JSON.stringify(j.funcs) !== JSON.stringify(I.funcs)) home(); }).catch(function () { }); }
+function nb(f) { var n = String(f.nombre || f.cod).split(' '); return '<button data-c="' + esc(f.cod) + '">' + esc(n.slice(0, 2).join(' ')) + '<small>' + esc(n.slice(2).join(' ')) + (f.suc ? ' · ' + esc(f.suc) : '') + '</small></button>'; }
+function tick() { var c = document.getElementById('clk'), d = document.getElementById('dt'); if (!c) return; var n = new Date(); c.textContent = hm(n) + ':' + String(n.getSeconds()).padStart(2, '0'); d.textContent = n.toLocaleDateString('es-PY', { weekday: 'long', day: 'numeric', month: 'long' }); }
+setInterval(tick, 1000);
+function pinScr(err) { S.pin = ''; var draw = function () { $app.innerHTML = '<header><div><b>' + esc(S.cur.nombre) + '</b><small>Escribí tu PIN</small></div>' + (S.info.modo === 'propio' ? '' : '<button class="ghost" id="bk">✕</button>') + '</header><div class="pin">' + [0, 1, 2, 3].map(function (i) { return '<i class="' + (i < S.pin.length ? 'on' : '') + '"></i>'; }).join('') + '</div>' + (err ? '<p class="er-c" style="text-align:center">' + esc(err) + '</p>' : '') + '<div class="pad">' + [1, 2, 3, 4, 5, 6, 7, 8, 9, '⌫', 0, '✓'].map(function (k) { return '<button data-k="' + k + '">' + k + '</button>'; }).join('') + '</div>';
+    var bk = document.getElementById('bk'); if (bk) bk.onclick = home; $app.querySelectorAll('[data-k]').forEach(function (b) { b.onclick = function () { var k = b.dataset.k; err = ''; if (k === '⌫') S.pin = S.pin.slice(0, -1); else if (k === '✓') return check(); else if (S.pin.length < 4) S.pin += k; draw(); if (S.pin.length === 4) setTimeout(function () { if (S.pin.length === 4) check(); }, 200); }; }); };
+  var check = async function () { if (S.pin.length < 4) return; try { var j = await call('m_hoy', { cod: S.cur.cod, pin: S.pin }); S.hoy = j.hoy; acts(); } catch (e) { if (!e.srv) { S.hoy = []; acts(true); } else { err = e.message; S.pin = ''; draw(); } } };
+  draw(); idle(); }
+function sugerido() { var last = (S.hoy.filter(function (m) { return ['entrada', 'desc', 'vuelve', 'salida'].indexOf(m.tipo) >= 0; }).pop() || {}).tipo; return { '': 'entrada', entrada: 'desc', desc: 'vuelve', vuelve: 'salida', salida: '' }[last || ''] || ''; }
+function acts(off) { var T = S.info.tipos || [], sg = sugerido(), nm = function (id) { var t = T.find(function (x) { return x.id === id; }); return t ? t.n : id; };
+  $app.innerHTML = '<header><div><b>' + esc(S.cur.nombre) + '</b><small>¿Qué querés marcar?</small></div><button class="ghost" id="bk">✕</button></header>' + (off ? '<p class="mu">Sin internet: la marca se guarda y se envía sola.</p>' : '') + '<div class="hoy">Hoy: ' + (S.hoy.length ? S.hoy.map(function (m) { return '<b>' + hm(+m.t) + '</b> ' + esc(nm(m.tipo)) + (m.estado === 'pend' ? ' (espera aprobación)' : m.estado === 'rech' ? ' (rechazado)' : ''); }).join(' · ') : 'todavía nada') + '</div><div class="acts">' + T.map(function (t) { return '<button data-t="' + esc(t.id) + '" class="' + (t.id === sg ? 'sug' : '') + '"><em>' + esc(t.ic || '•') + '</em>' + esc(t.n) + '</button>'; }).join('') + '</div>';
+  document.getElementById('bk').onclick = home; $app.querySelectorAll('[data-t]').forEach(function (b) { b.onclick = function () { S.tipo = T.find(function (x) { return x.id === b.dataset.t; }); datos(); }; }); idle(); }
+function datos() { var t = S.tipo, need = t.motivo || t.quien || t.nota || t.monto || t.fecha; if (!need) return selfie({});
+  var hoy = ymd(new Date());
+  $app.innerHTML = '<header><div><b>' + esc(t.ic || '') + ' ' + esc(t.n) + '</b><small>' + esc(S.cur.nombre) + '</small></div><button class="ghost" id="bk">✕</button></header>' + (t.fecha ? '<label>¿Para qué día?<input type="date" id="fFe" value="' + hoy + '"></label>' : '') + (t.motivo ? '<label>Motivo<select id="fMo">' + (S.info.motivos || []).map(function (m) { return '<option>' + esc(m) + '</option>'; }).join('') + '</select></label>' : '') + (t.quien ? '<label>¿Quién te cubre?<select id="fQu"><option value="">(todavía no sé)</option>' + S.info.funcs.filter(function (f) { return f.cod !== S.cur.cod; }).map(function (f) { return '<option value="' + esc(f.cod + ' · ' + f.nombre) + '">' + esc(f.nombre) + (f.suc ? ' · ' + esc(f.suc) : '') + '</option>'; }).join('') + '</select></label><label>¿Quién lo pide?<select id="fPi"><option value="func">Yo (favor personal, le pago yo)</option><option value="empresa">La empresa</option></select></label>' : '') + (t.monto ? '<label>Monto ₲<input id="fMn" inputmode="numeric"></label>' : '') + (t.nota || t.motivo ? '<label>Detalle<textarea id="fNo" rows="2" placeholder="Opcional"></textarea></label>' : '') + '<button class="pri" style="width:100%;margin-top:10px" id="go">Seguir</button>';
+  document.getElementById('bk').onclick = acts; document.getElementById('go').onclick = function () { var g = function (id) { var e = document.getElementById(id); return e ? e.value : ''; }, fe = g('fFe'), nota = (fe ? 'para: ' + fe + (g('fPi') ? ' · pide: ' + g('fPi') : '') + ' · ' : (g('fPi') ? 'pide: ' + g('fPi') + ' · ' : '')) + g('fNo'); selfie({ motivo: g('fMo'), quien: g('fQu'), monto: g('fMn'), nota: nota.replace(/[\s·]+$/, '').trim() }); }; idle(); }
+var stream = null;
+function stopCam() { if (stream) { stream.getTracks().forEach(function (k) { k.stop(); }); stream = null; } }
+function gps() { return new Promise(function (res) { if (!navigator.geolocation) return res({}); var done = false; setTimeout(function () { if (!done) { done = true; res({}); } }, 12000); navigator.geolocation.getCurrentPosition(function (p) { if (done) return; done = true; res({ lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy }); }, function () { if (!done) { done = true; res({}); } }, { enableHighAccuracy: true, timeout: 11000, maximumAge: 30000 }); }); }
+async function selfie(extra) { var t = S.tipo, G = gps(); if (t.sinFoto || !S.info.selfie) return send(extra, null, G);
+  $app.innerHTML = '<header><div><b>📸 Selfie</b><small>' + esc(S.cur.nombre) + ' · ' + esc(t.n) + '</small></div><button class="ghost" id="bk">✕</button></header><div class="cnt"><video id="v" playsinline autoplay muted></video><span id="cd"></span></div><p class="mu">Mirá a la cámara. La foto se saca sola.</p><button class="pri" style="width:100%" id="snap">📸 Sacar ahora</button>';
+  document.getElementById('bk').onclick = function () { stopCam(); acts(); };
+  var v = document.getElementById('v'), shot = function () { var c = document.createElement('canvas'), w = 480, h = Math.round(w * (v.videoHeight || 640) / (v.videoWidth || 480)); c.width = w; c.height = h; var x = c.getContext('2d'); x.translate(w, 0); x.scale(-1, 1); x.drawImage(v, 0, 0, w, h); var data = c.toDataURL('image/jpeg', 0.6); stopCam(); clearInterval(cd); send(extra, data, G); };
+  try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 } }, audio: false }); v.srcObject = stream; } catch (e) { $app.querySelector('.mu').innerHTML = '<span class="er-c">No se pudo abrir la cámara: ' + esc(e.message) + '. Dale permiso de cámara a esta página.</span>'; return; }
+  var n = 3, el = document.getElementById('cd'), cd = setInterval(function () { el.textContent = n || ''; if (n-- <= 0) shot(); }, 1000); document.getElementById('snap').onclick = shot; }
+async function send(extra, foto, G) { $app.innerHTML = '<div class="big">Enviando…</div><p class="mu">Tomando ubicación</p>'; var g = await G, body = Object.assign({ cod: S.cur.cod, pin: S.pin, tipo: S.tipo.id, t: Date.now(), foto: foto }, g, extra);
+  try { var j = await call('m_marca', body); fin(true, j.pend, g); } catch (e) { if (e.srv) { $app.innerHTML = '<div class="big er-c">✕ ' + esc(e.message) + '</div><button style="width:100%" id="bk">Volver</button>'; document.getElementById('bk').onclick = home; return; } var Q = queue(); Q.push(body); LS('cola', Q); showQ(); fin(false, false, g); } }
+function fin(online, pend, g) { $app.innerHTML = '<div class="big ok-c">✓ ' + esc(S.tipo.n) + '</div><div class="clock">' + hm(Date.now()) + '</div><p class="mu">' + esc(S.cur.nombre) + '</p><p class="mu">' + (online ? (pend ? 'Queda pendiente de aprobación.' : 'Registrado.') : 'Guardado sin internet: se envía solo.') + (g.lat ? '' : ' · ⚠️ sin ubicación (activá el GPS)') + '</p>';
+  S.pin = ''; setTimeout(home, 4000); }
+function idle() { clearTimeout(S.idle); if (S.info && S.info.modo !== 'propio') S.idle = setTimeout(function () { stopCam(); home(); }, 45000); }
+document.addEventListener('click', idle);
+showQ(); if (!S.tok) setup(); else if (S.info) { home(); flush(); } else load().then(home).catch(function (e) { setup(e.message); });
+</script>
+</body>
+</html>
