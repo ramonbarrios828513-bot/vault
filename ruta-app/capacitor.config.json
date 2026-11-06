@@ -1,0 +1,7 @@
+{
+  "appId": "py.nissifarma.ruta",
+  "appName": "Nissifarma Ruta",
+  "webDir": "www",
+  "android": { "useLegacyBridge": true },
+  "plugins": { "CapacitorHttp": { "enabled": true } }
+}

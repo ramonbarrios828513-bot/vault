@@ -1,0 +1,10 @@
+NISSIFARMA RUTA — SERVIDOR (para tu hosting)
+
+1. Abrí config.php y cambiá CAMBIAR-ESTA-CLAVE por una clave larga y secreta.
+2. Subí esta carpeta completa (ruta-server) a tu hosting, por ejemplo como public_html/ruta
+   (con el Administrador de archivos de cPanel o por FTP). Necesita PHP 7.4 o más nuevo con SQLite (casi todos los hostings lo tienen).
+3. Abrí en el navegador: https://TU-DOMINIO/ruta/panel.html y entrá con la clave.
+4. En el panel: 🏪 Sucursales → tocá el mapa para marcar cada sucursal.
+5. ➕ Nuevo celular → te da la dirección y el código para escribir en la app del celular.
+
+Los datos quedan en la carpeta data/ (protegida). Hacé copia de esa carpeta cada tanto.

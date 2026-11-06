@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nissifarma Ruta</title>
+<style>
+:root{--bg:#0b1220;--pn:#111c33;--ln:#263247;--tx:#f1f5f9;--mu:#94a3b8;--ok:#16a34a;--er:#dc2626;--ac:#2563eb;--wa:#d97706}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font:600 16px system-ui,-apple-system,Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+header{padding:14px 16px;background:#0f172a;border-bottom:1px solid var(--ln);display:flex;align-items:center;gap:10px}
+header b{font-size:18px}header small{display:block;color:var(--mu);font-weight:500;font-size:13px}header .sp{flex:1}
+.chip{padding:5px 10px;border-radius:99px;font-size:12.5px;font-weight:800;background:#334155}.chip.on{background:var(--ok)}
+main{padding:14px 14px 90px}
+.big{display:block;width:100%;border:0;border-radius:18px;padding:22px 14px;font:900 22px system-ui;color:#fff;margin:10px 0;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.big small{display:block;font:600 13px system-ui;opacity:.9;margin-top:4px}
+.in{background:var(--ok)}.out{background:var(--er)}.perm{background:#7c3aed}.back{background:#0e7490}
+.box{background:var(--pn);border:1px solid var(--ln);border-radius:16px;padding:12px;margin:12px 0}
+.box h3{margin:0 0 8px;font-size:16px}
+.t{border-top:1px solid var(--ln);padding:10px 0}.t:first-of-type{border-top:0}.t b{display:block}.t .m{color:var(--mu);font-weight:500;font-size:13.5px;margin:3px 0 8px}
+.bt{display:flex;gap:6px;flex-wrap:wrap}.bt button{flex:1 1 30%;border:0;border-radius:12px;padding:12px 6px;font:800 14px system-ui;color:#fff;background:#334155}
+.bt .g{background:var(--ok)}.bt .b{background:var(--ac)}.bt .r{background:var(--er)}
+input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid #475569;background:#1e293b;color:#fff;font:600 16px system-ui;margin:6px 0}
+label{color:var(--mu);font-size:13.5px}
+.full{position:fixed;inset:0;background:rgba(2,6,23,.96);z-index:50;display:flex;flex-direction:column;justify-content:center;padding:24px;text-align:center}
+.full h2{font-size:26px;margin:8px 0}.full p{color:#cbd5e1;font-weight:500}
+.nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:#0f172a;border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom)}
+.nav button{flex:1;border:0;background:none;color:var(--mu);font:800 13px system-ui;padding:12px 4px}.nav button.on{color:#fff}
+.msg{padding:8px 10px;border-radius:12px;margin:6px 0;max-width:85%;font-weight:500}.msg.d{background:#1e3a8a}.msg.c{background:#14532d;margin-left:auto}
+.msg small{display:block;color:#cbd5e1;font-size:11px}
+.warn{background:#3b2a0b;border:1px solid var(--wa);color:#fde68a;border-radius:12px;padding:10px;font-weight:600;font-size:14px;margin:10px 0}
+.q{color:var(--mu);font-size:12.5px;text-align:center;margin-top:10px}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#111827;border:1px solid #334155;padding:10px 16px;border-radius:12px;z-index:60;display:none;max-width:90%;text-align:center}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<input type="file" id="cam" accept="image/*" capture="user" hidden>
+<div id="toast"></div>
+<script>
+(function () {
+  var C = window.Capacitor, NATIVE = !!(C && C.isNativePlatform && C.isNativePlatform());
+  var BG = NATIVE ? C.registerPlugin('BackgroundGeolocation') : null, LN = NATIVE ? C.registerPlugin('LocalNotifications') : null, APP = NATIVE ? C.registerPlugin('App') : null;
+  var ST = load(), tab = 'ini', watcher = null, lastSent = null, lastLoc = null, busy = false, tareas = [], msgs = [], pendSelfie = null, notifId = 1;
+  function load() { try { return JSON.parse(localStorage.getItem('ruta') || '{}'); } catch (e) { return {}; } }
+  function save() { try { localStorage.setItem('ruta', JSON.stringify(ST)); } catch (e) {} }
+  function $(i) { return document.getElementById(i); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function hm(t) { return new Date(+t).toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' }); }
+  function toast(m, ms) { var t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(toast.h); toast.h = setTimeout(function () { t.style.display = 'none'; }, ms || 3200); }
+  function notify(title, body) { if (!LN) return; try { LN.schedule({ notifications: [{ id: notifId++, title: title, body: body }] }); } catch (e) {} }
+  function url(a) { return String(ST.srv || '').replace(/\/+$/, '') + '/api.php?a=' + a; }
+  function call(a, body) { return fetch(url(a), { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Token': ST.tok || '' }, body: JSON.stringify(body || {}) }).then(function (r) { return r.json(); }).then(function (j) { if (!j.ok) throw new Error(j.error || 'error'); return j; }); }
+  // cola: lo que no se pudo mandar (sin señal) se guarda y se reintenta
+  function enqueue(a, body) { ST.q = ST.q || []; ST.q.push({ a: a, b: body }); if (ST.q.length > 3000) ST.q = ST.q.slice(-3000); save(); flush(); }
+  function flush() { if (busy || !ST.q || !ST.q.length || !ST.tok) return; busy = true; var it = ST.q[0]; call(it.a, it.b).then(function (j) { ST.q.shift(); save(); busy = false; handle(j); flush(); paintQ(); }).catch(function (e) { busy = false; if (/no válido|desactivado/.test(e.message)) { ST.q.shift(); save(); } paintQ(); }); }
+  function paintQ() { var el = $('qn'); if (el) el.textContent = ST.q && ST.q.length ? '⏳ ' + ST.q.length + ' dato(s) esperando señal para enviarse' : '✓ Todo enviado'; }
+  function handle(j) { if (!j) return; (j.cmds || []).forEach(function (c) { if (c.tipo === 'selfie' && (!pendSelfie || pendSelfie.id !== c.id)) { pendSelfie = { id: c.id, t: Date.now(), cmd: 1 }; notify('📸 Te piden una selfie', 'Tenés ' + ((ST.cfg || {}).selfieMin || 3) + ' minutos para responder.'); paint(); }
+      if (c.tipo === 'permiso_ok' || c.tipo === 'permiso_no') { ST.permEst = c.tipo === 'permiso_ok' ? 'ok' : 'no'; save(); notify(c.tipo === 'permiso_ok' ? '✅ Permiso aprobado' : '❌ Permiso negado', c.dato || ''); call('cmd_ok', { id: c.id }).catch(function () {}); paint(); }
+      if (c.tipo === 'tarea') { notify('📦 Nueva tarea', c.dato || ''); call('cmd_ok', { id: c.id }).catch(function () {}); loadTareas(); } });
+    if (j.msgMax && j.msgMax > (ST.msgVisto || 0)) { if (j.msgMax > (ST.msgAvisado || 0)) { ST.msgAvisado = j.msgMax; save(); notify('💬 Mensaje nuevo', 'Abrí Mensajes en la app.'); } ST.msgNuevo = true; paintNav(); } }
+  // ubicación
+  function battery() { try { if (navigator.getBattery) return navigator.getBattery().then(function (b) { return b.level; }); } catch (e) {} return Promise.resolve(null); }
+  function onLoc(l) { if (!l) return; lastLoc = { lat: l.latitude, lon: l.longitude, acc: l.accuracy, spd: l.speed, sim: !!l.simulated, t: l.time || Date.now() }; var far = !lastSent || dist(lastSent, lastLoc) > 30, old = !lastSent || lastLoc.t - lastSent.t > 60000; if (!ST.jor || !(far || old)) return; lastSent = lastLoc; battery().then(function (b) { var p = Object.assign({}, lastLoc, { bat: b }); enqueue('ping', { pts: [p] }); }); }
+  function dist(a, b) { var R = 6371000, r = Math.PI / 180, x = Math.sin((b.lat - a.lat) * r / 2), y = Math.sin((b.lon - a.lon) * r / 2), h = x * x + Math.cos(a.lat * r) * Math.cos(b.lat * r) * y * y; return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h)); }
+  function startTrack() { if (watcher) return; if (NATIVE) { BG.addWatcher({ backgroundMessage: 'Tu ubicación se registra solo durante la jornada.', backgroundTitle: 'Nissifarma Ruta · jornada activa', requestPermissions: true, stale: false, distanceFilter: 0 }, function (l, err) { if (err) { if (err.code === 'NOT_AUTHORIZED') { if (confirm('La app necesita permiso de ubicación «Permitir siempre». ¿Abrir la configuración?')) BG.openSettings(); } return; } onLoc(l); }).then(function (id) { watcher = id; }); }
+    else if (navigator.geolocation) { watcher = navigator.geolocation.watchPosition(function (p) { onLoc({ latitude: p.coords.latitude, longitude: p.coords.longitude, accuracy: p.coords.accuracy, speed: p.coords.speed, time: p.timestamp }); }, function () {}, { enableHighAccuracy: true }); } }
+  function stopTrack() { if (watcher == null) return; if (NATIVE) BG.removeWatcher({ id: watcher }); else navigator.geolocation.clearWatch(watcher); watcher = null; }
+  function hereNow() { var P = hereNow0(); return Promise.race([P, new Promise(function (r) { setTimeout(function () { r(lastLoc || {}); }, 8000); })]); }
+  function hereNow0() { return new Promise(function (res) { if (lastLoc && Date.now() - lastLoc.t < 60000) return res(lastLoc); if (NATIVE) { var done = false; BG.addWatcher({ requestPermissions: true, stale: false }, function (l) { if (done || !l) return; done = true; onLoc(l); BG.removeWatcher({ id: w }); res(lastLoc); }).then(function (id) { w = id; if (done) BG.removeWatcher({ id: id }); }); var w; setTimeout(function () { if (!done) { done = true; res(lastLoc || {}); } }, 20000); } else if (navigator.geolocation) navigator.geolocation.getCurrentPosition(function (p) { res({ lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy }); }, function () { res({}); }, { enableHighAccuracy: true, timeout: 20000 }); else res({}); }); }
+  // selfie: cámara frontal, foto reducida
+  function selfie() { return new Promise(function (res, rej) { var i = $('cam'); i.value = ''; i.onchange = function () { var f = i.files && i.files[0]; if (!f) return rej(new Error('sin foto')); var img = new Image(), u = URL.createObjectURL(f); img.onload = function () { var s = Math.min(1, 640 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); res(c.toDataURL('image/jpeg', 0.7)); }; img.onerror = function () { rej(new Error('foto')); }; img.src = u; }; i.click(); }); }
+  function marcar(tipo) { toast('📸 Sacate una selfie…'); selfie().then(function (foto) { toast('📍 Buscando tu ubicación…', 20000); return hereNow().then(function (p) { enqueue('ev', { tipo: tipo, lat: p.lat, lon: p.lon, foto: foto, t: Date.now() }); if (tipo === 'entrada') { ST.jor = true; ST.jorT = Date.now(); planAzar(); startTrack(); } if (tipo === 'salida') { ST.jor = false; ST.permEst = ''; stopTrack(); } save(); toast(tipo === 'entrada' ? '🟢 Entrada marcada ' + hm(Date.now()) : '🔴 Salida marcada ' + hm(Date.now())); paint(); }); }).catch(function () { toast('Sin selfie no se puede marcar.'); }); }
+  // selfies al azar durante la jornada
+  function planAzar() { var n = +((ST.cfg || {}).azar || 0); ST.azar = []; for (var i = 0; i < n; i++) ST.azar.push(Date.now() + (20 + Math.random() * 400) * 60000); ST.azar.sort(); save(); }
+  function tick() { if (ST.jor && ST.azar && ST.azar.length && Date.now() >= ST.azar[0] && !pendSelfie) { ST.azar.shift(); save(); pendSelfie = { id: 0, t: Date.now(), azar: 1 }; notify('📸 Selfie de control', 'Tenés ' + ((ST.cfg || {}).selfieMin || 3) + ' minutos.'); paint(); }
+    if (pendSelfie && pendSelfie.azar && Date.now() - pendSelfie.t > ((ST.cfg || {}).selfieMin || 3) * 60000) { enqueue('ev', { tipo: 'selfie_no', nota: 'No respondió la selfie al azar', lat: lastLoc && lastLoc.lat, lon: lastLoc && lastLoc.lon, t: Date.now() }); pendSelfie = null; paint(); }
+    if (ST.jor && lastLoc && (!lastSent || Date.now() - lastSent.t > 120000)) { lastSent = Object.assign({}, lastLoc, { t: Date.now() }); battery().then(function (bt) { enqueue('ping', { pts: [Object.assign({}, lastLoc, { t: Date.now(), bat: bt })] }); }); }
+    else if (ST.tok && (!ST.q || !ST.q.length)) call('ping', { pts: [] }).then(handle).catch(function () {}); flush(); }
+  function responderSelfie() { var ps = pendSelfie; selfie().then(function (foto) { return hereNow().then(function (p) { if (ps && ps.cmd) enqueue('cmd_ok', { id: ps.id, foto: foto, lat: p.lat, lon: p.lon }); else enqueue('ev', { tipo: 'selfie', nota: 'Selfie al azar', foto: foto, lat: p.lat, lon: p.lon, t: Date.now() }); pendSelfie = null; toast('✅ Selfie enviada'); paint(); }); }).catch(function () { toast('No se sacó la foto.'); }); }
+  function loadTareas() { if (!ST.tok) return; call('tareas').then(function (j) { tareas = j.tareas || []; if (tab === 'tar' || tab === 'ini') paint(); }).catch(function () {}); }
+  function loadMsgs() { call('msgs', { desde: 0 }).then(function (j) { msgs = j.msgs || []; var mx = msgs.reduce(function (m, x) { return x.de === 'dir' ? Math.max(m, +x.id) : m; }, 0); ST.msgVisto = mx; ST.msgNuevo = false; save(); if (tab === 'msg') paint(); paintNav(); }).catch(function () {}); }
+  function tareaEstado(id, est) { var go = function (foto, nota) { hereNow().then(function (p) { enqueue('tarea', { id: id, estado: est, lat: p.lat, lon: p.lon, foto: foto, nota: nota || '' }); tareas = tareas.map(function (t) { if (+t.id === +id) t.estado = est; return t; }).filter(function (t) { return t.estado !== 'hecha' && t.estado !== 'fallida'; }); toast('✓ Listo'); paint(); }); };
+    if (est === 'hecha') { if (confirm('¿Sacar una foto de la entrega (opcional)?')) { var i = $('cam'); i.setAttribute('capture', 'environment'); selfie().then(function (f) { i.setAttribute('capture', 'user'); go(f); }).catch(function () { i.setAttribute('capture', 'user'); go(null); }); } else go(null); }
+    else if (est === 'fallida') { var n = prompt('¿Por qué no se pudo?'); if (n != null) go(null, n); } else go(null); }
+  // pantallas
+  function paintNav() { var n = $('nav'); if (!n) return; n.innerHTML = [['ini', '🏠 Inicio'], ['tar', '📦 Tareas' + (tareas.length ? ' (' + tareas.length + ')' : '')], ['msg', '💬 Mensajes' + (ST.msgNuevo ? ' 🔴' : '')]].map(function (t) { return '<button data-tab="' + t[0] + '" class="' + (tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join(''); }
+  function paint() { var r = $('root');
+    if (!ST.tok) { r.innerHTML = '<header><b>🛵 Nissifarma Ruta</b></header><main><div class="box"><h3>Activar este celular</h3><label>Dirección del servidor (te la da el director)</label><input id="sv" placeholder="https://…/ruta/" value="' + esc(ST.srv || '') + '" autocapitalize="off"><label>Código de activación</label><input id="tk" placeholder="Ej.: 1F87F03E27" autocapitalize="characters"><button class="big in" id="act">Activar</button></div><p class="q">Celular de Nissifarma. La ubicación se registra solo durante la jornada (entre tu entrada y tu salida).</p></main>'; return; }
+    var h = '<header><div><b>' + esc(ST.nombre || '') + '</b><small>' + esc(ST.rol || '') + ' · ' + esc(ST.suc || '') + '</small></div><span class="sp"></span><span class="chip' + (ST.jor ? ' on' : '') + '">' + (ST.jor ? '🟢 En jornada' : '⚪ Fuera') + '</span></header><main>';
+    if (tab === 'ini') { h += (NATIVE ? '' : '<div class="warn">Estás usando la versión web: la ubicación solo funciona con la app abierta. Instalá la app.</div>')
+      + (ST.jor ? '<button class="big out" data-m="salida">🔴 MARCAR SALIDA<small>En jornada desde ' + hm(ST.jorT) + '</small></button>' : '<button class="big in" data-m="entrada">🟢 MARCAR ENTRADA<small>Con selfie y ubicación</small></button>')
+      + (ST.jor ? (ST.permEst === 'pend' ? '<div class="warn">⏳ Pediste permiso para salir: esperando respuesta…</div>' : ST.permEst === 'ok' ? '<div class="box">✅ Tenés permiso para salir.<button class="big back" data-v="1">✋ YA VOLVÍ</button></div>' : ST.permEst === 'no' ? '<div class="warn">❌ El permiso fue negado.</div><button class="big perm" data-p="1">🚪 Pedir permiso para salir</button>' : '<button class="big perm" data-p="1">🚪 Pedir permiso para salir<small>Banco, oficina, mandado, almuerzo…</small></button>') : '')
+      + (tareas.length ? '<div class="box"><h3>📦 Tenés ' + tareas.length + ' tarea(s)</h3><button class="big back" data-tab="tar" style="padding:12px;font-size:17px">Ver tareas</button></div>' : '')
+      + '<p class="q" id="qn"></p>'; }
+    if (tab === 'tar') { h += '<div class="box"><h3>📦 Tareas</h3>' + (tareas.map(function (t) { var e = t.estado; return '<div class="t"><b>' + ({ delivery: '🛵', reposicion: '📦', reubicacion: '🔁', cobranza: '💵', banco: '🏦', tramite: '📄' }[t.tipo] || '•') + ' ' + esc(t.titulo) + '</b><div class="m">' + (t.desde ? 'Desde ' + esc(t.desde) + ' ' : '') + (t.hacia ? '→ ' + esc(t.hacia) : '') + (t.detalle ? '<br>' + esc(t.detalle) : '') + '<br>Estado: ' + esc(e) + '</div><div class="bt">' + (e === 'pend' ? '<button class="b" data-te="' + t.id + ':en_camino">🚀 Salí</button>' : '') + (e === 'en_camino' ? '<button class="b" data-te="' + t.id + ':llego">📍 Llegué</button>' : '') + (e !== 'pend' ? '<button class="g" data-te="' + t.id + ':hecha">✅ Hecho</button>' : '') + '<button class="r" data-te="' + t.id + ':fallida">❌ No se pudo</button>' + (t.hacia ? '<button data-nav="' + esc(t.hacia) + '">🧭 Ir</button>' : '') + '</div></div>'; }).join('') || '<p class="q">No tenés tareas ahora.</p>') + '</div><button class="big back" data-rl="1" style="padding:12px;font-size:16px">↻ Actualizar</button>'; }
+    if (tab === 'msg') { h += '<div class="box"><h3>💬 Mensajes con el director</h3><div id="ml">' + (msgs.map(function (m) { return '<div class="msg ' + (m.de === 'dir' ? 'd' : 'c') + '"><small>' + (m.de === 'dir' ? '🧑‍💼 Director' : 'Yo') + ' · ' + hm(m.t) + '</small>' + esc(m.txt) + '</div>'; }).join('') || '<p class="q">Sin mensajes.</p>') + '</div><textarea id="mt" rows="2" placeholder="Escribí un mensaje"></textarea><button class="big back" data-ms="1" style="padding:12px;font-size:17px">Enviar</button></div>'; }
+    h += '</main><nav class="nav" id="nav"></nav>';
+    if (pendSelfie) h += '<div class="full"><div style="font-size:64px">📸</div><h2>Te piden una selfie</h2><p>Sacate una foto ahora para confirmar que estás con tu celular.<br>Tenés ' + ((ST.cfg || {}).selfieMin || 3) + ' minutos.</p><button class="big in" data-sr="1">Sacar selfie</button></div>';
+    r.innerHTML = h; paintNav(); paintQ(); var ml = $('ml'); if (ml) ml.scrollIntoView(false); }
+  document.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; var d = b.dataset;
+    if (b.id === 'act') { var sv = $('sv').value.trim(), tk = $('tk').value.trim().toUpperCase(); if (!/^https?:\/\//.test(sv) || !tk) { toast('Completá la dirección y el código.'); return; } ST.srv = sv; ST.tok = tk; call('hola').then(function (j) { ST.nombre = j.nombre; ST.suc = j.suc; ST.rol = j.rol; ST.cfg = j.cfg || {}; save(); toast('✅ Celular activado'); askPerms(); paint(); loadTareas(); }).catch(function (er) { ST.tok = ''; save(); toast('❌ ' + er.message, 5000); }); return; }
+    if (d.tab) { tab = d.tab; if (tab === 'msg') loadMsgs(); if (tab === 'tar') loadTareas(); paint(); return; }
+    if (d.m) { marcar(d.m); return; }
+    if (d.p) { var mot = prompt('¿Por qué necesitás salir? (banco, oficina, el jefe me necesita, almuerzo, personal…)'); if (!mot) return; hereNow().then(function (p) { enqueue('ev', { tipo: 'permiso', nota: mot, lat: p.lat, lon: p.lon, t: Date.now() }); ST.permEst = 'pend'; save(); paint(); toast('📨 Permiso pedido'); }); return; }
+    if (d.v) { hereNow().then(function (p) { enqueue('ev', { tipo: 'volvi', lat: p.lat, lon: p.lon, t: Date.now() }); ST.permEst = ''; save(); paint(); toast('✋ Registrado'); }); return; }
+    if (d.sr) { responderSelfie(); return; }
+    if (d.te) { var q = d.te.split(':'); tareaEstado(+q[0], q[1]); return; }
+    if (d.rl) { loadTareas(); toast('↻'); return; }
+    if (d.nav) { window.open('https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(d.nav), '_system'); return; }
+    if (d.ms) { var t = $('mt').value.trim(); if (!t) return; call('msg', { txt: t }).then(function () { loadMsgs(); }).catch(function () { toast('Sin señal: probá de nuevo.'); }); $('mt').value = ''; return; } });
+  function askPerms() { if (LN) { try { LN.requestPermissions(); } catch (e) {} } }
+  if (APP) { try { APP.addListener('resume', function () { flush(); loadTareas(); call('ping', { pts: [] }).then(handle).catch(function () {}); }); } catch (e) {} }
+  paint(); if (ST.tok) { askPerms(); call('hola').then(function (j) { ST.cfg = j.cfg || {}; ST.nombre = j.nombre; ST.suc = j.suc; ST.rol = j.rol; save(); handle(j); paint(); }).catch(function () {}); loadTareas(); if (ST.jor) startTrack(); }
+  setInterval(tick, 30000); setInterval(loadTareas, 120000);
+})();
+</script>
+</body>
+</html>

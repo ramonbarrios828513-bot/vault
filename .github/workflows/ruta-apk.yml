@@ -1,0 +1,39 @@
+name: Nissifarma Ruta (APK)
+on:
+  push:
+    branches: [main]
+    paths: ['ruta-app/**', '.github/workflows/ruta-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Preparar proyecto Android
+        working-directory: ruta-app
+        run: |
+          npm install --no-audit --no-fund
+          npx cap add android
+          node patch-android.js
+          npx cap sync android
+      - name: Compilar APK
+        working-directory: ruta-app/android
+        run: ./gradlew assembleRelease --no-daemon
+      - name: Copiar APK
+        run: cp ruta-app/android/app/build/outputs/apk/release/app-release.apk nissifarma-ruta.apk
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ruta-v${{ github.run_number }}
+          name: Nissifarma Ruta 1.${{ github.run_number }}
+          body: App para los celulares de Nissifarma. Descargá nissifarma-ruta.apk desde el celular e instalalo.
+          files: nissifarma-ruta.apk
+          make_latest: true
