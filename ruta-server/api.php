@@ -83,7 +83,12 @@ if (in_array($a, $devActions, true)) {
     $estado = $tipo === 'permiso' ? 'pend' : 'ok';
     $q = $db->prepare('INSERT INTO ev(dev,t,tipo,lat,lon,nota,foto,ref,estado) VALUES(?,?,?,?,?,?,?,?,?)');
     $q->execute([$id, (int) ($in['t'] ?? now()), $tipo, $in['lat'] ?? null, $in['lon'] ?? null, mb_substr((string) ($in['nota'] ?? ''), 0, 500), $foto, isset($in['ref']) ? (int) $in['ref'] : null, $estado]);
-    out(['ok' => true, 'id' => (int) $db->lastInsertId(), 'cmds' => $pend()]);
+    $evId = (int) $db->lastInsertId();
+    // el delivery marca con la app de ruta: su entrada y salida van también a la marcación de asistencia (misma planilla)
+    if (!empty($D['func']) && in_array($tipo, ['entrada', 'salida'], true)) { $lat = isset($in['lat']) ? (float) $in['lat'] : null; $lon = isset($in['lon']) ? (float) $in['lon'] : null;
+      $q = $db->prepare('INSERT INTO marca(cod,dev,t,recibido,tipo,lat,lon,acc,sim,foto,nota,motivo,monto,quien,suc_gps,modo,estado) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+      $q->execute([$D['func'], $id, (int) ($in['t'] ?? now()), now(), $tipo, $lat, $lon, isset($in['acc']) ? (float) $in['acc'] : null, !empty($in['sim']) ? 1 : 0, $foto, mb_substr((string) ($in['nota'] ?? ''), 0, 500), '', null, '', sucGps($db, $lat, $lon), 'ruta', 'ok']); }
+    out(['ok' => true, 'id' => $evId, 'cmds' => $pend()]);
   }
   if ($a === 'cmd_ok') { $foto = savePhoto($in['foto'] ?? null); $s = $db->prepare("UPDATE cmd SET estado='ok', resp_t=?, dato=COALESCE(?,dato) WHERE id=? AND dev=?"); $s->execute([now(), $foto, (int) ($in['id'] ?? 0), $id]);
     if ($foto) { $q = $db->prepare("INSERT INTO ev(dev,t,tipo,lat,lon,nota,foto,ref,estado) VALUES(?,?,'selfie',?,?,?,?,?,'ok')"); $q->execute([$id, now(), $in['lat'] ?? null, $in['lon'] ?? null, 'Selfie pedida', $foto, (int) ($in['id'] ?? 0)]); }
@@ -103,7 +108,7 @@ if (in_array($a, $devActions, true)) {
     $foto = savePhoto($in['foto'] ?? null); if (!$foto && empty($T['sinFoto']) && (int) (marcCfg($db)['selfie'] ?? 1)) fail('Falta la selfie');
     $lat = isset($in['lat']) ? (float) $in['lat'] : null; $lon = isset($in['lon']) ? (float) $in['lon'] : null; $t = (int) ($in['t'] ?? now()); if ($t > now() + 120000 || $t < now() - 3 * 86400e3) $t = now();
     $q = $db->prepare('INSERT INTO marca(cod,dev,t,recibido,tipo,lat,lon,acc,sim,foto,nota,motivo,monto,quien,suc_gps,modo,estado) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-    $q->execute([$cod, $id, $t, now(), $tipo, $lat, $lon, isset($in['acc']) ? (float) $in['acc'] : null, !empty($in['sim']) ? 1 : 0, $foto, mb_substr((string) ($in['nota'] ?? ''), 0, 500), mb_substr((string) ($in['motivo'] ?? ''), 0, 120), isset($in['monto']) && $in['monto'] !== '' ? (float) $in['monto'] : null, mb_substr((string) ($in['quien'] ?? ''), 0, 120), sucGps($db, $lat, $lon), !empty($D['func']) ? 'propio' : 'kiosco', !empty($T['aprob']) ? 'pend' : 'ok']);
+    $q->execute([$cod, $id, $t, now(), $tipo, $lat, $lon, isset($in['acc']) ? (float) $in['acc'] : null, !empty($in['sim']) ? 1 : 0, $foto, mb_substr((string) ($in['nota'] ?? ''), 0, 500), mb_substr((string) ($in['motivo'] ?? ''), 0, 120), isset($in['monto']) && $in['monto'] !== '' ? (float) $in['monto'] : null, mb_substr((string) ($in['quien'] ?? ''), 0, 120), ($lat === null && empty($D['func']) && $D['suc']) ? (string) $D['suc'] : sucGps($db, $lat, $lon), !empty($D['func']) ? 'propio' : 'kiosco', !empty($T['aprob']) ? 'pend' : 'ok']);
     out(['ok' => true, 'id' => (int) $db->lastInsertId(), 'nombre' => $F['nombre'], 'pend' => !empty($T['aprob'])]);
   }
   if ($a === 'tareas') { $s = $db->prepare("SELECT * FROM tarea WHERE dev=? AND estado NOT IN ('hecha','anulada') ORDER BY t"); $s->execute([$id]); out(['ok' => true, 'tareas' => $s->fetchAll()]); }

@@ -12,7 +12,9 @@ MARCACIÓN DE ASISTENCIA (selfie + ubicación)
    generá los PIN y tocá «📤 Enviar funcionarios, PIN y tipos al servidor».
 7. Celular FIJO de cada sucursal: en el panel ➕ Nuevo celular, rol «kiosco», sucursal (ej.: KM7), sin código de funcionario.
    En ese celular abrí https://TU-DOMINIO/ruta/marcar.html, escribí el código y agregalo a la pantalla de inicio.
-8. Celular PROPIO de un funcionario: ➕ Nuevo celular con su código (ej.: F008). Abre la misma página marcar.html.
+8. DELIVERY: usa solo la app de Ruta. Al crear su celular poné su código (ej.: F001): su entrada y salida en la app
+   quedan también como marca de asistencia, con la sucursal donde se presentó (por GPS).
+   Celular PROPIO de otro funcionario: ➕ Nuevo celular con su código (ej.: F008). Abre la misma página marcar.html.
 9. En el panel → 🕒 Marcaciones ves las marcas del día con selfie y si estaba en la sucursal; ahí aprobás
    ausencias, coberturas y horas extra. Después en el Baúl → 📲 Marcaciones → «📥 Traer marcas».
 
