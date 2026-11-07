@@ -25,7 +25,7 @@ anchor = "<script>\n(function () { try {\n  var P = localStorage.getItem('iv-pro
 assert w.count(anchor) == 1; w = w.replace(anchor, mig + anchor)
 w = w.replace("['🕊️', 'Paloma']", "['🕊️', '\\u0050aloma']")  # la tarjeta de la paloma (el ave) no es un nombre
 for a, b in [("'🕊️', '#a21caf'", "'👧', '#a21caf'"), ("'🌙', '#7c3aed', 'm']", "'🧒', '#7c3aed', 'm']"), ("['luna', 'Luna',", "['pf6', 'Luna',"),
-             ("ramon|ramón|", ""), ("ramon@", "nombre@"), ("'Yóshua'", "'Hijo'"), ('«Yóshua»', '«Yésica»'), ("'Yisél'", "'Mamá'"), ("'Naomí'", "'Hija 2'")]:
+             ("Gisele Leticia Martínez Simón", "Mamá"), ("Gisele Leticia Simon", "Mamá"), ("Leticia Martínez Simón", ""), ("Leticia Simon", ""), ("Ramón Barrios", "Papá"), ("RAMÓN BARRIOS", "PAPÁ"), ("Ramon Barrios", "Papá"), ("ramon|ramón|", ""), ("ramon@", "nombre@"), ("'Yóshua'", "'Hijo'"), ('«Yóshua»', '«Yésica»'), ("'Yisél'", "'Mamá'"), ("'Naomí'", "'Hija 2'")]:
     w = w.replace(a, b)
 w = re.sub(r'/\^\(([a-z|]+)\)\$/', lambda m: '/^(' + '|'.join(NEW.get(t, t) for t in m.group(1).split('|')) + ')$/' if all(t in NEW for t in m.group(1).split('|')) else m.group(0), w)
 w = w.replace('gisele', 'pf2')
