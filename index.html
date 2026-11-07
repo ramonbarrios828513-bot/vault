@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Integrated Vault — v1003 · 7 nov</title>
+<title>Integrated Vault — v1004 · 7 nov</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
@@ -9505,7 +9505,7 @@
     if (k === 'next' || k === 'prev') { (synth&&synth.cancel()); var d = k === 'next' ? 1 : -1, j = mf.i + d; while (items[j] && items[j].kind !== 'para') j += d; if (items[j]) mf.i = j; mf.paused = false; mfStep(); return; }
     if (k === 'cfg') { mf.paused = true; (synth&&synth.cancel()); mfDraw(); mfOpen(); } }, true);
   // número de versión visible, para saber si el celular cargó lo último
-  var LECTOR_VER = 'v1003 · 7 nov';
+  var LECTOR_VER = 'v1004 · 7 nov';
   try { document.title = 'Integrated Vault — ' + LECTOR_VER; } catch (e) {}
   var VAULT_CH = 'familia';
   setTimeout(function () { if (VAULT_CH !== 'pruebas') return; var tb = $('topBar'); if (tb && !document.querySelector('.ch-badge')) { var b = document.createElement('span'); b.className = 'ch-badge'; b.textContent = '🧪 PRUEBAS'; b.title = 'Esta es la versión de pruebas: los cambios nuevos llegan acá primero. La familia usa la versión normal.'; tb.insertBefore(b, tb.firstChild); } }, 800);
@@ -14978,7 +14978,7 @@
     var sun = new T.DirectionalLight(0xfff4e0, 1.25); sun.position.set(16000, 24000, -11000); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); var sc = sun.shadow.camera; sc.left = -26000; sc.right = 26000; sc.top = 26000; sc.bottom = -26000; sc.near = 100; sc.far = 80000; sun.shadow.bias = -0.0005; sun.target.position.set(12000, 0, 15000); A3.S.add(sun); A3.S.add(sun.target); A3.sun = sun; };
   var _a3Build10 = a3Build; a3Build = function () { _a3Build10(); A3.world.traverse(function (o) { if (o.isMesh && !(o.material && o.material.map && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } }); if (A3.terrG) A3.terrG.traverse(function (o) { if (o.isMesh) o.receiveShadow = true; }); };
   // ================= 🔄 ACTUALIZACIÓN PARA TODOS: al publicar una versión nueva, cada aparato guarda y se cierra solo =================
-  var VBUILD = 1003;
+  var VBUILD = 1004;
   (async function () { try { if (!window.claude || typeof window.claude.use !== 'function') return; var d = await window.claude.use('db'); if (!d) return; var shown = false;
     d.doc('meta/version').onSnapshot(function (snap) { var v = snap && snap.exists && snap.data() && +snap.data().build; if (true || !v || v <= VBUILD || shown) return; var tried = +(sessionStorage.getItem('iv-upd') || 0); shown = true;
       var ov = document.createElement('div'); ov.className = 'upd-ov'; ov.innerHTML = tried >= v ? '<div class="upd-c"><b>🔄 Hay una versión nueva</b><p>Este aparato todavía muestra la anterior. Cerrá esta pestaña del navegador y abrí el Vault de nuevo.</p><button data-upd="x">Entendido</button></div>' : '<div class="upd-c"><b>🔄 Llegó una actualización del Vault</b><p>Guardo todo y cierro. En unos segundos volvés a entrar con tu clave, ya con lo nuevo.</p><div class="upd-n" id="updN">8</div><button data-upd="now">Cerrar ahora</button></div>'; document.body.appendChild(ov);
@@ -16517,7 +16517,7 @@
   var _a3CamPf = a3Cam; a3Cam = function () { _a3CamPf(); try { if (A3 && A3.pf) { A3.ortho = false; requestAnimationFrame(pfDraw); } } catch (e) {} };
   addEventListener('resize', function () { setTimeout(function () { try { pfDraw(); } catch (e) {} }, 150); });
   function pfPop() { var o = document.querySelector('.pf-pop'); if (o) { o.remove(); return; } var n = A3 && A3.pf || 0, p = document.createElement('div'); p.className = 'rh-pop pf-pop'; p.innerHTML = '<b>🎯 Ver y dibujar con punto de fuga</b><p class="hint">Como en el dibujo a mano: las líneas paralelas se juntan en un punto del horizonte. Podés seguir dibujando paredes, con el lápiz y poniendo muebles.</p><div class="st3-g">' + [[1, '⊙', '1 punto', 'De frente, desde la vereda'], [2, '⟨⟩', '2 puntos', 'Desde la esquina'], [3, '▽', '3 puntos', 'Desde arriba en diagonal'], [0, '↩️', 'Vista normal', 'Volver a la isométrica']].map(function (o2) { return '<button data-pf="' + o2[0] + '"' + (n === o2[0] && n ? ' class="on"' : '') + '><span>' + o2[1] + '</span><b>' + o2[2] + '</b><small>' + o2[3] + '</small></button>'; }).join('') + '</div><label class="pf-g"><input type="checkbox" data-pfg="1"' + (!A3 || A3.pfGuides !== false ? ' checked' : '') + '> Mostrar horizonte y guías de fuga</label><div class="wp-a"><button data-wpx2="1">Cerrar</button></div>'; document.body.appendChild(p); }
-  document.addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('[data-pf]'); if (!b || !A3) return; ev.stopPropagation(); var n = +b.dataset.pf, p = b.closest('.pf-pop'); if (p) p.remove(); if (n) pfSet(n); else { pfOff(true); A3.ortho = true; A3.cam.ty = 0; A3.cam.th = -Math.PI / 4; A3.cam.ph = Math.acos(1 / Math.sqrt(3)); try { a3Fit(); } catch (e) {} a3Cam(); toast('📐 Vista normal (isométrica).'); } }, true);
+  document.addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('.pf-pop [data-pf]'); if (!b || !A3) return; ev.stopPropagation(); var n = +b.dataset.pf, p = b.closest('.pf-pop'); if (p) p.remove(); if (n) pfSet(n); else { pfOff(true); A3.ortho = true; A3.cam.ty = 0; A3.cam.th = -Math.PI / 4; A3.cam.ph = Math.acos(1 / Math.sqrt(3)); try { a3Fit(); } catch (e) {} a3Cam(); toast('📐 Vista normal (isométrica).'); } }, true);
   document.addEventListener('change', function (ev) { if (ev.target && ev.target.dataset && ev.target.dataset.pfg && A3) { A3.pfGuides = ev.target.checked; pfDraw(); } }, true);
   // si cambiás a isométrica o vista de arriba con los botones del 3D, se apaga el punto de fuga
   document.addEventListener('click', function (ev) { var b = ev.target.closest && ev.target.closest('[data-a3=iso],[data-a3=top],[data-a3=front],[data-a3=fit]'); if (b && A3 && A3.pf) { pfOff(true); } }, true);
@@ -27541,7 +27541,7 @@
 })();
 </script>
 <script>
-(function () { if (window.claude) return; window.__WEB_BUILD = 1003;
+(function () { if (window.claude) return; window.__WEB_BUILD = 1004;
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
   function check() { fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (v) { if (v && v.build > window.__WEB_BUILD && !document.getElementById('webUpd')) { var d = document.createElement('div'); d.id = 'webUpd'; d.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;background:#7c3aed;color:#fff;padding:10px 16px;border-radius:14px;font:700 14px system-ui;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer'; if (window.__vaultOpen && window.__vaultOpen()) { /* v880: con el Baúl abierto NO se recarga solo (antes te sacaba y había que volver a entrar) */ d.textContent = '⬆️ Hay una versión nueva (v' + v.build + '). Se instala la próxima vez que entres · tocá acá para actualizar ahora'; d.onclick = function () { try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 400); }; document.body.appendChild(d); setTimeout(function () { d.style.display = 'none'; }, 12000); return; } var n = 8; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; document.body.appendChild(d); var t = setInterval(function () { n--; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; if (n <= 0) { clearInterval(t); try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 600); } }, 1000); } }).catch(function () {}); }
   var dip = null; window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dip = e; show(); });
