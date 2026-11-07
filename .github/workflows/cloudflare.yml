@@ -1,0 +1,45 @@
+name: Baúl → Cloudflare Pages
+# Publica el baúl en Cloudflare Pages en cada cambio (segundos, sin trabarse).
+# Se activa solo cuando el repositorio tiene los secretos CLOUDFLARE_API_TOKEN y CLOUDFLARE_ACCOUNT_ID.
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['ruta-app/**', 'ruta-server/**', 'tools/**', 'README.md']
+  workflow_dispatch:
+concurrency:
+  group: cloudflare-pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_CF: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+    steps:
+      - name: Sin claves de Cloudflare todavía
+        if: env.HAS_CF != 'true'
+        run: echo "Faltan los secretos CLOUDFLARE_API_TOKEN y CLOUDFLARE_ACCOUNT_ID; no se publica en Cloudflare."
+      - uses: actions/checkout@v4
+        if: env.HAS_CF == 'true'
+      - name: Armar la carpeta del sitio (solo lo que usa el baúl)
+        if: env.HAS_CF == 'true'
+        run: |
+          mkdir -p _site
+          cp index.html sw.js manifest.webmanifest version.json _site/ 2>/dev/null || true
+          for d in data icons blob arquitecto; do [ -d "$d" ] && cp -r "$d" _site/; done
+          cp arquitecto-web-latest.html _site/ 2>/dev/null || true
+          printf '/*\n  Cache-Control: no-cache\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: same-origin\n' > _site/_headers
+      - name: Crear el proyecto la primera vez
+        if: env.HAS_CF == 'true'
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create baul-nissi --production-branch=main
+      - name: Publicar
+        if: env.HAS_CF == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy _site --project-name=baul-nissi --branch=main --commit-dirty=true
