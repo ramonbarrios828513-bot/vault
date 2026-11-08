@@ -25,7 +25,7 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html sw.js manifest.webmanifest version.json _site/ 2>/dev/null || true
-          for d in data icons blob arquitecto; do [ -d "$d" ] && cp -r "$d" _site/; done
+          for d in data icons blob arquitecto instalar; do [ -d "$d" ] && cp -r "$d" _site/; done
           cp arquitecto-web-latest.html _site/ 2>/dev/null || true
           printf '/*\n  Cache-Control: no-cache\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: same-origin\n' > _site/_headers
       - name: Crear el proyecto la primera vez
