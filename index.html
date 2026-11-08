@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Integrated Vault — v1022 · 8 nov</title>
+<title>Integrated Vault — v1023 · 8 nov</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
@@ -3564,7 +3564,7 @@
   #ateneo #trOnOpts input, #ateneo #trOnOpts select { font: 400 15px system-ui; color: var(--at-ink); background: var(--at-bg); border: 1px solid var(--at-line); border-radius: 10px; padding: 10px 12px; }
 
 </style>
-<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/apple-touch-icon-3d.png"><meta name="theme-color" content="#7c3aed"></head>
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/apple-touch-icon-3d.png"><meta name="theme-color" content="#7c3aed"><style>.tx-num{background:linear-gradient(135deg,#ecfdf5,#eff6ff);border:2px solid #10b981;border-radius:14px;padding:10px;margin:8px 0;display:grid;gap:8px}.tx-num .tx-n{color:#065f46}.tx-nin{display:grid;gap:6px}.tx-nin[hidden]{display:none}#txNc{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:2px solid #15803d;font:800 26px system-ui;letter-spacing:4px;text-align:center}.tx-ns{font-size:15px;color:#0f172a}.tx-ns:empty{display:none}.tx-code{display:block;font:900 40px system-ui;letter-spacing:6px;text-align:center;margin:8px 0;color:#0f172a}</style></head>
 <body>
 
 <div class="view open" id="viewLib">
@@ -9505,7 +9505,7 @@
     if (k === 'next' || k === 'prev') { (synth&&synth.cancel()); var d = k === 'next' ? 1 : -1, j = mf.i + d; while (items[j] && items[j].kind !== 'para') j += d; if (items[j]) mf.i = j; mf.paused = false; mfStep(); return; }
     if (k === 'cfg') { mf.paused = true; (synth&&synth.cancel()); mfDraw(); mfOpen(); } }, true);
   // número de versión visible, para saber si el celular cargó lo último
-  var LECTOR_VER = 'v1022 · 8 nov';
+  var LECTOR_VER = 'v1023 · 8 nov';
   try { document.title = 'Integrated Vault — ' + LECTOR_VER; } catch (e) {}
   var VAULT_CH = 'familia';
   setTimeout(function () { if (VAULT_CH !== 'pruebas') return; var tb = $('topBar'); if (tb && !document.querySelector('.ch-badge')) { var b = document.createElement('span'); b.className = 'ch-badge'; b.textContent = '🧪 PRUEBAS'; b.title = 'Esta es la versión de pruebas: los cambios nuevos llegan acá primero. La familia usa la versión normal.'; tb.insertBefore(b, tb.firstChild); } }, 800);
@@ -15156,7 +15156,7 @@
     var sun = new T.DirectionalLight(0xfff4e0, 1.25); sun.position.set(16000, 24000, -11000); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); var sc = sun.shadow.camera; sc.left = -26000; sc.right = 26000; sc.top = 26000; sc.bottom = -26000; sc.near = 100; sc.far = 80000; sun.shadow.bias = -0.0005; sun.target.position.set(12000, 0, 15000); A3.S.add(sun); A3.S.add(sun.target); A3.sun = sun; };
   var _a3Build10 = a3Build; a3Build = function () { _a3Build10(); A3.world.traverse(function (o) { if (o.isMesh && !(o.material && o.material.map && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } }); if (A3.terrG) A3.terrG.traverse(function (o) { if (o.isMesh) o.receiveShadow = true; }); };
   // ================= 🔄 ACTUALIZACIÓN PARA TODOS: al publicar una versión nueva, cada aparato guarda y se cierra solo =================
-  var VBUILD = 1022;
+  var VBUILD = 1023;
   (async function () { try { if (!window.claude || typeof window.claude.use !== 'function') return; var d = await window.claude.use('db'); if (!d) return; var shown = false;
     d.doc('meta/version').onSnapshot(function (snap) { var v = snap && snap.exists && snap.data() && +snap.data().build; if (true || !v || v <= VBUILD || shown) return; var tried = +(sessionStorage.getItem('iv-upd') || 0); shown = true;
       var ov = document.createElement('div'); ov.className = 'upd-ov'; ov.innerHTML = tried >= v ? '<div class="upd-c"><b>🔄 Hay una versión nueva</b><p>Este aparato todavía muestra la anterior. Cerrá esta pestaña del navegador y abrí el Vault de nuevo.</p><button data-upd="x">Entendido</button></div>' : '<div class="upd-c"><b>🔄 Llegó una actualización del Vault</b><p>Guardo todo y cierro. En unos segundos volvés a entrar con tu clave, ya con lo nuevo.</p><div class="upd-n" id="updN">8</div><button data-upd="now">Cerrar ahora</button></div>'; document.body.appendChild(ov);
@@ -26302,6 +26302,7 @@
   async function ivXferId(code) { var h = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('iv-xfer-id|' + code))); return 'x' + Array.from(h.slice(0, 12)).map(function (x) { return x.toString(16).padStart(2, '0'); }).join(''); }
   async function ivXferOut(key) { if (!/^sk-ant-/.test(key || '')) throw new Error('no hay clave en este aparato'); var r = new Uint32Array(1); crypto.getRandomValues(r); var code = String(10000000 + (r[0] % 90000000)); var fb = await famFB(); var iv = crypto.getRandomValues(new Uint8Array(12)); var ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, await ivXferKey(code), new TextEncoder().encode(key))); var id = await ivXferId(code); await fb.F.setDoc(fb.F.doc(fb.db, 'fam', id, 'cfg', 'ai'), { x: b64(iv) + '.' + b64(ct), t: Date.now() }); return code; }
   async function ivXferIn(code) { var fb = await famFB(); var id = await ivXferId(code), ref = fb.F.doc(fb.db, 'fam', id, 'cfg', 'ai'); var s = await fb.F.getDoc(ref); if (!s.exists()) throw new Error('Ese número no existe o ya se usó.'); var d = s.data(); if (!d.x || Date.now() - (d.t || 0) > 15 * 60000) { try { await fb.F.deleteDoc(ref); } catch (e) {} throw new Error('Ese número ya venció (dura 15 minutos). Pedí uno nuevo.'); } var parts = d.x.split('.'); var ub = function (t) { return Uint8Array.from(atob(t), function (c) { return c.charCodeAt(0); }); }; var pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: ub(parts[0]) }, await ivXferKey(code), ub(parts[1])); var key = new TextDecoder().decode(pt); try { await fb.F.deleteDoc(ref); } catch (e) {} if (!/^sk-ant-/.test(key)) throw new Error('No se pudo leer la clave.'); return key; }
+  window.__ivX = { fb: famFB, kdf: ivXferKey, id: ivXferId, key: function () { try { return aiKey(); } catch (e) { return ''; } }, setKey: function (key) { try { localStorage.setItem('iv-ai-key', key); localStorage.removeItem('iv-ai-fromfam'); localStorage.setItem('iv-ai-key-bak', key); } catch (e) {} try { ai = aiWrap(aiApi(key), 'api'); AIST.mode = 'api'; aiSet('ok'); } catch (e) {} } };
   function aiDiag() { var old = document.querySelector('.ai-diag'); if (old) old.remove(); var o = document.createElement('div'); o.className = 'br-ov ai-diag'; o.style.zIndex = 2147483400;
     var draw = function (msg) { var k = aiKey(), m = AIST.mode, host = location.hostname || 'este archivo', okm = m === 'claude' || m === 'api', L = function (ok, t) { return '<div class="dg-l ' + (ok === true ? 'ok' : ok === false ? 'no' : 'mid') + '">' + (ok === true ? '✅' : ok === false ? '❌' : '⚠️') + ' ' + t + '</div>'; };
       o.innerHTML = '<div class="br-box dg-box"><div class="br-h"><b>🩺 Estado de la IA</b><button data-dg="x">✕</button></div>'
@@ -27262,10 +27263,32 @@
   function txRecvFile() { var inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json'; inp.onchange = function () { var f = inp.files && inp.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () { var d = txDec(rd.result); if (!d) { try { var j = JSON.parse(rd.result); if (j && j.vaultPlanos) { pxApply({ p: j.p }); return; } } catch (e) {} toast('Ese archivo no es un paquete del Baúl.'); return; } txApply(d); }; rd.readAsText(f); }; inp.click(); }
   function txOpen() { var o = $('txOv'); if (o) o.remove(); o = document.createElement('div'); o.id = 'txOv'; o.className = 'ico-ov';
     o.innerHTML = '<div class="ico-box"><div class="ico-h"><b>📦 Pasar todo al otro Baúl</b><button data-tx="x">✕</button></div><p class="tx-p">Pasa tus <b>archivos, notas, estudio y planos</b> entre el Baúl de Claude y el Baúl instalado (Edge, Chrome o el celular). Suma lo que falta y se queda con lo más nuevo: <b>nunca borra</b> nada.</p>'
+      + '<div class="tx-num"><div class="tx-n">⭐ LO MÁS FÁCIL · todo de una (datos + planilla + documentos + IA)</div><button data-tx="nout" class="tx-b tx-s">📲 1 · Enviar TODO con un número</button><button data-tx="nin" class="tx-b tx-r">📲 2 · Recibir TODO con el número</button><div class="tx-nin" hidden><input id="txNc" inputmode="numeric" maxlength="9" placeholder="Número de 8 cifras"><button data-tx="ngo" class="tx-b tx-r">📥 Recibir</button></div><div id="txNs" class="tx-ns"></div></div><div class="tx-n" style="margin-top:8px">Otras formas:</div>'
       + '<div class="tx-g"><div class="tx-c"><div class="tx-n">1 · En el Baúl que TIENE las cosas</div><button data-tx="send" class="tx-b tx-s">📤 Enviar todo (copiar)</button><button data-tx="file" class="tx-b">⬇️ Guardar como archivo</button></div>'
       + '<div class="tx-c"><div class="tx-n">2 · En el Baúl que las va a RECIBIR</div><button data-tx="recv" class="tx-b tx-r">📥 Recibir todo (pegar)</button><button data-tx="open" class="tx-b">📂 Abrir archivo</button></div></div>'
       + '<small class="ico-tip">Usá la misma clave en los dos Baúles: lo protegido viaja cifrado con tu clave.</small></div>';
-    document.body.appendChild(o); o.addEventListener('click', function (e) { if (e.target === o) { o.remove(); return; } var b = e.target.closest('[data-tx]'); if (!b) return; var k = b.dataset.tx; if (k === 'x') o.remove(); else if (k === 'send') txSendCode(); else if (k === 'file') txSendFile(); else if (k === 'recv') txRecvPaste(); else if (k === 'open') txRecvFile(); }); }
+    document.body.appendChild(o); o.addEventListener('click', function (e) { if (e.target === o) { o.remove(); return; } var b = e.target.closest('[data-tx]'); if (!b) return; var k = b.dataset.tx; if (k === 'x') o.remove(); else if (k === 'send') txSendCode(); else if (k === 'file') txSendFile(); else if (k === 'recv') txRecvPaste(); else if (k === 'open') txRecvFile(); else if (k === 'nout') txNumOut(o); else if (k === 'nin') { var ni = o.querySelector('.tx-nin'); ni.hidden = !ni.hidden; if (!ni.hidden) o.querySelector('#txNc').focus(); } else if (k === 'ngo') txNumIn(o); }); }
+  // ================= v1023 · 📲 PASAR TODO CON UN NÚMERO: datos + planilla + documentos + IA, de una sola vez =================
+  function txB64u(u8) { var s = '', CH = 8192; for (var i = 0; i < u8.length; i += CH) s += String.fromCharCode.apply(null, u8.subarray(i, i + CH)); return btoa(s); }
+  function txUb(t) { var bin = atob(t), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+  async function txNumOut(o) { var st = o.querySelector('#txNs'), X = window.__ivX; if (!X) { st.innerHTML = '❌ Este Baúl no puede usar números. Usá ⬇️ Guardar como archivo.'; return; } st.innerHTML = '⏳ Preparando todo (datos + IA)…';
+    try { var pk = txPack(), k = X.key(), hasK = /^sk-ant-/.test(k || ''), by = new TextEncoder().encode(JSON.stringify({ v: 1, pack: pk, key: hasK ? k : '' })), gz = 0;
+      if (window.CompressionStream) { by = new Uint8Array(await new Response(new Blob([by]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer()); gz = 1; }
+      var r = new Uint32Array(1); crypto.getRandomValues(r); var code = String(10000000 + (r[0] % 90000000));
+      var fb = await X.fb(), iv = crypto.getRandomValues(new Uint8Array(12)), ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, await X.kdf(code), by)), b = txB64u(ct), id = await X.id(code), N = 900000, n = Math.ceil(b.length / N), t = Date.now();
+      for (var i = 0; i < n; i++) { st.innerHTML = '⏳ Subiendo parte ' + (i + 1) + ' de ' + n + '…'; await fb.F.setDoc(fb.F.doc(fb.db, 'fam', id, 'cfg', 'p' + i), { d: b.slice(i * N, (i + 1) * N), t: t }); }
+      await fb.F.setDoc(fb.F.doc(fb.db, 'fam', id, 'cfg', 'pm'), { n: n, iv: txB64u(iv), gz: gz, t: t });
+      st.innerHTML = '✅ Listo. En el <b>otro aparato</b>: 📦 Pasar todo → <b>📲 Recibir TODO con el número</b> y escribí:<span class="tx-code">' + code.slice(0, 4) + ' ' + code.slice(4) + '</span><small>Lleva ' + txCount(pk) + ', la planilla, los documentos' + (hasK ? ' y <b>la IA</b>' : '') + ', todo cifrado. Sirve una sola vez, durante 30 minutos.</small>';
+    } catch (e) { st.innerHTML = '❌ No pude preparar el número: ' + esc((e && e.message) || 'sin conexión') + '. Revisá internet y probá de nuevo (o usá ⬇️ Guardar como archivo).'; } }
+  async function txNumIn(o) { var st = o.querySelector('#txNs'), c = ((o.querySelector('#txNc') || {}).value || '').replace(/\D/g, ''), X = window.__ivX; if (c.length !== 8) { toast('Escribí las 8 cifras.'); return; } if (!vaultIsOpen) { toast('Entrá primero con tu clave.'); return; } if (!X) { st.innerHTML = '❌ Este Baúl no puede usar números.'; return; } st.innerHTML = '⏳ Buscando el paquete…';
+    try { var fb = await X.fb(), id = await X.id(c), mr = fb.F.doc(fb.db, 'fam', id, 'cfg', 'pm'), ms = await fb.F.getDoc(mr); if (!ms.exists()) throw new Error('Ese número no existe o ya se usó.'); var m = ms.data(); if (Date.now() - (m.t || 0) > 30 * 60000) throw new Error('Ese número ya venció (dura 30 minutos). Pedí uno nuevo.');
+      var b = ''; for (var i = 0; i < m.n; i++) { st.innerHTML = '⏳ Bajando parte ' + (i + 1) + ' de ' + m.n + '…'; var sd = await fb.F.getDoc(fb.F.doc(fb.db, 'fam', id, 'cfg', 'p' + i)); if (!sd.exists()) throw new Error('Falta una parte: pedí un número nuevo.'); b += sd.data().d; }
+      var pt = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: txUb(m.iv) }, await X.kdf(c), txUb(b)));
+      if (m.gz) pt = new Uint8Array(await new Response(new Blob([pt]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+      var d = JSON.parse(new TextDecoder().decode(pt));
+      for (var j = 0; j < m.n; j++) { try { await fb.F.deleteDoc(fb.F.doc(fb.db, 'fam', id, 'cfg', 'p' + j)); } catch (e) {} } try { await fb.F.deleteDoc(mr); } catch (e) {}
+      if (d.key) X.setKey(d.key); o.remove(); if (d.key) toast('🤖 La IA quedó conectada en este aparato.', 5000); await txApply(d.pack);
+    } catch (e) { st.innerHTML = '❌ ' + esc((e && e.message) || 'No funcionó') + ' Revisá el número.'; } }
   window.__tx = { pack: txPack, dec: txDec, apply: txApply, open: txOpen, b64: txB64 };
   try { if (!TOOLREG.some(function (t) { return t[1] === 'Pasar todo al otro Baúl'; })) TOOLREG.push(['📦', 'Pasar todo al otro Baúl', 'pasar todo traer archivos importar exportar sincronizar otro baul edge chrome claude celular computadora notebook planos notas libros', function () { txOpen(); }]); } catch (e) {}
   // botón también en «Mis proyectos»
@@ -27722,7 +27745,7 @@
 <script>/* v1020 · pide a Windows/Chrome guardar el Baúl de forma PERMANENTE: así no se borra la clave de la IA ni los datos al limpiar espacio */
 (function(){try{if(navigator.storage&&navigator.storage.persist){navigator.storage.persisted().then(function(ok){if(!ok)navigator.storage.persist().then(function(r){window.__persist=r;});else window.__persist=true;});}}catch(e){}})();</script>
 <script>
-(function () { if (window.claude) return; window.__WEB_BUILD = 1022;
+(function () { if (window.claude) return; window.__WEB_BUILD = 1023;
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
   function check() { fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (v) { if (v && v.build > window.__WEB_BUILD && !document.getElementById('webUpd')) { var d = document.createElement('div'); d.id = 'webUpd'; d.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;background:#7c3aed;color:#fff;padding:10px 16px;border-radius:14px;font:700 14px system-ui;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer'; if (window.__vaultOpen && window.__vaultOpen()) { /* v880: con el Baúl abierto NO se recarga solo (antes te sacaba y había que volver a entrar) */ d.textContent = '⬆️ Hay una versión nueva (v' + v.build + '). Se instala la próxima vez que entres · tocá acá para actualizar ahora'; d.onclick = function () { try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 400); }; document.body.appendChild(d); setTimeout(function () { d.style.display = 'none'; }, 12000); return; } var n = 8; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; document.body.appendChild(d); var t = setInterval(function () { n--; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; if (n <= 0) { clearInterval(t); try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 600); } }, 1000); } }).catch(function () {}); }
   var dip = null; window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dip = e; show(); });
