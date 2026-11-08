@@ -36,6 +36,14 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 6f17af0479fa8a6d9c9fd45c18a0921a
           command: pages project create baul-nissi --production-branch=main
+      - name: Llave de avisos (VAPID) — se crea una sola vez y queda guardada en Cloudflare
+        if: env.HAS_CF == 'true'
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 6f17af0479fa8a6d9c9fd45c18a0921a
+        run: |
+          if npx -y wrangler@3 pages secret list --project-name=baul-nissi 2>/dev/null | grep -q VAPID_JWK; then echo "VAPID_JWK ya existe"; else node tools/vapid.mjs | npx -y wrangler@3 pages secret put VAPID_JWK --project-name=baul-nissi; fi
       - name: Publicar
         if: env.HAS_CF == 'true'
         uses: cloudflare/wrangler-action@v3
