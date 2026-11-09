@@ -9508,7 +9508,7 @@
     if (k === 'next' || k === 'prev') { (synth&&synth.cancel()); var d = k === 'next' ? 1 : -1, j = mf.i + d; while (items[j] && items[j].kind !== 'para') j += d; if (items[j]) mf.i = j; mf.paused = false; mfStep(); return; }
     if (k === 'cfg') { mf.paused = true; (synth&&synth.cancel()); mfDraw(); mfOpen(); } }, true);
   // número de versión visible, para saber si el celular cargó lo último
-  var LECTOR_VER = 'v1086 · 8 nov';
+  var LECTOR_VER = 'v1087 · 9 nov';
   try { document.title = 'Baúl Nissi — ' + LECTOR_VER; } catch (e) {}
   var VAULT_CH = 'familia';
   setTimeout(function () { if (VAULT_CH !== 'pruebas') return; var tb = $('topBar'); if (tb && !document.querySelector('.ch-badge')) { var b = document.createElement('span'); b.className = 'ch-badge'; b.textContent = '🧪 PRUEBAS'; b.title = 'Esta es la versión de pruebas: los cambios nuevos llegan acá primero. La familia usa la versión normal.'; tb.insertBefore(b, tb.firstChild); } }, 800);
@@ -16318,7 +16318,7 @@
     var sun = new T.DirectionalLight(0xfff4e0, 1.25); sun.position.set(16000, 24000, -11000); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); var sc = sun.shadow.camera; sc.left = -26000; sc.right = 26000; sc.top = 26000; sc.bottom = -26000; sc.near = 100; sc.far = 80000; sun.shadow.bias = -0.0005; sun.target.position.set(12000, 0, 15000); A3.S.add(sun); A3.S.add(sun.target); A3.sun = sun; };
   var _a3Build10 = a3Build; a3Build = function () { _a3Build10(); A3.world.traverse(function (o) { if (o.isMesh && !(o.material && o.material.map && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } }); if (A3.terrG) A3.terrG.traverse(function (o) { if (o.isMesh) o.receiveShadow = true; }); };
   // ================= 🔄 ACTUALIZACIÓN PARA TODOS: al publicar una versión nueva, cada aparato guarda y se cierra solo =================
-  var VBUILD = 1086;
+  var VBUILD = 1087;
   (async function () { try { if (!window.claude || typeof window.claude.use !== 'function') return; var d = await window.claude.use('db'); if (!d) return; var shown = false;
     d.doc('meta/version').onSnapshot(function (snap) { var v = snap && snap.exists && snap.data() && +snap.data().build; if (true || !v || v <= VBUILD || shown) return; var tried = +(sessionStorage.getItem('iv-upd') || 0); shown = true;
       var ov = document.createElement('div'); ov.className = 'upd-ov'; ov.innerHTML = tried >= v ? '<div class="upd-c"><b>🔄 Hay una versión nueva</b><p>Este aparato todavía muestra la anterior. Cerrá esta pestaña del navegador y abrí el Vault de nuevo.</p><button data-upd="x">Entendido</button></div>' : '<div class="upd-c"><b>🔄 Llegó una actualización del Vault</b><p>Guardo todo y cierro. En unos segundos volvés a entrar con tu clave, ya con lo nuevo.</p><div class="upd-n" id="updN">8</div><button data-upd="now">Cerrar ahora</button></div>'; document.body.appendChild(ov);
@@ -21438,12 +21438,15 @@
   function cpInl(h) { return String(h).replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/(^|\n)#{1,4}\s+([^\n]+)/g, '$1<b>$2</b>').replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;:)!?]|$)/g, '$1<i>$2</i>'); }
   // ================= v398 · ⚡ TOQUE DIRECTO: en el celular el botón responde al levantar el dedo, sin esperar el «clic» del teléfono =================
   // Así ya no depende de que Edge mande el clic (a veces se lo traga en toques muy rápidos). El clic del teléfono que llega después se descarta para que nada se haga dos veces.
-  (function () { var SKIP = 'canvas, svg, input, textarea, select, label, a[href], [contenteditable], #aqCv, #aqSvg, .tm-cv, .prof-tiles, .a3-nav, .walk-pad, .wk-pad, .pan-pad, .wk-pan, [data-noft]', dn = null, last = null;
-    document.addEventListener('pointerdown', function (e) { dn = null; if (e.pointerType !== 'touch' || !e.isPrimary || settings.fastTap === false) return; var t = e.target; if (!t.closest || t.closest(SKIP)) return; var b = t.closest('button, [role=button], [data-mn], [data-hb], [data-hopen], [data-htab], [data-rtab], [data-rclean], summary'); if (b && !b.disabled) dn = { b: b, x: e.clientX, y: e.clientY, t: Date.now() }; }, true);
+  (function () { var SKIP = 'canvas, svg, input, textarea, select, label, a[href], [contenteditable], #aqCv, #aqSvg, .tm-cv, .prof-tiles, .a3-nav, .walk-pad, .wk-pad, .pan-pad, .wk-pan, [data-noft]', dn = null, last = null, lastScr = 0;
+    // v1087 · al DESLIZAR para recorrer no se abre nada: si la pantalla se está moviendo (o se movió recién), el toque directo no actúa y decide el teléfono
+    document.addEventListener('scroll', function () { lastScr = Date.now(); if (dn) dn = null; }, { capture: true, passive: true });
+    document.addEventListener('pointerdown', function (e) { dn = null; if (e.pointerType !== 'touch' || !e.isPrimary || settings.fastTap === false) return; if (Date.now() - lastScr < 350) return; var t = e.target; if (!t.closest || t.closest(SKIP)) return; var b = t.closest('button, [role=button], [data-mn], [data-hb], [data-hopen], [data-htab], [data-rtab], [data-rclean], summary'); if (b && !b.disabled) dn = { b: b, x: e.clientX, y: e.clientY, t: Date.now() }; }, true);
     ['pointerdown', 'touchstart'].forEach(function (ty) { document.addEventListener(ty, function (e) { if (e.defaultPrevented && dn) dn.prev = true; }, { passive: true }); });
     document.addEventListener('pointercancel', function () { dn = null; }, true);
-    document.addEventListener('pointermove', function (e) { if (dn && Math.hypot(e.clientX - dn.x, e.clientY - dn.y) > 10) dn = null; }, true);
-    document.addEventListener('pointerup', function (e) { var s = dn; dn = null; if (!s || s.prev || e.pointerType !== 'touch') return; if (Date.now() - s.t > 700 || Math.hypot(e.clientX - s.x, e.clientY - s.y) > 10) return; var under = document.elementFromPoint(e.clientX, e.clientY); if (!under || !(s.b === under || s.b.contains(under)) || !s.b.isConnected) return; last = { b: s.b, t: Date.now(), x: e.clientX, y: e.clientY }; try { s.b.click(); } catch (er) {} }, true);
+    document.addEventListener('pointermove', function (e) { if (dn && Math.hypot(e.clientX - dn.x, e.clientY - dn.y) > 6) dn = null; }, true);
+    document.addEventListener('touchmove', function (e) { if (!dn || !e.touches[0]) return; var t = e.touches[0]; if (Math.hypot(t.clientX - dn.x, t.clientY - dn.y) > 6) dn = null; }, { capture: true, passive: true });
+    document.addEventListener('pointerup', function (e) { var s = dn; dn = null; if (!s || s.prev || e.pointerType !== 'touch') return; if (lastScr > s.t - 350) return; if (Date.now() - s.t > 600 || Math.hypot(e.clientX - s.x, e.clientY - s.y) > 6) return; var under = document.elementFromPoint(e.clientX, e.clientY); if (!under || !(s.b === under || s.b.contains(under)) || !s.b.isConnected) return; last = { b: s.b, t: Date.now(), x: e.clientX, y: e.clientY }; try { s.b.click(); } catch (er) {} }, true);
     // el clic «de verdad» del teléfono que llega después del toque directo se descarta (antes que cualquier otro manejador)
     window.addEventListener('click', function (e) { if (!last || !e.isTrusted) return; if (Date.now() - last.t > 800) { last = null; return; } if (Math.hypot(e.clientX - last.x, e.clientY - last.y) < 24 || last.b === e.target || last.b.contains(e.target)) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); last = null; } }, true); })();
   // ================= v398 · 🖥️ el dibujo 3D siempre ocupa toda la pantalla (en el OPPO quedaba una franja negra al costado y abajo) =================
@@ -28836,9 +28839,15 @@
       else break; /* no tocar nada del propio menú/grilla */
     }
     try { window.__mnDiag = names; console.warn('[v451] tapaban «' + lab + '»:', names); } catch (e) {}
-    banner('🔧 «' + lab + '» estaba trabada por otra capa de la pantalla. La destrabé y la abro.');
-    setTimeout(function () { try { card.click(); } catch (e) {} }, 40);
+    /* v1087 · NO se abre al apoyar el dedo: se espera a que lo levantes sin haber deslizado (antes, al recorrer el menú se abría cualquier botón) */
+    PEND = { card: card, lab: lab, x: x, y: y, t: Date.now() };
   }, true);
+  var PEND = null, scrT = 0;
+  document.addEventListener('scroll', function () { scrT = Date.now(); PEND = null; }, { capture: true, passive: true });
+  window.addEventListener('pointermove', function (ev) { if (PEND && Math.hypot(ev.clientX - PEND.x, ev.clientY - PEND.y) > 8) PEND = null; }, true);
+  window.addEventListener('touchmove', function (ev) { var t = ev.touches && ev.touches[0]; if (PEND && t && Math.hypot(t.clientX - PEND.x, t.clientY - PEND.y) > 8) PEND = null; }, { capture: true, passive: true });
+  window.addEventListener('pointercancel', function () { PEND = null; }, true);
+  window.addEventListener('pointerup', function () { var p = PEND; PEND = null; if (!p || Date.now() - p.t > 800 || scrT > p.t - 300) return; banner('🔧 «' + p.lab + '» estaba trabada por otra capa de la pantalla. La destrabé y la abro.'); setTimeout(function () { try { p.card.click(); } catch (e) {} }, 40); }, true);
   window.__mnDiagLast = function () { return window.__mnDiag || null; };
 })();
 </script>
@@ -30746,7 +30755,7 @@ document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;var L
 <style id="plWho1039">#planilla .who-bar{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px 12px;box-shadow:0 7px 0 rgba(0,0,0,.45),0 14px 26px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.22),inset 0 -3px 0 rgba(0,0,0,.25)!important}#planilla .who-tx b{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere;line-height:1.15}#planilla .who-tx b .who-cod{display:inline-block;margin-right:6px;padding:1px 8px;border-radius:8px;background:#fde047;color:#111;font-size:.85em;text-shadow:none;box-shadow:0 2px 0 #a16207}#planilla .who-fi{grid-column:1/-1}#planilla .who-ic{filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}#planilla .who-st{box-shadow:inset 0 2px 4px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.15)}
 @media(max-width:760px){#planilla .who-bar{grid-template-columns:auto minmax(0,1fr);padding:10px 12px}#planilla .who-ic{font-size:26px}#planilla .who-tx small{font-size:10.5px}#planilla .who-tx b{font-size:20px}#planilla .who-tx span{font-size:12.5px}#planilla .who-st{grid-column:1/-1;justify-self:start;font-size:13px}#planilla .who-fi{font-size:15px;min-height:46px}#planilla .who-bar.slim{grid-template-columns:minmax(0,1fr) auto}#planilla .who-bar.slim .who-st{display:none}#planilla .who-bar.slim .who-fi{grid-column:auto}}</style>
 <script>
-(function () { if (window.claude) return; window.__WEB_BUILD = 1086;
+(function () { if (window.claude) return; window.__WEB_BUILD = 1087;
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
   function check() { fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (v) { if (v && v.build > window.__WEB_BUILD && !document.getElementById('webUpd')) { var d = document.createElement('div'); d.id = 'webUpd'; d.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;background:#7c3aed;color:#fff;padding:10px 16px;border-radius:14px;font:700 14px system-ui;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer'; if (window.__vaultOpen && window.__vaultOpen()) { /* v880: con el Baúl abierto NO se recarga solo (antes te sacaba y había que volver a entrar) */ d.textContent = '⬆️ Hay una versión nueva (v' + v.build + '). Se instala la próxima vez que entres · tocá acá para actualizar ahora'; d.onclick = function () { try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 400); }; document.body.appendChild(d); setTimeout(function () { d.style.display = 'none'; }, 12000); return; } var n = 8; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; document.body.appendChild(d); var t = setInterval(function () { n--; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; if (n <= 0) { clearInterval(t); try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 600); } }, 1000); } }).catch(function () {}); }
   var dip = null; window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dip = e; show(); });
