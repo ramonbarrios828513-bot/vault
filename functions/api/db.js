@@ -37,6 +37,8 @@ export async function onRequestPost({ request, env }) {
       else if (o.op === 'set') { const d = JSON.stringify(o.d == null ? {} : o.d); if (d.length > 1900000) { res.push({ err: 'big' }); continue; } await env.DB.prepare('INSERT OR REPLACE INTO docs (sp, p, d, t) VALUES (?, ?, ?, ?)').bind(sp, o.p, d, Date.now()).run(); res.push(true); }
       else if (o.op === 'upd') { const r = await env.DB.prepare('SELECT d FROM docs WHERE sp = ? AND p = ?').bind(sp, o.p).first(); const cur = r ? JSON.parse(r.d || '{}') : {}; const d = JSON.stringify(Object.assign(cur, o.d || {})); await env.DB.prepare('INSERT OR REPLACE INTO docs (sp, p, d, t) VALUES (?, ?, ?, ?)').bind(sp, o.p, d, Date.now()).run(); res.push(true); }
       else if (o.op === 'del') { await env.DB.prepare('DELETE FROM docs WHERE sp = ? AND p = ?').bind(sp, o.p).run(); res.push(true); }
+      else if (o.op === 'inc') { // numerador atómico: entrega el siguiente número una sola vez (códigos internos al grabar)
+        const r = await env.DB.prepare('INSERT INTO docs (sp, p, d, t) VALUES (?, ?, ?, ?) ON CONFLICT(sp, p) DO UPDATE SET d = CAST(CAST(docs.d AS INTEGER) + 1 AS TEXT), t = excluded.t RETURNING d').bind(sp, o.p, String(+o.from || 1), Date.now()).first(); res.push(r ? +r.d : null); }
       else if (o.op === 'list') { const pre = o.p + '/'; const q = await env.DB.prepare('SELECT p, d FROM docs WHERE sp = ? AND substr(p, 1, ?) = ? AND instr(substr(p, ?), \'/\') = 0').bind(sp, pre.length, pre, pre.length + 1).all(); res.push((q.results || []).map((x) => [x.p, x.d])); }
       else res.push(null);
     }
