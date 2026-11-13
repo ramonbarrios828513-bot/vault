@@ -57,12 +57,16 @@ const URL='http://localhost:'+(process.env.NPORT||8105)+'/work.html', CODE='NISS
  ok(C && C.fix>=1 && C.stuck>=1,'corrigió lo trabado: ganó la central');
  ok(await B.p.evaluate(()=>!window.__sv.st().q[window.__pBad]),'el cambio trabado ya no queda colgado');
  await B.p.waitForTimeout(2500); const tag=await B.p.evaluate(()=>(document.getElementById('verTag')||{}).textContent||''); console.log('tag', tag);
- ok(/ESPEJO de la central/.test(tag),'el cartel de arriba dice «✅ ESPEJO de la central»');
+ ok(/ESPEJO · al día \d\d\/\d\d\/\d{4},? \d\d:\d\d:\d\d/.test(tag),'el cartel de arriba dice «✅ ESPEJO');
  await B.p.evaluate(()=>document.getElementById('verTag').click()); await B.p.waitForTimeout(400);
  ok(await B.p.evaluate(()=>/Registros en la central/.test((document.getElementById('svChk')||{}).textContent||'')),'tocando el cartel se ve el detalle del espejo');
  // sin la central encendida → cartel rojo
  await B.p.evaluate(()=>{ document.getElementById('svChk').remove(); window.__sv.st().on=false; }); await B.p.waitForTimeout(2500);
  ok(/NO ES ESPEJO/.test(await B.p.evaluate(()=>(document.getElementById('verTag')||{}).textContent||'')),'si el aparato no lee la central, el cartel se pone rojo: «NO ES ESPEJO»');
+ // aparato con un dato distinto SIN cambio pendiente (como el OPPO): al entrar queda como la central
+ await B.p.evaluate(()=>{ window.__memcGet().pla.emps[0].salM={'2026-06':4000000}; });
+ await B.p.evaluate(()=>{ window.__sv.st().on=true; }); await B.p.evaluate(()=>window.__sv.entry()); await B.p.waitForTimeout(4000);
+ ok(await B.p.evaluate(()=>window.__memcGet().pla.emps[0].salM['2026-06'])===2899048,'al entrar: el salario distinto del aparato (4.000.000) queda como la central (2.899.048)');
  // al entrar: actualiza con la central y muestra hora, versión y último dato con su aparato
  await B.p.evaluate(()=>{ window.__sv.st().on=true; }); await B.p.evaluate(()=>window.__sv.entry()); await B.p.waitForTimeout(4000);
  const eb=await B.p.evaluate(()=>(document.getElementById('svEntry')||{}).textContent||''); console.log('entry', eb);
