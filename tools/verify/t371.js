@@ -14,11 +14,11 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  console.log(L); ok(L.length===4 && /^Factura\|001-001-0000101\|2026-10-01\|1000000/.test(L[0]) && /^Nota de crédito/.test(L[2]) && /^Pago/.test(L[3]),'Excel/CSV: lee columnas Debe/Haber y tipos');
  ok(await p.evaluate(()=>window.__ex.d().saldo==='2200000'),'toma el saldo final del extracto');
  // pasar al sistema
- await p.evaluate(()=>document.querySelector('#extracto [data-ex="tosys"]').click()); await p.waitForTimeout(400); ok(await yes(),'pide confirmar antes de pasar al sistema'); await p.waitForTimeout(500);
+ await p.evaluate(()=>document.querySelector('#extracto [data-ex="save"]').click()); await p.waitForTimeout(400); ok(await yes(),'un solo botón 💾: pide confirmar, crea lo que falta y guarda el extracto'); await p.waitForTimeout(500);
  const F=await p.evaluate(()=>window.__tes.st().fac.filter(f=>f.prov==='DROGUERIA A').map(f=>f.tipo+'|'+f.num+'|'+f.rucE+'|'+f.rucR+'|'+(f.legal||0)));
  console.log(F); ok(F.length===3 && F.every(x=>/80011111-1\|1234567-1/.test(x)),'crea 2 facturas + 1 NC legal a nombre de RAMON con RUC emisor');
  // guardar extracto
- await p.evaluate(()=>document.querySelector('#extracto [data-ex="save"]').click()); await p.waitForTimeout(500); await yes(); await p.waitForTimeout(500);
+ await p.waitForTimeout(300); // v1210: el mismo 💾 ya guardó el extracto
  ok(await p.evaluate(()=>window.__tes.st().ext.length===1 && window.__tes.st().ext[0].rucR==='1234567-1'),'extracto guardado con su empresa');
  ok(await p.evaluate(()=>window.__tes.st().cfg.provRuc['DROGUERIA A']==='80011111-1'),'aprende el RUC del proveedor');
  // mismo proveedor, extracto de GISELE con otro RUC emisor → bloqueado

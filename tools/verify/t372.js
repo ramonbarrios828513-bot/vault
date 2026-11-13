@@ -10,7 +10,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.setInputFiles('#extracto [data-exfile="img"]',__dirname+'/fix/foto.png').catch(()=>{}); await p.waitForTimeout(1500);
  console.log(await p.evaluate(()=>document.querySelector('#exInMsg').innerText)); ok(await p.evaluate(()=>/escáner|leer|foto/i.test(document.querySelector('#exInMsg').innerText)),'foto: avisa si el aparato no tiene escáner');
  // factura con 4 fechas: RUC se completa solo; sin receptor no guarda
- await p.evaluate(()=>document.querySelector('#extracto [data-exa="fac"]').click()); await p.waitForTimeout(400);
+ await p.evaluate(()=>window.__ex.fac()); await p.waitForTimeout(400);
  await p.fill('.ico-ov [data-k="prov"]','DROGUERIA B'); await p.dispatchEvent('.ico-ov [data-k="prov"]','input'); await p.waitForTimeout(200);
  ok(await p.evaluate(()=>document.querySelector('.ico-ov [data-k="rucE"]').value==='80033333-3'),'RUC del proveedor se completa solo');
  await p.evaluate(()=>{ const o=document.querySelector('.ico-ov'); const s=(k,v)=>{ const e=o.querySelector('[data-k="'+k+'"]'); e.value=v; }; s('num','001-002-0000900'); s('monto','1.000.000'); s('f','2026-10-01'); s('vence','2026-11-30'); o.querySelector('[data-tx="ok"]').click(); }); await p.waitForTimeout(300);
@@ -18,8 +18,8 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.evaluate(()=>{ const o=document.querySelector('.ico-ov'); const sel=o.querySelector('[data-k="empR"]'); sel.selectedIndex=2; o.querySelector('[data-tx="ok"]').click(); }); await p.waitForTimeout(500);
  ok(await p.evaluate(()=>{ const f=window.__tes.st().fac.find(x=>x.num==='001-002-0000900'); return f && f.rucR==='7654321-2' && f.rucE==='80033333-3'; }),'guardada a nombre de GISELE con RUC emisor');
  // lote con campos RUC
- await p.evaluate(()=>{ document.querySelectorAll('.ico-ov').forEach(o=>o.remove()); document.querySelector('#extracto [data-exa="lote"]').click(); }); await p.waitForTimeout(400);
- ok(await p.evaluate(()=>!!document.querySelector('#ltRE') && !!document.querySelector('#ltRR')),'varias facturas: pide RUC emisor y receptor');
+ await p.evaluate(()=>{ document.querySelectorAll('.ico-ov').forEach(o=>o.remove()); window.__ex.open(); }); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>!!document.querySelector('#extracto [data-exk="rucE"]') && !!document.querySelector('#extracto [data-exk="rucR"]') && !!document.querySelector('#extracto [data-exk="L.0.ni"]') && !!document.querySelector('#extracto [data-exk="L.0.ent"]')),'una sola pantalla: RUC emisor y receptor + entrega + NC en la fila');
  // mis 2 empresas
  await p.evaluate(()=>{ document.querySelectorAll('.ico-ov').forEach(o=>o.remove()); window.__tes.ui.tab='prov'; document.querySelectorAll('.big-ov').forEach(a=>a.hidden=true); window.__tes.open(); }); await p.waitForTimeout(600);
  const hasB=await p.evaluate(()=>!!document.querySelector('[data-rucb="emps"]')); ok(hasB,'botón 🏢 Mis 2 empresas en Proveedores');
