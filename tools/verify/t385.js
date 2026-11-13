@@ -10,6 +10,13 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(!r.code,'no aparece la pantalla de empleados («número de 8 cifras»)');
  await p.click('#heroPass'); await p.keyboard.type('1234'); await p.keyboard.press('Enter'); await p.waitForTimeout(2500);
  ok(await p.evaluate(()=>!!(window.__rvOpen && window.__rvOpen())),'entra con su clave');
+ // en la cara «🏢 Nissifarma» el dueño también puede entrar con su clave
+ await p.evaluate(()=>{ try{ localStorage.setItem('wk-face','nis'); sessionStorage.setItem('wk-face','nis'); }catch(e){} }); await p.reload(); await p.waitForTimeout(2500);
+ ok(await p.evaluate(()=>!!document.getElementById('wkOwnB')),'cara Nissifarma en el aparato del dueño: botón «🧔 Soy el DUEÑO: entrar con mi clave»');
+ await p.click('#wkOwnB'); await p.waitForTimeout(800);
+ ok(await p.evaluate(()=>{ const h=document.getElementById('heroPass'); return !!h && h.getClientRects().length>0; }),'tocándolo aparece el lugar para la clave del dueño');
+ await p.click('#heroPass'); await p.keyboard.type('1234'); await p.keyboard.press('Enter'); await p.waitForTimeout(2500);
+ ok(await p.evaluate(()=>!!(window.__rvOpen && window.__rvOpen())),'el dueño entra');
  // un aparato NUEVO (sin Baúl) sigue mostrando la instalación para empleados
  const ctx2=await b.newContext({viewport:{width:412,height:900}}); const p2=await ctx2.newPage(); await p2.route(/fonts\.googleapis|jsdelivr|gstatic|cdnjs/, r=>r.abort());
  await p2.goto('http://localhost:'+(process.env.PORT||8099)+'/work.html'); await p2.waitForTimeout(2500);

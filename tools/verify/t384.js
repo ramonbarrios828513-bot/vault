@@ -48,6 +48,13 @@ const URL='http://localhost:'+(process.env.NPORT||8105)+'/work.html', CODE='NISS
  await A.p.evaluate(()=>{ const P=window.__pla.st(); P.emps[0].salM={'2026-06':2899048}; P.emps[0].sal=3044000; P.emps[0].mt=Date.now(); window.__pla.save(); });
  await B.p.waitForTimeout(8000);
  ok(await B.p.evaluate(()=>window.__memcGet().pla.emps[0].salM['2026-06'])===2899048,'B recibió el salario de junio');
+ // listas vacías: viajan, se llenan y se vacían sin perder registros
+ await A.p.evaluate(()=>{ window.__tes.st().cfg.listaP=[]; window.__tes.save(); }); await B.p.waitForTimeout(7000);
+ ok(await B.p.evaluate(()=>Array.isArray(window.__tes.st().cfg.listaP) && window.__tes.st().cfg.listaP.length===0),'una lista VACÍA también llega al otro aparato');
+ await A.p.evaluate(()=>{ window.__tes.st().cfg.listaP.push({id:'a1',n:'uno'},{id:'a2',n:'dos'}); window.__tes.save(); }); await B.p.waitForTimeout(7000);
+ ok(await B.p.evaluate(()=>(window.__tes.st().cfg.listaP||[]).map(x=>x.id).join())==='a1,a2','la lista se llenó: llegan los registros y no se pierden');
+ await A.p.evaluate(()=>{ window.__tes.st().cfg.listaP=[]; window.__tes.save(); }); await B.p.waitForTimeout(7000);
+ ok(await B.p.evaluate(()=>Array.isArray(window.__tes.st().cfg.listaP) && window.__tes.st().cfg.listaP.length===0),'la lista se vació: queda vacía también en el otro aparato');
  // B se "descompagina": le cambiamos el dato por dentro (como si no lo hubiera traído) y le trabamos un cambio viejo sin subir; además deja de leer lo nuevo
  await B.p.evaluate(()=>{ const S=window.__sv.st(), E=window.__memcGet().pla.emps[0]; const p=Object.keys(S.known).find(k=>/pla/.test(k) && /emps/.test(k)); E.salM={'2026-06':3044000}; S.known[p]={t:1,s:JSON.stringify(E),m:S.known[p].m}; S.q[p]={base:1,bs:null,m:S.known[p].m,s:'x',at:Date.now()-600000,enc:'roto'}; S.since=9e15; window.__pBad=p; });
  const bad=await B.p.evaluate(()=>window.__memcGet().pla.emps[0].salM['2026-06']); ok(bad===3044000,'B quedó con el dato equivocado (3.044.000 en junio)');
