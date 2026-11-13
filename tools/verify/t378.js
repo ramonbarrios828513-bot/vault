@@ -1,0 +1,15 @@
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>{ const T=window.__tes.st(), h=new Date(), H=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0'); window.__H=H;
+  T.chq.push({id:'b1',prov:'POLICLINICA',cta:'Basa-G',num:'1',monto:1000,em:'2026-10-01',co:'2026-12-01',st:'pend',reg:new Date().toISOString()},{id:'b2',prov:'QUIMFA',cta:'Basa-G',num:'2',monto:2000,em:'2026-09-01',co:'2026-10-01',st:'pag',fdeb:'2026-10-01',reg:'2026-09-02T10:00:00.000Z'},{id:'b3',prov:'GUAYAKI',cta:'Basa-G',num:'3',monto:3000,em:'2026-09-05',co:'2026-10-05',st:'pend'});
+  window.__tes.ui.tab='apag'; window.__tes.open(); }); await p.waitForTimeout(700);
+ ok(await p.evaluate(()=>{ const b=document.querySelector('#tesoreria [data-tes="tab"][data-v="bus"]'); return !!b && b.classList.contains('tg-big'); }),'botón grande «🔎 BUSCAR CHEQUES» junto a Cheques a pagar');
+ await p.evaluate(()=>document.querySelector('#tesoreria [data-tes="tab"][data-v="bus"]').click()); await p.waitForTimeout(500);
+ const t=await p.evaluate(()=>document.querySelector('#tesoreria').innerText); ok(/cargado/i.test(t) && /emitido/i.test(t),'muestra fecha de carga y de emisión');
+ await p.click('#tesoreria [data-bus="r"]:has-text("Hoy")'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>/POLICLINICA/.test(document.querySelector('#tesoreria table.tes-t').innerText) && !/QUIMFA/.test(document.querySelector('#tesoreria table.tes-t').innerText)),'«Hoy» + «cuándo se cargó» → solo lo cargado hoy');
+ await p.selectOption('#tesoreria [data-busk="bst"]','pag'); await p.click('#tesoreria [data-bus="r"]:has-text("Todas las fechas")'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>{ const x=document.querySelector('#tesoreria table.tes-t').innerText; return /QUIMFA/.test(x) && !/GUAYAKI/.test(x); }),'filtro por estado: solo pagados');
+ await p.screenshot({path:'/tmp/claude-0/bus.png'});
+ console.log('errs',errs,'fallas',fail); await b.close(); })();

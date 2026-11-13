@@ -6,7 +6,7 @@ const H = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 
 const J = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: { ...H, 'Content-Type': 'application/json' } });
 const HEX = /^[a-f0-9]{64}$/;
 // v1205: versión mínima de la app que puede GUARDAR. Un aparato con versión vieja solo puede leer: así nunca pisa lo cargado en otro.
-const MIN_APP = 1206;
+const MIN_APP = 1207;
 const WRITE = { set: 1, upd: 1, del: 1, inc: 1, rset: 1 };
 async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join(''); }
 let ready = false;
@@ -47,7 +47,7 @@ export async function onRequestPost({ request, env }) {
       else if (o.op === 'inc') { // numerador atómico: entrega el siguiente número una sola vez (códigos internos al grabar)
         const r = await env.DB.prepare('INSERT INTO docs (sp, p, d, t) VALUES (?, ?, ?, ?) ON CONFLICT(sp, p) DO UPDATE SET d = CAST(CAST(docs.d AS INTEGER) + 1 AS TEXT), t = excluded.t RETURNING d').bind(sp, o.p, String(+o.from || 1), Date.now()).first(); res.push(r ? +r.d : null); }
       else if (o.op === 'rset') { // v1205: registro con versión puesta por la CENTRAL (su reloj). Si el aparato escribe sobre una versión vieja → conflicto: gana la central. Una sola consulta.
-        const d = JSON.stringify(o.d == null ? {} : o.d); if (d.length > 400000) { res.push({ err: 'big' }); continue; } const base = o.base == null ? null : +o.base;
+        const d = JSON.stringify(o.d == null ? {} : o.d); if (d.length > 1900000) { res.push({ err: 'big' }); continue; } const base = o.base == null ? null : +o.base;
         const w = await env.DB.prepare('INSERT INTO docs (sp, p, d, t) VALUES (?, ?, ?, ?) ON CONFLICT(sp, p) DO UPDATE SET d = excluded.d, t = MAX(excluded.t, docs.t + 1) WHERE ? IS NOT NULL AND docs.t <= ? RETURNING t').bind(sp, o.p, d, Date.now(), base, base).first();
         if (w) { res.push({ t: +w.t }); continue; } const r = await env.DB.prepare('SELECT d, t FROM docs WHERE sp = ? AND p = ?').bind(sp, o.p).first(); res.push(r ? { c: 1, t: +r.t, d: r.d } : { err: 'retry' }); }
       else if (o.op === 'rget') { const r = await env.DB.prepare('SELECT d, t FROM docs WHERE sp = ? AND p = ?').bind(sp, o.p).first(); res.push(r ? [r.d, +r.t] : null); } // v1205: un registro con su versión (para revisar antes de subir)
