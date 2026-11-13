@@ -1,0 +1,15 @@
+name: diag-central
+on:
+  push:
+    branches: [diag-central]
+jobs:
+  d:
+    runs-on: ubuntu-latest
+    steps:
+      - name: probar la central
+        run: |
+          SP=$(printf 'diag-space-%s' "$GITHUB_RUN_ID" | sha256sum | cut -c1-64)
+          KEY=$(printf 'diag-key-%s' "$GITHUB_RUN_ID" | sha256sum | cut -c1-64)
+          for body in '{"ops":[{"op":"ver","p":"meta/ver"}]}' '{"ops":[{"op":"set","p":"data/x","d":{"a":1}}]}' '{"ops":[{"op":"rver","p":"data"}]}' '{"ops":[{"op":"rlist","p":"data","since":0}]}' '{"ops":[{"op":"wkadd","p":"meta/wk","h":"'$KEY'"}]}'; do
+            echo "== $body"; curl -s -m 30 -w '\nHTTP %{http_code} %{time_total}s\n' -X POST https://baul-nissi.pages.dev/api/db -H 'Content-Type: application/json' -H "X-Space: $SP" -H "X-Key: $KEY" -H 'X-App: 1213' -d "$body" | head -c 600; echo; done
+          echo "== version.json"; curl -s -m 20 https://baul-nissi.pages.dev/version.json
