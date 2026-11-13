@@ -33,6 +33,17 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.waitForTimeout(3000);
  const CR=await p.evaluate(()=>{ const d=Object.values(window.__cz.st().draft)[0].d; return (d.cr||[]).filter(r=>/^P-20/.test(r.pg||'')).map(r=>r.a+':'+r.nom+':'+r.pg+':'+r.m); });
  console.log(CR); ok(CR.length===5 && CR.every(x=>/^Funcionario:/.test(x)) && CR.some(x=>/EVA ROJAS:P-204:14000/.test(x)) && CR.some(x=>/FELIX DUARTE:P-205:15000/.test(x)),'5 pagarés del sobre → cada uno al funcionario que corresponde');
+
+ // el ticket trae solo el TOTAL de crédito: no borra los pagarés y controla contra ellos
+ const nCr=await p.evaluate(()=>Object.values(window.__cz.st().draft)[0].d.cr.length);
+ await p.evaluate(()=>{ window.__aiVision=async()=>({text:JSON.stringify({n:51,ef:100000,credito_total:200000,creditos:[]})}); });
+ await p.evaluate(async()=>{ const c=document.createElement('canvas'); c.width=300;c.height=600; const bl=await new Promise(r=>c.toBlob(r,'image/png')); const dt=new DataTransfer(); dt.items.add(new File([bl],'tk.png',{type:'image/png'})); const inp=document.querySelector('#cierre input[data-czfoto="1"]'); inp.files=dt.files; inp.dispatchEvent(new Event('change',{bubbles:true})); });
+ await p.waitForTimeout(3000);
+ const D2=await p.evaluate(()=>{ const d=Object.values(window.__cz.st().draft)[0].d; return {n:d.cr.length, tk:d.crTk, s:d.cr.reduce((a,r)=>a+(+r.m||0),0)}; }); console.log(JSON.stringify(D2));
+ ok(D2.n===nCr && D2.tk===200000,'escanear el ticket NO borra los pagarés y guarda el Total Crédito');
+ t=await p.evaluate(()=>document.querySelector('#cierre').innerText);
+ ok(/falta\(n\) pagaré\(s\) por ₲ 85\.000/.test(t),'avisa cuánto falta en pagarés contra el ticket');
+ ok(/⚠️ 📒 Crédito/.test(t),'chip de Crédito en ⚠️');
  ok(errs.length===0,'sin errores de JavaScript '+errs.slice(0,3).join(' | '));
  await b.close(); console.log(fail?'RESULTADO: '+fail+' FALLA(S)':'RESULTADO: TODO OK'); process.exit(fail?1:0);
 })().catch(e=>{ console.log('✘ FALLA excepción '+e.message.slice(0,300)); process.exit(1); });
