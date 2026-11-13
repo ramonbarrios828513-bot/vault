@@ -1,0 +1,12 @@
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:412,height:900}});
+ await p.evaluate(()=>{ const T=window.__tes.st(); T.cfg.emp=Object.assign(T.cfg.emp||{},{nom:'RAMON',ruc:'1234567',dv:'1'}); T.cfg.emp2={nom:'GISELE SIMON',ruc:'7654321',dv:'2'}; T.cfg.provRuc={'DROGUERIA C':'80044444-4'};
+  window.__aiVision=function(L,m,P){ window.__nImg=L.length; return Promise.resolve({text:'Aquí está: {"proveedor":"Drogueria C S.A.","ruc_emisor":"80044444-4","a_nombre_de":"Gisele Simon","ruc_receptor":"7654321-2","fecha_extracto":"2026-11-01","saldo_final":1800000,"renglones":[{"tipo":"factura","numero":"001-001-0000777","fecha":"2026-10-02","monto":2000000},{"tipo":"nota de credito","numero":"001-001-0000088","fecha":"2026-10-09","monto":200000}],"dudas":["la fila 3 está borrosa"]}'}); };
+  window.__ex.open(); }); await p.waitForTimeout(500);
+ await p.setInputFiles('#extracto [data-exfile="img"]',__dirname+'/fix/foto.png'); await p.waitForTimeout(2500);
+ const d=await p.evaluate(()=>{ const x=window.__ex.d(); return {prov:x.prov,e:x.rucE,r:x.rucR,f:x.f,s:x.saldo,L:x.L.map(l=>l.tipo+'|'+l.n+'|'+l.m),m:document.querySelector('#exInMsg').innerText,n:window.__nImg}; }); console.log(JSON.stringify(d));
+ ok(d.prov==='DROGUERIA C' && d.e==='80044444-4' && d.r==='7654321-2' && d.f==='2026-11-01' && d.s==='1800000' && d.L.length===2,'foto: completa proveedor, RUC, empresa, fecha, saldo y renglones');
+ ok(/borrosa/.test(d.m),'muestra las dudas para revisar');
+ await p.screenshot({path:'/tmp/claude-0/ex3mob.png',fullPage:false});
+ console.log('errs',errs,'fallas',fail); await b.close(); })();

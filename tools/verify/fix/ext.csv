@@ -1,0 +1,6 @@
+Extracto de cuenta
+Fecha;Comprobante;Concepto;Debe;Haber;Saldo
+01/10/2026;001-001-0000101;Factura;1.000.000;;1.000.000
+05/10/2026;001-001-0000102;Factura;2.000.000;;3.000.000
+10/10/2026;001-001-0000050;Nota de credito;;300.000;2.700.000
+15/10/2026;REC 77;Pago recibido;;500.000;2.200.000

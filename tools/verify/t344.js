@@ -1,0 +1,27 @@
+// ✍️ módulo aparte «Cargar cheques nuevos»: carga, se queda ahí, lista «los que vas preparando», el último arriba
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:768}});
+ await p.evaluate(()=>{ window.__tes.open(); }); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>!![...document.querySelectorAll('#tesoreria button')].find(x=>/Cargar cheques nuevos/.test(x.textContent))),'botón «✍️ Cargar cheques nuevos» arriba');
+ await p.evaluate(()=>[...document.querySelectorAll('#tesoreria button')].find(x=>/Cargar cheques nuevos/.test(x.textContent)).click()); await p.waitForTimeout(600);
+ ok(await p.evaluate(()=>/Cargar cheque nuevo/.test(document.querySelector('#tesoreria').textContent) && /Cheques que vas preparando/.test(document.querySelector('#tesoreria').textContent)),'abre la pantalla de carga con la lista');
+ const save=async(np,nn,nm)=>{ await p.evaluate(([np,nn,nm])=>{ const v=(id,x)=>{ const e=document.getElementById(id); e.value=x; e.dispatchEvent(new Event('input',{bubbles:true})); }; v('tesNP',np); v('tesNN',nn); v('tesNM',nm); v('tesNF','2026-12-20'); v('tesNE','2026-11-11'); document.querySelector('[data-tes="simSave"]').click(); },[np,nn,nm]); await p.waitForTimeout(900); };
+ await save('PROV AAA','880001','1000000'); await p.waitForTimeout(1100); await save('PROV BBB','880002','2000000');
+ const r=await p.evaluate(()=>{ const rows=[...document.querySelectorAll('#tesoreria .tes-t tr[data-cid]')].map(t=>t.textContent); return {still:/Cargar cheque nuevo/.test(document.querySelector('#tesoreria').textContent), rows, act:document.activeElement&&document.activeElement.id, np:(document.getElementById('tesNP')||{}).value}; });
+ ok(r.still,'después de guardar se queda en la pantalla de carga');
+ ok(r.rows.length>=2 && /880002/.test(r.rows[0]) && /RECIÉN/.test(r.rows[0]) && /880001/.test(r.rows[1]),'lista: el último cargado arriba ('+r.rows.length+')');
+ ok(r.act==='tesNP' && r.np==='','cursor listo en Proveedor para el siguiente');
+ await p.evaluate(()=>{ const s=document.getElementById('tesCgP'); s.value='all'; s.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>document.getElementById('tesCgP').value==='all' && document.querySelectorAll('#tesoreria .tes-t tr[data-cid]').length>=2),'filtro de período funciona');
+ await p.evaluate(()=>[...document.querySelectorAll('#tesoreria .tes-tabs button, #tesoreria button')].find(x=>/GESTION DE CHEQUES/.test(x.textContent)).click()); await p.waitForTimeout(600);
+ ok(await p.evaluate(()=>!!document.querySelector('#tesoreria tr.tes-new')),'en gestión también aparece resaltado');
+ await p.evaluate(()=>document.querySelector('#tesoreria [data-tes="x"]').click()); await p.waitForTimeout(400);
+ await p.evaluate(()=>window.__tes.open()); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>!document.querySelector('#tesoreria .tes-solo') && !!document.querySelector('#tesoreria .tes-tabs') && document.querySelector('#tesoreria .tes-tabs').offsetParent!==null),'Gestión normal sigue con sus pestañas');
+ await p.evaluate(()=>document.querySelector('#tesoreria [data-tes="x"]').click()); await p.waitForTimeout(400);
+ await p.evaluate(()=>{ const b=document.createElement('button'); b.dataset.tescarga='1'; b.id='zz'; document.body.appendChild(b); b.click(); }); await p.waitForTimeout(700);
+ const so=await p.evaluate(()=>({solo:!!document.querySelector('#tesoreria .tes-solo'), t:(document.querySelector('#tesoreria .bo-top b')||{}).textContent, tabsHidden:!document.querySelector('#tesoreria .tes-tabs') || document.querySelector('#tesoreria .tes-tabs').offsetParent===null, form:!!document.getElementById('tesNP'), list:/vas preparando/.test(document.querySelector('#tesoreria').textContent), foc:document.activeElement&&document.activeElement.id}));
+ console.log(JSON.stringify(so)); ok(so.solo && /CARGAR CHEQUES NUEVOS/.test(so.t) && so.tabsHidden && so.form && so.list,'botón aparte abre pantalla propia, sin pestañas de gestión');
+ ok(so.foc==='tesNP','cursor en Proveedor');
+ console.log('errs',errs,'fallas',fail); await b.close(); process.exit(fail?1:0); })();

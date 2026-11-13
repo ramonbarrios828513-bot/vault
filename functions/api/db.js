@@ -6,7 +6,7 @@ const H = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 
 const J = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: { ...H, 'Content-Type': 'application/json' } });
 const HEX = /^[a-f0-9]{64}$/;
 // v1205: versión mínima de la app que puede GUARDAR. Un aparato con versión vieja solo puede leer: así nunca pisa lo cargado en otro.
-const MIN_APP = 1205;
+const MIN_APP = 1206;
 const WRITE = { set: 1, upd: 1, del: 1, inc: 1, rset: 1 };
 async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join(''); }
 let ready = false;
@@ -38,6 +38,7 @@ export async function onRequestPost({ request, env }) {
     }
     const res = [];
     for (const o of ops) {
+      if (o && o.op === 'ver') { res.push({ min: MIN_APP }); continue; } // v1205: qué versión pide la central
       if (!o || !okPath(o.p)) { res.push(null); continue; }
       if (o.op === 'get') { const r = await env.DB.prepare('SELECT d FROM docs WHERE sp = ? AND p = ?').bind(sp, o.p).first(); res.push(r ? r.d : null); }
       else if (o.op === 'set') { const d = JSON.stringify(o.d == null ? {} : o.d); if (d.length > 1900000) { res.push({ err: 'big' }); continue; } await env.DB.prepare('INSERT OR REPLACE INTO docs (sp, p, d, t) VALUES (?, ?, ?, ?)').bind(sp, o.p, d, Date.now()).run(); res.push(true); }
@@ -49,6 +50,7 @@ export async function onRequestPost({ request, env }) {
         const d = JSON.stringify(o.d == null ? {} : o.d); if (d.length > 400000) { res.push({ err: 'big' }); continue; } const base = o.base == null ? null : +o.base;
         const w = await env.DB.prepare('INSERT INTO docs (sp, p, d, t) VALUES (?, ?, ?, ?) ON CONFLICT(sp, p) DO UPDATE SET d = excluded.d, t = MAX(excluded.t, docs.t + 1) WHERE ? IS NOT NULL AND docs.t <= ? RETURNING t').bind(sp, o.p, d, Date.now(), base, base).first();
         if (w) { res.push({ t: +w.t }); continue; } const r = await env.DB.prepare('SELECT d, t FROM docs WHERE sp = ? AND p = ?').bind(sp, o.p).first(); res.push(r ? { c: 1, t: +r.t, d: r.d } : { err: 'retry' }); }
+      else if (o.op === 'rget') { const r = await env.DB.prepare('SELECT d, t FROM docs WHERE sp = ? AND p = ?').bind(sp, o.p).first(); res.push(r ? [r.d, +r.t] : null); } // v1205: un registro con su versión (para revisar antes de subir)
       else if (o.op === 'rlist') { // v1205: lo que cambió en la central desde (since, ap), en páginas de 3000, ordenado por versión
         const pre = o.p + '/', since = +o.since || 0, ap = typeof o.ap === 'string' ? o.ap : '';
         const q = await env.DB.prepare('SELECT p, d, t FROM docs WHERE sp = ? AND (t > ? OR (t = ? AND p > ?)) AND substr(p, 1, ?) = ? ORDER BY t, p LIMIT 3000').bind(sp, since, since, ap, pre.length, pre).all(); res.push((q.results || []).map((x) => [x.p, x.d, +x.t])); }

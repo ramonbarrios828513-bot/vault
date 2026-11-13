@@ -1,0 +1,1 @@
+const fs=require('fs'),vm=require('vm');const f=process.argv[2];const s=fs.readFileSync(f,'utf8');const re=/<script(?![^>]*src)(?![^>]*type="application\/json")(?![^>]*type="application\/ld)[^>]*>([\s\S]*?)<\/script>/g;let m,n=0,e=0;while((m=re.exec(s))){n++;try{new vm.Script(m[1])}catch(x){e++;console.log('ERR',x.message)}}console.log(f,'scripts:',n,'errors:',e);
