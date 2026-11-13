@@ -11,5 +11,13 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(await p.evaluate(()=>/POLICLINICA/.test(document.querySelector('#tesoreria table.tes-t').innerText) && !/QUIMFA/.test(document.querySelector('#tesoreria table.tes-t').innerText)),'«Hoy» + «cuándo se cargó» → solo lo cargado hoy');
  await p.selectOption('#tesoreria [data-busk="bst"]','pag'); await p.click('#tesoreria [data-bus="r"]:has-text("Todas las fechas")'); await p.waitForTimeout(400);
  ok(await p.evaluate(()=>{ const x=document.querySelector('#tesoreria table.tes-t').innerText; return /QUIMFA/.test(x) && !/GUAYAKI/.test(x); }),'filtro por estado: solo pagados');
- await p.screenshot({path:'/tmp/claude-0/bus.png'});
+ await p.selectOption('#tesoreria [data-busk="bst"]','all'); await p.selectOption('#tesoreria [data-busk="bord"]','debA'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>/QUIMFA/.test(document.querySelector('#tesoreria table.tes-t tr:nth-child(2)').innerText)),'ordenar: menos días para debitar primero');
+ await p.selectOption('#tesoreria [data-busk="bord"]','emD'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>/POLICLINICA/.test(document.querySelector('#tesoreria table.tes-t tr:nth-child(2)').innerText)),'ordenar: emisión más reciente primero');
+ await p.evaluate(()=>{ const T=window.__tes.st(); T.chqras=T.chqras||[]; T.chqras.push({id:'k1',cta:'Basa-G',ini:1,fin:10,tipo:'Diferido'}); T.chq.push({id:'b5',prov:'X',cta:'Basa-G',num:'5',monto:5,em:'2026-10-02',co:'2026-12-02',st:'pend'}); window.__tes.draw(); }); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>/Faltan 1:\s*4/.test(document.querySelector('#tesoreria').innerText)),'huecos: detecta el talón 4 que falta');
+ await p.evaluate(()=>{ window.__tes.ui.tab='chqra'; window.__tes.draw(); }); await p.waitForTimeout(400); await p.click('#tesoreria [data-kq="rev"]'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>/FALTA/.test(document.querySelector('#tesoreria').innerText) && /Talones de Basa-G/.test(document.querySelector('#tesoreria').innerText)),'chequera: revisar talón por talón muestra el que FALTA');
+ await p.screenshot({path:'/tmp/bus.png'});
  console.log('errs',errs,'fallas',fail); await b.close(); })();
