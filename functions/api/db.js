@@ -6,7 +6,7 @@ const H = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 
 const J = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: { ...H, 'Content-Type': 'application/json' } });
 const HEX = /^[a-f0-9]{64}$/;
 // v1205: versión mínima de la app que puede GUARDAR. Un aparato con versión vieja solo puede leer: así nunca pisa lo cargado en otro.
-const MIN_APP = 1214;
+const MIN_APP = 1215;
 const WRITE = { set: 1, upd: 1, del: 1, inc: 1, rset: 1 };
 async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join(''); }
 let ready = false;
