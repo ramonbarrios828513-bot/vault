@@ -78,6 +78,10 @@ const URL='http://localhost:'+(process.env.NPORT||8105)+'/work.html', CODE='NISS
  await B.p.evaluate(()=>{ window.__sv.st().on=true; }); await B.p.evaluate(()=>window.__sv.entry()); await B.p.waitForTimeout(4000);
  const eb=await B.p.evaluate(()=>(document.getElementById('svEntry')||{}).textContent||''); console.log('entry', eb);
  ok(/Actualizado con la central a las \d\d:\d\d/.test(eb) && /v12\d\d/.test(eb) && /Último dato cargado/.test(eb),'al entrar: «Actualizado con la central a las HH:MM · versión · último dato cargado en …»');
+ // v1220: si otro control ya estaba en marcha al entrar, espera y NO dice «No pude terminar de revisar»
+ await B.p.evaluate(()=>{ const S=window.__sv.st(); S.on=true; S.chkBusy=true; window.__sv.entry(); setTimeout(()=>{ S.chk={t:Date.now(),n:5,fix:0,ok:true}; S.chkBusy=false; },2500); }); await B.p.waitForTimeout(6000);
+ const eb2=await B.p.evaluate(()=>(document.getElementById('svEntry')||{}).textContent||''); console.log('entry2', eb2);
+ ok(/Actualizado con la central/.test(eb2) && !/No pude/.test(eb2),'al entrar con otro control en marcha: espera y dice «Actualizado con la central», no «No pude terminar»');
  // aparato del dueño conectado a la central: al bloquearse muestra SU clave y el cartel no asusta
  await B.p.evaluate(()=>{ try{ localStorage.removeItem('wk-face'); sessionStorage.removeItem('wk-face'); }catch(e){} }); await B.p.reload(); await B.p.waitForTimeout(4000);
  const lk=await B.p.evaluate(()=>({code:!!document.getElementById('wkCode'), pass:!!document.getElementById('heroPass'), tag:(document.getElementById('verTag')||{}).textContent||''})); console.log('lock', JSON.stringify(lk));
