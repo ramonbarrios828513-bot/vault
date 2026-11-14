@@ -78,4 +78,9 @@ const URL='http://localhost:'+(process.env.NPORT||8105)+'/work.html', CODE='NISS
  await B.p.evaluate(()=>{ window.__sv.st().on=true; }); await B.p.evaluate(()=>window.__sv.entry()); await B.p.waitForTimeout(4000);
  const eb=await B.p.evaluate(()=>(document.getElementById('svEntry')||{}).textContent||''); console.log('entry', eb);
  ok(/Actualizado con la central a las \d\d:\d\d/.test(eb) && /v12\d\d/.test(eb) && /Último dato cargado/.test(eb),'al entrar: «Actualizado con la central a las HH:MM · versión · último dato cargado en …»');
+ // aparato del dueño conectado a la central: al bloquearse muestra SU clave y el cartel no asusta
+ await B.p.evaluate(()=>{ try{ localStorage.removeItem('wk-face'); sessionStorage.removeItem('wk-face'); }catch(e){} }); await B.p.reload(); await B.p.waitForTimeout(4000);
+ const lk=await B.p.evaluate(()=>({code:!!document.getElementById('wkCode'), pass:!!document.getElementById('heroPass'), tag:(document.getElementById('verTag')||{}).textContent||''})); console.log('lock', JSON.stringify(lk));
+ ok(!lk.code && lk.pass,'aparato del dueño (con la central) bloqueado: muestra SU clave, no la instalación de empleados');
+ ok(!/NO ES ESPEJO/.test(lk.tag),'con el Baúl cerrado el cartel no dice «NO ES ESPEJO»');
  await b.close(); console.log('fallas',fail); process.exit(fail?1:0); })();
