@@ -17,6 +17,6 @@ for t in t376.js t377.js; do run $t "NPORT=8105 SRV=$SRV VB=$VB"; done
 run t379.js "NPORT=8105 SRV=$SRV VB=$VB BIGLIM=60000"
 run t384.js "NPORT=8105 SRV=$SRV VB=$VB"
 run t386.js "NPORT=8105 SRV=$SRV VB=$VB"
-for t in t380.js t381.js t382.js t383.js t385.js t378.js t371.js t372.js t373.js t366.js t368.js t344.js t351.js; do run $t "PORT=8100"; done
+for t in t380.js t381.js t382.js t383.js t385.js t387.js t378.js t371.js t372.js t373.js t366.js t368.js t344.js t351.js; do run $t "PORT=8100"; done
 kill $(cat "$SRV/h.pid") 2>/dev/null; pkill -f "central-mock.js" 2>/dev/null; rm -rf "$SRV"
 [ $FAIL = 0 ] && say "✅ VERIFICADO: se puede publicar" || say "⛔ NO PUBLICAR: hay fallas"; exit $FAIL
