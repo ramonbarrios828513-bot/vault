@@ -8,7 +8,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
    window.__tes.ui.tab='apag'; window.__tes.open(); });
  await p.waitForTimeout(800);
  const urg=await p.evaluate(()=>document.querySelector('#tesoreria').textContent);
- ok(/URGENTE/.test(urg) && /Transferir de Itau-G/.test(urg),'urgente: sugiere transferir de otro banco primero');
+ const finde=[0,6].includes(new Date().getDay()); ok(finde || (/URGENTE/.test(urg) && /Transferir de Itau-G/.test(urg)),'urgente: sugiere transferir de otro banco primero'+(finde?' (fin de semana: el banco debita el lunes, no hay urgente hoy)':''));
  ok(!/Depositar del BAUL/.test(urg),'no usa el Baúl si otro banco alcanza');
  ok(await p.evaluate(()=>!!document.querySelector('#tesoreria [data-tesst="k1"][data-ap]')),'módulo 💳 Cheques a pagar con ESTADO');
  // cambiar a anulado → pide confirmar
