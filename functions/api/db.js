@@ -6,7 +6,7 @@ const H = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 
 const J = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: { ...H, 'Content-Type': 'application/json' } });
 const HEX = /^[a-f0-9]{64}$/;
 // v1205: versión mínima de la app que puede GUARDAR. Un aparato con versión vieja solo puede leer: así nunca pisa lo cargado en otro.
-const MIN_APP = 1213;
+const MIN_APP = 1214;
 const WRITE = { set: 1, upd: 1, del: 1, inc: 1, rset: 1 };
 async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join(''); }
 let ready = false;
@@ -57,13 +57,13 @@ export async function onRequestPost({ request, env }) {
       else if (o.op === 'rget') { const r = await env.DB.prepare('SELECT d, t FROM docs WHERE sp = ? AND p = ?').bind(sp, o.p).first(); res.push(r ? [r.d, +r.t] : null); } // v1205: un registro con su versión (para revisar antes de subir)
       else if (o.op === 'wkadd' && !worker && /^[a-f0-9]{64}$/.test(o.h || '')) { await env.DB.prepare('INSERT OR REPLACE INTO workers (sp, wk, t) VALUES (?, ?, ?)').bind(sp, await sha('w:' + o.h), Date.now()).run(); res.push(true); } // el dueño habilita una llave de trabajo
       else if (o.op === 'wkdel' && !worker && /^[a-f0-9]{64}$/.test(o.h || '')) { await env.DB.prepare('DELETE FROM workers WHERE sp = ? AND wk = ?').bind(sp, await sha('w:' + o.h)).run(); res.push(true); }
-      else if (o.op === 'rver') { const pre = o.p + '/'; const q = await env.DB.prepare('SELECT p, t FROM docs WHERE sp = ? AND substr(p, 1, ?) = ?').bind(sp, pre.length, pre).all(); res.push((q.results || []).map((x) => [x.p, +x.t])); } // v1212: lista liviana (registro + versión) para el control de espejo
+      else if (o.op === 'rver') { const pre = o.p + '/'; const q = await env.DB.prepare('SELECT p, t FROM docs WHERE sp = ? AND p >= ? AND p < ?').bind(sp, pre, pre + '\uffff').all(); res.push((q.results || []).map((x) => [x.p, +x.t])); } // v1212: lista liviana (registro + versión) para el control de espejo
       else if (o.op === 'rlist') { // v1205: lo que cambió en la central desde (since, ap), en páginas de 3000, ordenado por versión
         const pre = o.p + '/', since = +o.since || 0, ap = typeof o.ap === 'string' ? o.ap : '';
-        const q = await env.DB.prepare('SELECT p, d, t FROM docs WHERE sp = ? AND (t > ? OR (t = ? AND p > ?)) AND substr(p, 1, ?) = ? ORDER BY t, p LIMIT 3000').bind(sp, since, since, ap, pre.length, pre).all(); res.push((q.results || []).map((x) => [x.p, x.d, +x.t])); }
-      else if (o.op === 'list') { const pre = o.p + '/'; const q = await env.DB.prepare('SELECT p, d FROM docs WHERE sp = ? AND substr(p, 1, ?) = ? AND instr(substr(p, ?), \'/\') = 0').bind(sp, pre.length, pre, pre.length + 1).all(); res.push((q.results || []).map((x) => [x.p, x.d])); }
+        const q = await env.DB.prepare('SELECT p, d, t FROM docs INDEXED BY docs_sp_t WHERE sp = ? AND t >= ? AND (t > ? OR p > ?) AND p >= ? AND p < ? ORDER BY t, p LIMIT 3000').bind(sp, since, since, ap, pre, pre + '\uffff').all(); /* v1214: lee SOLO lo nuevo (índice sp+t); antes recorría todo y se pasó el límite gratis del día */ res.push((q.results || []).map((x) => [x.p, x.d, +x.t])); }
+      else if (o.op === 'list') { const pre = o.p + '/'; const q = await env.DB.prepare('SELECT p, d FROM docs WHERE sp = ? AND p >= ? AND p < ? AND instr(substr(p, ?), \'/\') = 0').bind(sp, pre, pre + '\uffff', pre.length + 1).all(); res.push((q.results || []).map((x) => [x.p, x.d])); }
       else res.push(null);
     }
     return J({ res });
-  } catch (e) { return J({ err: 'server', msg: String(e && e.message || e) }, 500); }
+  } catch (e) { const m = String(e && e.message || e); return J({ err: /limit|exceeded/i.test(m) ? 'limite' : 'server', msg: m }, /limit|exceeded/i.test(m) ? 429 : 500); }
 }
