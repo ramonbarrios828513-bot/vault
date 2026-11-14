@@ -58,18 +58,18 @@ const URL='http://localhost:'+(process.env.NPORT||8105)+'/work.html', CODE='NISS
  // B se "descompagina": le cambiamos el dato por dentro (como si no lo hubiera traído) y le trabamos un cambio viejo sin subir; además deja de leer lo nuevo
  await B.p.evaluate(()=>{ const S=window.__sv.st(), E=window.__memcGet().pla.emps[0]; const p=Object.keys(S.known).find(k=>/pla/.test(k) && /emps/.test(k)); E.salM={'2026-06':3044000}; S.known[p]={t:1,s:JSON.stringify(E),m:S.known[p].m}; S.q[p]={base:1,bs:null,m:S.known[p].m,s:'x',at:Date.now()-600000,enc:'roto'}; S.since=9e15; window.__pBad=p; });
  const bad=await B.p.evaluate(()=>window.__memcGet().pla.emps[0].salM['2026-06']); ok(bad===3044000,'B quedó con el dato equivocado (3.044.000 en junio)');
- const tagBefore=await B.p.evaluate(()=>(document.getElementById('verTag')||{}).textContent||''); console.log('tag', tagBefore);
+ const tagBefore=await B.p.evaluate(()=>(document.getElementById('verTag')||{}).title||''); console.log('tag', tagBefore);
  const C=await B.p.evaluate(()=>window.__sv.check(true)); console.log('chk', JSON.stringify(C));
  ok(await B.p.evaluate(()=>window.__memcGet().pla.emps[0].salM['2026-06'])===2899048,'🔎 el control de espejo trajo de la central el salario correcto de junio');
  ok(C && C.fix>=1 && C.stuck>=1,'corrigió lo trabado: ganó la central');
  ok(await B.p.evaluate(()=>!window.__sv.st().q[window.__pBad]),'el cambio trabado ya no queda colgado');
- await B.p.waitForTimeout(2500); const tag=await B.p.evaluate(()=>(document.getElementById('verTag')||{}).textContent||''); console.log('tag', tag);
+ await B.p.waitForTimeout(2500); const tag=await B.p.evaluate(()=>(document.getElementById('verTag')||{}).title||''); console.log('tag', tag);
  ok(/ESPEJO · al día \d\d\/\d\d\/\d{4},? \d\d:\d\d:\d\d/.test(tag),'el cartel de arriba dice «✅ ESPEJO');
  await B.p.evaluate(()=>document.getElementById('verTag').click()); await B.p.waitForTimeout(400);
  ok(await B.p.evaluate(()=>/Registros en la central/.test((document.getElementById('svChk')||{}).textContent||'')),'tocando el cartel se ve el detalle del espejo');
  // sin la central encendida → cartel rojo
  await B.p.evaluate(()=>{ document.getElementById('svChk').remove(); window.__sv.st().on=false; }); await B.p.waitForTimeout(2500);
- ok(/NO ES ESPEJO/.test(await B.p.evaluate(()=>(document.getElementById('verTag')||{}).textContent||'')),'si el aparato no lee la central, el cartel se pone rojo: «NO ES ESPEJO»');
+ ok(/NO ES ESPEJO/.test(await B.p.evaluate(()=>(document.getElementById('verTag')||{}).title||'')),'si el aparato no lee la central, el cartel se pone rojo: «NO ES ESPEJO»');
  // aparato con un dato distinto SIN cambio pendiente (como el OPPO): al entrar queda como la central
  await B.p.evaluate(()=>{ window.__memcGet().pla.emps[0].salM={'2026-06':4000000}; });
  await B.p.evaluate(()=>{ window.__sv.st().on=true; }); await B.p.evaluate(()=>window.__sv.entry()); await B.p.waitForTimeout(4000);
