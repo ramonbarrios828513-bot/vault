@@ -1,0 +1,27 @@
+// v1229 · 🤝 botón Negociaciones desde Gestión de cheques queda ADELANTE · 🧮 calculadora de compra cara a cara con todas las herramientas
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800);
+ await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.click('#articulos [data-ar="x"]'); await p.waitForTimeout(300);
+ await p.evaluate(()=>window.__tes.open()); await p.waitForTimeout(800);
+ const bt=await p.$('#tesoreria [data-arneg]'); await bt.scrollIntoViewIfNeeded(); await bt.click(); await p.waitForTimeout(1200);
+ ok(await p.evaluate(()=>{ const t=document.elementFromPoint(600,300); return t && t.closest('#articulos') && /Negociaciones/.test(document.querySelector('#articulos h3').innerText); }),'desde Gestión de cheques el botón 🤝 abre Negociaciones ADELANTE (aunque Artículos ya se haya abierto antes)');
+ await p.click('#articulos [data-ng="calc"]'); await p.waitForTimeout(400);
+ await p.fill('#articulos [data-ngadd]','ibuprofeno 600'); await p.waitForTimeout(200); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(500);
+ const lab=await p.evaluate(()=>document.querySelector('#articulos .ng-card').innerText);
+ const need=['PVP ACTUAL','DESC. 1','PVF directo','DESC. 2','Escala por cantidad','Bonificación','Nota de crédito','contado','COSTO FINAL / NETO','DESCUENTO REAL'];
+ const miss=need.filter(x=>!lab.includes(x)); ok(!miss.length,'la calculadora muestra todas las herramientas '+miss.join(', '));
+ const id=await p.evaluate(()=>document.querySelector('#articulos .ng-card').dataset.ngcard);
+ const f=async(k,v)=>{ await p.fill(`#articulos [data-ngv="${id}"][data-k="${k}"]`,v); };
+ await p.fill(`#articulos [data-ngl="${id}"][data-k="q"]`,'100'); await p.press(`#articulos [data-ngl="${id}"][data-k="q"]`,'Tab'); await p.waitForTimeout(200);
+ await f('d1','30'); await f('d2','10'); await f('bc','10'); await f('br','2'); await f('nc','5'); await p.waitForTimeout(300);
+ const rt=await p.evaluate(id=>document.querySelector(`[data-ngres="${id}"] .ng-route`).innerText.replace(/\n/g,' '),id); console.log('   '+rt);
+ ok(/COSTO 4/.test(rt) && /−5% COSTO 5/.test(rt) && /DESCUENTO REAL/.test(rt),'calcula en cadena: desc. 1, desc. 2, bonificación y nota de crédito');
+ await p.evaluate(()=>{ window.__askBox0=window.__askBox; }); await p.click('#articulos [data-ng="addx"]'); await p.waitForTimeout(200); await p.fill('.ask-in','Crema nueva 50 g'); await p.click('[data-ak="yes"]'); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>[...document.querySelectorAll('#articulos .ng-card b')].some(x=>/Crema nueva 50 g/.test(x.innerText))),'se puede agregar un producto que todavía no está en la lista');
+ await p.click('#articulos [data-ng="oc"]'); await p.waitForTimeout(300);
+ ok(/Poné el proveedor/.test(await p.evaluate(()=>document.getElementById('ngErr').innerText)),'para aprobar la orden pide el proveedor');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
