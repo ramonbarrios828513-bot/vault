@@ -2,7 +2,7 @@
 const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:768}});
- await p.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  const home=await p.evaluate(()=>document.querySelector('#articulos .cp-home').innerText);
  ok(/PREPARAR ORDEN DE COMPRA/.test(home)&&/PREPARAR PEDIDOS DE LAS SUCURSALES/.test(home)&&/CONSULTA RÁPIDA POR PRODUCTO/.test(home)&&/CALCULADORA DE COMPRA/.test(home)&&/MIS ÓRDENES DE COMPRA/.test(home)&&/CARGAR PRODUCTOS/.test(home),'inicio de Compras con 6 botones con nombre claro');
  await p.click('#articulos .cp-b.g'); await p.waitForTimeout(400); ok(/Preparar orden de compra: elegí el proveedor/.test(await p.evaluate(()=>document.getElementById('plOv').innerText)),'«Preparar orden de compra» pide el proveedor');
