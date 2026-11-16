@@ -5,7 +5,9 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  await p.click('#articulos .cp-b.g'); await p.waitForTimeout(300); await p.fill('#plQ','distrimed'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200);
  const id=await p.evaluate(()=>document.querySelector('#articulos .ng-p2').dataset.ngrowid), r=`#articulos [data-ngrowid="${id}"]`;
- ok(await p.evaluate(r=>document.querySelectorAll(r+' .ng-p2a, '+r+' .ng-p2c').length,r)===3,'cada producto usa 3 filas: datos · cadena de descuentos · pago/retorno/totales');
+ ok(await p.evaluate(r=>document.querySelectorAll(r+' .ng-r1, '+r+' .ng-r2').length,r)===2 && await p.evaluate(r=>document.querySelectorAll(r+' .ng-r1 > .ng-gc').length===11 && document.querySelectorAll(r+' .ng-r2 > .ng-gc').length===11,r),'cada producto en 2 filas parejas de 11 celdas (alineadas entre productos)');
+ ok(await p.evaluate(()=>{ const a=[...document.querySelectorAll('#articulos .ng-r2')].slice(0,3).map(x=>Math.round(x.children[3].getBoundingClientRect().left)); return a.every(v=>v===a[0]); }),'las columnas quedan alineadas de un producto al otro');
+ ok(await p.evaluate(r=>!!document.querySelector(r+' .ng-res'),r),'los lugares libres se ven como «reservado» en otro color');
  await p.fill(r+' [data-k="pvp"]','10000'); await p.fill(r+' [data-k="q"]','10');
  for(const [k,v] of [['d1','30'],['d2','10'],['d3','5'],['br','10'],['nc','300']]){ await p.fill(r+` [data-k="${k}"]`,v); await p.waitForTimeout(120); }
  await p.waitForTimeout(300);

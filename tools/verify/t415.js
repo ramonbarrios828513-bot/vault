@@ -10,7 +10,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(/Medicamento/.test(bd)&&/Diabetes/.test(bd)&&/Receta simple/.test(bd),'al lado del producto: categoría, clasificación y tipo de receta');
  const bq=await p.evaluate(()=>{ const x=[...document.querySelectorAll('#articulos .ng-p2')].find(e=>/Quetiapina/.test(e.innerText)); return x? x.querySelector('.ng-bdg').innerText:''; });
  ok(/Controlado/.test(bq)&&/cuadruplicada/i.test(bq),'controlado con receta cuadruplicada se ve en la fila');
- const lab=()=>p.evaluate(r=>[...document.querySelectorAll(r+' .ng-f small')].map(x=>x.innerText).join('|'),r);
+ const lab=()=>p.evaluate(r=>[...document.querySelectorAll(r+' .ng-f small, '+r+' .ng-gc small')].map(x=>x.innerText).join('|'),r);
  ok(/Giro 90 d/.test(await lab()) && /Sugerido 90 d/.test(await lab()),'el giro y el sugerido se muestran para los días elegidos (90)');
  await p.fill(r+' [data-k="dias"]','30'); await p.waitForTimeout(300);
  ok(/Giro 30 d/.test(await lab()),'cambiando los días de ESTE producto a 30 cambia su giro al instante');

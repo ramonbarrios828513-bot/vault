@@ -10,13 +10,13 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  const n=await p.evaluate(()=>document.querySelectorAll('#articulos .ng-two .ng-p2').length); ok(n>=10,'abre la orden en 2 FILAS por producto ('+n+')');
  ok(await p.evaluate(()=>getComputedStyle(document.querySelector('#articulos .cp-home')).display==='none'),'dentro de la orden se esconde el inicio (más lugar para los productos)');
  ok(await p.evaluate(()=>[...document.querySelectorAll('#articulos details.ng-dt')].every(d=>!d.open)),'columnas, política, monitor y herramientas quedan plegadas');
- const p1=await p.evaluate(()=>{ const r=document.querySelector('#articulos .ng-p2'); return [r.querySelector('.ng-p2a').innerText, r.querySelector('.ng-p2c').innerText].map(x=>x.replace(/\n/g,' ')); }); console.log('   fila 1: '+p1[0].slice(0,160)+'\n   fila 2: '+p1[1].slice(0,200));
+ const p1=await p.evaluate(()=>{ const r=document.querySelector('#articulos .ng-p2'); return [r.querySelector('.ng-r1').innerText, r.querySelector('.ng-r2').innerText].map(x=>x.replace(/\n/g,' ')); }); console.log('   fila 1: '+p1[0].slice(0,160)+'\n   fila 2: '+p1[1].slice(0,200));
  ok(/CANTIDAD/i.test(p1[0]) && /PVP/i.test(p1[0]) && /Desc\. 1/i.test(p1[1]) && /COSTO FINAL/i.test(p1[1]),'fila 1: producto, stock, giro, cantidad, PVP · fila 2: descuentos, bonif, NC, pago y resultados');
  const id=await p.evaluate(()=>document.querySelector('#articulos .ng-p2').dataset.ngrowid), r=`#articulos [data-ngrowid="${id}"]`;
  await p.fill(r+' [data-k="d1"]','30'); await p.waitForTimeout(200);
  ok(/\d/.test(await p.evaluate(r=>document.querySelector(r+' [data-ngcv$="|fac"]').innerText,r)),'el costo final se calcula al escribir');
- await p.press(r+' [data-k="d1"]','Enter'); await p.waitForTimeout(200);
- ok(await p.evaluate(id=>document.activeElement.dataset.k==='d1' && document.activeElement.closest('[data-ngrowid]').dataset.ngrowid!==id,id),'Enter baja al Desc. 1 del producto siguiente');
+ await p.press(r+' [data-k="d1"]','ArrowDown'); await p.waitForTimeout(200);
+ ok(await p.evaluate(id=>document.activeElement.dataset.k==='d1' && document.activeElement.closest('[data-ngrowid]').dataset.ngrowid!==id,id),'↓ baja al Desc. 1 del producto siguiente');
  await p.screenshot({path:'/tmp/claude-0/p1228/dosfilas.png'});
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
