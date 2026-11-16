@@ -17,5 +17,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.evaluate(()=>{ const b=[...document.querySelectorAll('button')].reverse().find(x=>/^(Sí|Aceptar|OK|Confirmar)/i.test(x.innerText.trim())); b&&b.click(); }); await p.waitForTimeout(500);
  const d=await p.evaluate(()=>{ const T=window.__tes.st(); return T.chqras.length+'|'+(T.chqrasPap||[]).length+'|'+T.chq.length; }); console.log('   '+d);
  ok(/^1\|1\|/.test(d),'🗑️ quita la chequera y la guarda en la papelera (los cheques no se borran)');
+ const nn=await p.evaluate(()=>{ const T=window.__tes.st(); T.chqras=[{id:'k9',cta:'Basa-G',ini:100,fin:110,tipo:'Diferido'}]; T.chq.push({id:'z1',prov:'Y',cta:'Basa-G',num:'100',monto:1,em:'2026-11-01',co:'2026-11-20',st:'pend'},{id:'z2',prov:'Y',cta:'Difer-G',num:'101',monto:1,em:'2026-11-01',co:'2026-11-20',st:'pend'},{id:'z3',prov:'Y',cta:'Basa-G',num:'102',monto:1,em:'2026-11-01',co:'2026-11-20',st:'pend'}); return window.__tes.nextNum('Basa-G'); });
+ ok(+nn===103,'no sugiere números de cheque que ya están cargados (aunque estén con otro nombre de cuenta): sugiere '+nn);
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
