@@ -27,6 +27,6 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.click('#articulos [data-ng="ocok"]'); await p.waitForTimeout(1500);
  const ocs=await p.evaluate(()=>{ const A=window.__ar.st(); const N=Object.values(A.negs).find(x=>x.plan&&x.st==='oc'); return N? N.ocs.map(o=>o.k).join(','):''; });
  ok(ocs==='credito,contado,ctrl','se grabaron 3 órdenes: '+ocs);
- ok(await p.evaluate(()=>document.querySelectorAll('#articulos [data-ng="print"][data-g]').length)===3,'3 botones de impresión: 📅 crédito · 💵 contado · 💊 controlados aparte');
+ ok(await p.evaluate(()=>document.querySelectorAll('#articulos .ng-acts [data-ng="print"][data-g]').length)===3,'3 botones de impresión: 📅 crédito · 💵 contado · 💊 controlados aparte');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
