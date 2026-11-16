@@ -1,0 +1,20 @@
+// v1229 · 🔎 consulta rápida por producto: F2 o botón 🔎 → escribís → Enter rayos X → Esc vuelve al buscador · F3 calculadora · F8 equivalentes
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ ok(await p.evaluate(()=>{ const f=document.getElementById('cqFab'); return f && !f.hidden; }),'en compras aparece el botón flotante 🔎');
+ await p.evaluate(()=>document.activeElement && document.activeElement.blur()); await p.keyboard.press('F2'); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>{ const o=document.getElementById('cqOv'); return o && !o.hidden && document.activeElement.id==='cqQ'; }),'F2 abre la consulta rápida con el cursor en el buscador');
+ await p.keyboard.type('a'); await p.waitForTimeout(200);
+ ok(/^A/i.test(await p.evaluate(()=>document.querySelector('#cqR tr[data-cqi="0"] b').innerText)),'con una letra ya busca (a → empieza con A)');
+ await p.keyboard.type('mox'); await p.waitForTimeout(200); await p.keyboard.press('ArrowDown'); await p.waitForTimeout(100); await p.keyboard.press('Enter'); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>{ const o=document.getElementById('rxOv'); return o && !o.hidden && /Amoxicilina/.test(o.innerText); }),'↓ y Enter abre el 🩻 rayos X del elegido');
+ await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>document.getElementById('rxOv').hidden && !document.getElementById('cqOv').hidden && document.activeElement.id==='cqQ'),'Esc vuelve al buscador para la próxima consulta');
+ await p.keyboard.press('F8'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>{ const o=document.getElementById('eqOv'); return o && !o.hidden && /Amoxicilina/.test(o.innerText); }),'F8 abre los equivalentes');
+ await p.keyboard.press('Escape'); await p.waitForTimeout(300); await p.keyboard.press('F3'); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>{ const o=document.getElementById('qcOv'); return o && !o.hidden && /Amoxicilina/.test(document.querySelector('.qc-x').innerText); }),'F3 abre la calculadora con ese producto');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();

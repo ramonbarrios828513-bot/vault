@@ -11,6 +11,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  const pv=await p.evaluate(()=>document.querySelector('#qcF').innerText); ok(/Proveedor: Indufar/.test(pv) && (pv.match(/Indufar/g)||[]).length>3,'buscando por PROVEEDOR muestra sus productos');
  await p.fill('#qcQ','metf'); await p.waitForTimeout(150); await p.press('#qcQ','Enter'); await p.waitForTimeout(300);
  ok(/Metformina/.test(await p.evaluate(()=>document.querySelector('.qc-x').innerText)),'Enter elige el primer producto (Metformina)');
+ ok(await p.evaluate(()=>!!document.querySelector('#qcOv [data-qv="npvp"]') && !!document.querySelector('#qcOv [data-qv="cb"]') && !!document.querySelector('#qcOv .qc-x [data-rx]')),'la calculadora del producto tiene PVP actual, costo del proveedor y 🩻 Rayos X completo');
  for(const [k,v] of [['d1','30'],['d2','10'],['br','1'],['nc','3']]){ await p.fill(`#qcOv [data-qv="${k}"]`,v); }
  await p.waitForTimeout(200);
  const r=await p.evaluate(()=>document.querySelector('#qcR').innerText.replace(/\n/g,' ')); console.log('   '+r.slice(0,300));
