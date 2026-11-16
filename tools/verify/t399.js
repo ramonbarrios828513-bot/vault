@@ -4,7 +4,10 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
  await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  await p.click('#articulos [data-ar="x"]'); await p.waitForTimeout(300); await p.evaluate(()=>window.__tes.open()); await p.waitForTimeout(1200);
- ok(await p.evaluate(()=>{ const f=document.getElementById('qcFab'); return f && !f.hidden; }),'en Gestión de cheques aparece el botón flotante 🧮');
+ ok(await p.evaluate(()=>{ const f=document.getElementById('qcFab'), c=document.getElementById('cqFab'); return (!f || f.hidden) && (!c || c.hidden); }),'v1231: en Gestión de cheques NO hay botones flotantes (no tapan la carga de cheques)');
+ await p.keyboard.press('F2'); await p.waitForTimeout(300); ok(await p.evaluate(()=>{ const o=document.getElementById('cqOv'); return !o || o.hidden; }),'v1231: F2 en Gestión de cheques no abre nada');
+ await p.evaluate(()=>{ document.getElementById('tesoreria').hidden=true; window.__ar.open(); }); await p.waitForTimeout(1200);
+ ok(await p.evaluate(()=>{ const f=document.getElementById('qcFab'); return f && !f.hidden; }),'en Artículos y compras aparece el botón flotante 🧮');
  await p.click('#qcFab'); await p.waitForTimeout(500);
  ok(await p.evaluate(()=>document.activeElement && document.activeElement.id==='qcQ'),'abre la calculadora con el cursor en el buscador');
  await p.fill('#qcQ','indufar'); await p.waitForTimeout(200);
