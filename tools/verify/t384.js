@@ -82,6 +82,16 @@ const URL='http://localhost:'+(process.env.NPORT||8105)+'/work.html', CODE='NISS
  await B.p.evaluate(()=>{ const S=window.__sv.st(); S.on=true; S.chkBusy=true; window.__sv.entry(); setTimeout(()=>{ S.chk={t:Date.now(),n:5,fix:0,ok:true}; S.chkBusy=false; },2500); }); await B.p.waitForTimeout(6000);
  const eb2=await B.p.evaluate(()=>(document.getElementById('svEntry')||{}).textContent||''); console.log('entry2', eb2);
  ok(/Actualizado con la central/.test(eb2) && !/No pude/.test(eb2),'al entrar con otro control en marcha: espera y dice «Actualizado con la central», no «No pude terminar»');
+ // v1221 · 📦 ARTÍCULOS: se guardan aparte en la central (bloques cifrados) y el otro aparato los recibe al abrir el módulo; los cambios del otro vuelven
+ await A.p.evaluate(async()=>{ await window.__ar.load(); await window.__ar.save([{id:'aQ',cv:'100',n:'QUITADOR FORTE',pc:'Caja x 20',u:20,act:true},{id:'aI',cv:'200',n:'IBUPROFENO 600',u:10,act:true}]); await window.__ar.snap('stk',{m:{aQ:500,aI:1000},f:'2026-11-15'}); await window.__ar.sync(); });
+ await A.p.waitForTimeout(1500); console.log('A ar', await A.p.evaluate(()=>window.__ar.st().st+' | dirty '+JSON.stringify(window.__ar.st().dirty)));
+ await B.p.evaluate(async()=>{ await window.__ar.load(); await window.__ar.sync(); }); await B.p.waitForTimeout(800);
+ const bi=await B.p.evaluate(()=>{ const S=window.__ar.st(); return Object.values(S.items).map(x=>x.n+':'+x.u+':'+(x.cod||'')).sort().join(',')+' | stk '+JSON.stringify(S.stk&&S.stk.m); }); console.log('B ar', bi);
+ ok(/IBUPROFENO 600:10/.test(bi) && /QUITADOR FORTE:20/.test(bi) && /"aQ":500/.test(bi),'B recibe de la central los artículos y el stock que cargó A');
+ await B.p.evaluate(async()=>{ const S=window.__ar.st(), q=JSON.parse(JSON.stringify(S.items.aQ)); q.u=30; await window.__ar.save([q]); await window.__ar.sync(); }); await B.p.waitForTimeout(800);
+ await A.p.evaluate(async()=>{ await window.__ar.sync(); }); await A.p.waitForTimeout(500);
+ ok(await A.p.evaluate(()=>window.__ar.st().items.aQ.u)===30,'el cambio de B (Quitador 30 por caja) llega a A');
+ ok(await A.p.evaluate(()=>!Object.keys(window.__memcGet()||{}).some(k=>/^ar|art/i.test(k))),'los artículos NO entran al espejo general (no ocupan la memoria de los otros módulos)');
  // aparato del dueño conectado a la central: al bloquearse muestra SU clave y el cartel no asusta
  await B.p.evaluate(()=>{ try{ localStorage.removeItem('wk-face'); sessionStorage.removeItem('wk-face'); }catch(e){} }); await B.p.reload(); await B.p.waitForTimeout(4000);
  const lk=await B.p.evaluate(()=>({code:!!document.getElementById('wkCode'), pass:!!document.getElementById('heroPass'), tag:(document.getElementById('verTag')||{}).textContent||''})); console.log('lock', JSON.stringify(lk));
