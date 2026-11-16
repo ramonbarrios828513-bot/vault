@@ -16130,7 +16130,7 @@
   document.addEventListener('keydown', function (e) { var t = e.target; if (e.key === 'Enter' && t && t.dataset && t.dataset.arq) { clearTimeout(arDraw._t); AR.ui.q = t.value; AR.ui.focusQ = 1; arDraw(); var L = arList().filter(function (x) { return arMatch(x, AR.ui.q); }); if (L.length === 1) { e.preventDefault(); AR.ui.sel = JSON.parse(JSON.stringify(L[0])); AR.ui.tab = 'ficha'; arDraw(); } } });
   // v1222 · motor de cálculo de la propuesta del proveedor (el mismo en el sistema y en el portal del vendedor)
   function ngN(x) { var v = typeof x === 'string' ? +x.replace(/\./g, '').replace(',', '.') : +x; return isFinite(v) ? v : 0; }
-  function ngPct(x) { var v = ngN(x); return v > 1 ? v / 100 : v; }
+  function ngPct(x) { var v = ngN(x); return v / 100; } /* v1236: 1 = 1 % (antes 1 se tomaba como 100 % y borraba el costo) */
   function ngFmt(n) { return Math.round(+n || 0).toLocaleString('es-PY'); }
   function ngPf(x) { return (Math.round((+x || 0) * 1000) / 10).toLocaleString('es-PY') + '%'; }
   function ngCalc(L, v, o) { var NCP = 0, BP = 0; v = v || {}; o = o || {}; if (o.hcd != null && o.hcd !== '' && (v.cd == null || v.cd === '')) v = Object.assign({}, v, { cd: o.hcd }); if (o.hret != null && o.hret !== '' && (v.ret == null || v.ret === '')) v = Object.assign({}, v, { ret: o.hret }); /* v1233: contado y retorno generales del encabezado */ if (L && L.pago === 'contado') o = Object.assign({}, o, { contado: true }); else if (L && L.pago === 'credito') o = Object.assign({}, o, { contado: false }); /* v1232: cada producto puede ser contado o crédito */ var q = ngN(L.q), pvp0 = ngN(L.pvp), npvp = ngN(v.npvp), cb = ngN(v.cb), pvf = ngN(v.pvf), d1 = ngPct(v.d1), d2 = ngPct(v.d2), cf = ngN(v.cf), P = [];
