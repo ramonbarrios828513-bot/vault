@@ -1,0 +1,20 @@
+// v1238 · 📏 vista lineal: una fila por producto; sucursales al lado del sugerido; la cantidad total al proveedor suma sola
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:768}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.evaluate(()=>{ const A=window.__ar.st(); A.ven=Object.assign({},A.ven,{dias:90,s:{demo23:{'KM 7':900,'KM 8':1800}}}); A.stk=Object.assign({},A.stk,{s:{demo23:{'KM 7':600,'KM 8':0}}}); });
+ await p.click('#articulos .cp-b.o'); await p.waitForTimeout(300); await p.fill('#plQ','distrimed'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200);
+ await p.click('#articulos [data-ng="view"][data-v="lin"]'); await p.waitForTimeout(800);
+ const r='#articulos .ng-lin tr[data-ngrowid="demo23"]';
+ ok(await p.evaluate(r=>!!document.querySelector(r),r),'📏 vista lineal: una fila por producto');
+ const hd=await p.evaluate(()=>[...document.querySelectorAll('.ng-lin thead th')].map(x=>x.innerText.split('\n')[0].trim()));
+ const iS=hd.indexOf('SUGERIDO'), i7=hd.findIndex(x=>/KM 7/.test(x)), iQ=hd.findIndex(x=>/CANT/.test(x)); console.log('   '+hd.slice(0,12).join(' | '));
+ ok(iS>0 && i7===iS+1 && iQ>i7,'las sucursales van al lado del sugerido y después la cantidad total');
+ await p.fill(r+' [data-k="qs:KM 7"]','5'); await p.fill(r+' [data-k="qs:KM 8"]','15'); await p.waitForTimeout(300);
+ ok(await p.inputValue(r+' [data-k="q"]')==='20','la cantidad total al proveedor suma las sucursales (5 + 15 = 20)');
+ await p.fill(r+' [data-k="pvp"]','10000'); await p.press(r+' [data-k="pvp"]','Enter'); await p.waitForTimeout(200);
+ ok(await p.evaluate(()=>document.activeElement.dataset.k==='pago'),'Enter salta al campo de la derecha');
+ ok(await p.evaluate(()=>{ const t=document.querySelector('.ng-lin tbody tr'); return t.getBoundingClientRect().height<60; }),'filas bajas: entran muchos productos en la pantalla');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
