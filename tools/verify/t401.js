@@ -16,7 +16,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(await p.inputValue(q)==='20','al elegir el tramo la cantidad pasa sola a 20 cajas (lo que pide la escala)');
  r=await rt(); console.log('   aplicada: '+r.slice(0,220));
  ok(/COSTO 3/.test(r) && /Recibís 22 cajas/.test(r),'aplica la escala: costo 3 y «recibís 22 cajas (20 + 2 bonificadas)»');
- await p.selectOption(`#articulos [data-ngv="${id}"][data-k="escU"]`,''); await p.waitForTimeout(500); await f('br','1'); await f('bc','1'); await p.waitForTimeout(300);
- r=await rt(); ok(/Recibís 40 cajas/.test(r) && /−50%/.test(r),'bonificación 1+1 a mano: pedís 20, recibís 40, −50 %');
+ await p.selectOption(`#articulos [data-ngv="${id}"][data-k="escU"]`,''); await p.waitForTimeout(500); await f('br','20'); await p.waitForTimeout(300);
+ r=await rt(); ok(/Recibís 40 cajas/.test(r) && /−50%/.test(r),'bonificación 1+1 con un solo campo: pedís 20, bonificadas 20 → recibís 40, −50 %');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();

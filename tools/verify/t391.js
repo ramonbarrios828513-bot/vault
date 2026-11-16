@@ -16,14 +16,14 @@ const PORT=process.env.NPORT||8105, URL='http://localhost:'+PORT+'/work.html', C
  const lines=await A.evaluate(()=>{ const S=window.__ar.st(); const N=S.negs[S.ui.ng]; return N.lines.map(l=>l.n+':'+l.q+':'+l.pvp).join(','); }); console.log('lines',lines);
  ok(/QUITADOR FORTE:1475:10000/.test(lines) && /IBUPROFENO 600:/.test(lines) && !/OTRO/.test(lines),'trae los productos de ese proveedor con la cantidad a comprar y el PVP');
  await A.check('#articulos [data-ngt="cas"]'); await A.waitForTimeout(400); await A.check('#articulos [data-ngt="esc"]'); await A.waitForTimeout(400);
- ok(await A.evaluate(()=>!document.querySelector('#articulos [data-k="bc"]') && !!document.querySelector('#articulos [data-k="d1"]')),'en el sistema solo aparecen las herramientas habilitadas (sin bonificación)');
+ ok(await A.evaluate(()=>!document.querySelector('#articulos [data-k="br"]') && !!document.querySelector('#articulos [data-k="d1"]')),'en el sistema solo aparecen las herramientas habilitadas (sin bonificación)');
  await A.click('#articulos [data-ng="send"]'); await A.waitForTimeout(2500); const link=await A.evaluate(()=>{ const i=document.getElementById('ngLinkI'); return i?i.value:''; }); console.log('link',link.slice(0,80)+'…');
  ok(/\/proveedor\/index\.html#s=[a-f0-9]{64}&k=[a-f0-9]{64}&e=[A-Za-z0-9_-]+&n=g/.test(link),'se crea el enlace para el vendedor');
  // ---- vendedor
  const vctx=await b.newContext({viewport:{width:412,height:900}}); const V=await vctx.newPage(); V.on('pageerror',e=>errs.push('V: '+e.message));
  await V.goto(link); await V.waitForTimeout(2500); const vt=await V.evaluate(()=>document.body.innerText);
  ok(/QUITADOR FORTE/.test(vt) && /Pedido: 1\.475 cajas/.test(vt) && /PVP Nissifarma: 10\.000/.test(vt),'el vendedor ve producto, cantidad y PVP');
- ok(await V.evaluate(()=>!!document.querySelector('[data-k="d1"]') && !!document.querySelector('[data-k="esc.0.d"]') && !document.querySelector('[data-k="bc"]') && !document.querySelector('[data-k="nc"]')),'el vendedor solo tiene las herramientas habilitadas');
+ ok(await V.evaluate(()=>!!document.querySelector('[data-k="d1"]') && !!document.querySelector('[data-k="esc.0.d"]') && !document.querySelector('[data-k="br"]') && !document.querySelector('[data-k="nc"]')),'el vendedor solo tiene las herramientas habilitadas');
  ok(!/costo final: 4/i.test(vt) && !/stock|giro|500 u/i.test(vt),'el vendedor no ve stock, giro ni costos de Nissifarma');
  await V.fill('[data-l="aQ"][data-k="npvp"]','10500'); await V.fill('[data-l="aQ"][data-k="d1"]','30'); await V.fill('[data-l="aQ"][data-k="d2"]','30'); await V.fill('[data-l="aI"][data-k="cf"]','3500');
  const r1=await V.evaluate(()=>document.querySelector('[data-res="aQ"]').innerText); console.log('V res',r1.replace(/\n/g,' | ')); ok(/5\.145/.test(r1) && /51%/.test(r1),'el vendedor ve el cálculo en vivo (costo 5.145 · 51%)');

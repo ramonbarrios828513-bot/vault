@@ -16,7 +16,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  const id=await p.evaluate(()=>document.querySelector('#articulos .ng-card').dataset.ngcard);
  const f=async(k,v)=>{ await p.fill(`#articulos [data-ngv="${id}"][data-k="${k}"]`,v); };
  await p.fill(`#articulos [data-ngl="${id}"][data-k="q"]`,'100'); await p.press(`#articulos [data-ngl="${id}"][data-k="q"]`,'Tab'); await p.waitForTimeout(200);
- await f('d1','30'); await f('d2','10'); await f('bc','10'); await f('br','2'); await f('nc','5'); await p.waitForTimeout(300);
+ await f('d1','30'); await f('d2','10'); await f('br','2'); await f('nc','5'); await p.waitForTimeout(300);
  const rt=await p.evaluate(id=>document.querySelector(`[data-ngres="${id}"] .ng-route`).innerText.replace(/\n/g,' '),id); console.log('   '+rt);
  ok(/COSTO 4/.test(rt) && /−5% COSTO 5/.test(rt) && /DESCUENTO REAL/.test(rt),'calcula en cadena: desc. 1, desc. 2, bonificación y nota de crédito');
  await p.evaluate(()=>{ window.__askBox0=window.__askBox; }); await p.click('#articulos [data-ng="addx"]'); await p.waitForTimeout(200); await p.fill('.ask-in','Crema nueva 50 g'); await p.click('[data-ak="yes"]'); await p.waitForTimeout(500);
