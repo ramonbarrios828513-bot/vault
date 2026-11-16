@@ -11,14 +11,14 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  const bq=await p.evaluate(()=>{ const x=[...document.querySelectorAll('#articulos .ng-p2')].find(e=>/Quetiapina/.test(e.innerText)); return x? x.querySelector('.ng-bdg').innerText:''; });
  ok(/Controlado/.test(bq)&&/cuadruplicada/i.test(bq),'controlado con receta cuadruplicada se ve en la fila');
  const lab=()=>p.evaluate(r=>[...document.querySelectorAll(r+' .ng-f small, '+r+' .ng-gc small')].map(x=>x.innerText).join('|'),r);
- ok(/Giro 90 d/.test(await lab()) && /Sugerido 90 d/.test(await lab()),'el giro y el sugerido se muestran para los días elegidos (90)');
+ ok(/Giro mes/.test(await lab()) && /Sugerido 90 d/.test(await lab()),'el giro se muestra por mes y el sugerido para los días elegidos (90)');
  await p.fill(r+' [data-k="dias"]','30'); await p.waitForTimeout(300);
- ok(/Giro 30 d/.test(await lab()),'cambiando los días de ESTE producto a 30 cambia su giro al instante');
+ ok(/Sugerido 30 d/.test(await lab()),'cambiando los días de ESTE producto a 30 cambia su sugerido al instante');
  const g30=await p.evaluate(r=>document.querySelector(r+' [data-ngi$="|i:giro"]').innerText,r); console.log('   giro 30 d: '+g30);
  ok(g30==='90','Metformina: vende 270 cajas en 90 días → 90 cajas en 30 días');
  // por sucursal: KM 8 vende 1800/90 = 20 u/día = 0,67 cj/día; días KM 8 = 45 → venta 30 cj
  await p.fill(r+' [data-k="qd:KM 8"]','45'); await p.waitForTimeout(300);
- const v8=await p.evaluate(r=>document.querySelector(r+' [data-ngi$="|i:sucv:KM 8"]').innerText,r), ph=await p.getAttribute(r+' [data-k="qs:KM 8"]','placeholder');
+ const v8=await p.evaluate(r=>document.querySelector(r+' [data-ngi$="|i:sucn:KM 8"]').innerText,r), ph=await p.getAttribute(r+' [data-k="qs:KM 8"]','placeholder');
  console.log('   KM 8 venta en 45 d: '+v8+' · '+ph); ok(v8==='30' && ph==='sug. 30','cada sucursal con sus días: KM 8 a 45 días → venta 30 cajas y sugiere 30');
  await p.fill(r+' [data-k="qs:KM 8"]','30'); await p.fill(r+' [data-k="qs:KM 7"]','0'); await p.waitForTimeout(300);
  const cb=await p.evaluate(r=>[document.querySelector(r+' [data-ngi$="|qc:KM 8"]').innerText, document.querySelector(r+' [data-ngi$="|i:cub"]').innerText],r); console.log('   cubre KM 8: '+cb[0]+' · total: '+cb[1]);

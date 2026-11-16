@@ -1,0 +1,24 @@
+// v1234 · 🏪 sucursales una al lado de otra: ⭐ central KM 7 primero, 🌐 general, cada sucursal; ⚡ aceptar sugerido; 🙈 solo central y general
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.evaluate(()=>{ const A=window.__ar.st(); A.ven=Object.assign({},A.ven,{dias:90,s:{demo23:{'Franco':450,'KM 7':900,'KM 8':1800}}}); A.stk=Object.assign({},A.stk,{s:{demo23:{'Franco':60,'KM 7':600,'KM 8':0}}}); });
+ await p.click('#articulos .cp-b.o'); await p.waitForTimeout(300); await p.fill('#plQ','distrimed'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200);
+ const r='#articulos [data-ngrowid="demo23"]';
+ const hd=await p.evaluate(r=>[...document.querySelectorAll(r+' .ng-sx thead th')].map(x=>x.innerText.replace(/\n/g,' ')),r); console.log('   '+hd.join(' | '));
+ ok(/KM 7/.test(hd[1]) && /GENERAL/.test(hd[2]) && hd.length===5,'bloques uno al lado de otro: ⭐ KM 7 central primero, después 🌐 GENERAL y las demás sucursales');
+ const g=await p.evaluate(r=>['i:gs','i:gg','i:gd'].map(k=>document.querySelector(r+' [data-ngi$="|'+k+'"]').innerText),r); console.log('   general: '+g.join(' · '));
+ ok(g[0]==='22' && g[1]==='35' && g[2]==='19 d','la central muestra stock general (22 cj), giro general (35/mes) y para cuántos días alcanza (19 d)');
+ ok(await p.evaluate(r=>document.querySelector(r+' [data-ngi$="|i:sucd:KM 8"]').innerText==='0 d' && !!document.querySelector(r+' .ng-sx [data-k="qd:KM 8"]') && !!document.querySelector(r+' .ng-sx [data-k="qs:KM 8"]'),r),'cada sucursal: stock en días, sus días a pedir y PEDIR');
+ await p.click(r+' [data-ng="sugp"]'); await p.waitForTimeout(600);
+ const L=await p.evaluate(()=>{ const A=window.__ar.st(); const n=Object.values(A.negs).find(x=>!x.del&&x.lines.some(l=>l.id==='demo23')); return n.lines.find(l=>l.id==='demo23'); }); console.log('   '+JSON.stringify({q:L.q,qs:L.qs}));
+ ok(+L.qs['KM 8']===60 && +L.q===Object.values(L.qs).reduce((a,x)=>a+ +x,0),'⚡ Aceptar sugerido llena PEDIR de cada sucursal y la cantidad a comprar es la suma');
+ ok(await p.evaluate(r=>document.querySelector(r+' [data-ngi$="|i:gq"]').innerText,r)===L.q,'el general muestra el total a pedir');
+ await p.fill(r+' [data-k="qs:KM 8"]','30'); await p.waitForTimeout(300);
+ ok(await p.evaluate(r=>document.querySelector(r+' [data-ngi$="|qc:KM 8"]').innerText,r)==='45 d','cambiando PEDIR de KM 8 a 30 → con lo pedido cubre 45 días');
+ await p.click(r+' [data-ng="sxh"]'); await p.waitForTimeout(500);
+ ok(await p.evaluate(r=>document.querySelectorAll(r+' .ng-sx thead th').length===3,r),'🙈 Solo central y general oculta las demás sucursales (solo para mirar)');
+ await p.click(r+' [data-ng="sxh"]'); await p.waitForTimeout(300);
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
