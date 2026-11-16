@@ -1,0 +1,21 @@
+// v1240 · ✏️ corregir chequeras mal cargadas, 🗑️ quitarlas (a la papelera) y ✏️ corregir cada cheque desde los talones
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__tes.open()); await p.waitForTimeout(1200);
+ await p.evaluate(()=>{ const T=window.__tes.st(); T.chqras=[{id:'k1',cta:'Basa-G',ini:1,fin:10,tipo:'Diferido'},{id:'k2',cta:'Basa-G',ini:20,fin:30,tipo:'Diferido'}]; T.chq.push({id:'b5',prov:'X',cta:'Basa-G',num:'5',monto:5,em:'2026-10-02',co:'2026-12-02',st:'pend'}); window.__tes.ui.tab='chqra'; window.__tes.draw(); }); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>document.querySelectorAll('#tesoreria [data-kq="edit"]').length===2 && document.querySelectorAll('#tesoreria [data-kq="del"]').length===2),'cada chequera tiene ✏️ Editar y 🗑️');
+ await p.click('#tesoreria [data-kq="edit"][data-i="0"]'); await p.waitForTimeout(400);
+ await p.fill('.ico-ov [data-k="fin"]','25'); await p.click('.ico-ov [data-tx="ok"]'); await p.waitForTimeout(300);
+ ok(/Se pisa/.test(await p.evaluate(()=>document.getElementById('txErr').innerText)),'no deja que se pise con otra chequera');
+ await p.fill('.ico-ov [data-k="fin"]','15'); await p.selectOption('.ico-ov [data-k="tipo"]','A la vista'); await p.click('.ico-ov [data-tx="ok"]'); await p.waitForTimeout(500);
+ const k=await p.evaluate(()=>JSON.stringify(window.__tes.st().chqras[0])); console.log('   '+k);
+ ok(/"fin":15/.test(k) && /A la vista/.test(k),'corrige hasta y tipo');
+ await p.click('#tesoreria [data-kq="rev"][data-i="0"]'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>!!document.querySelector('#tesoreria [data-tes="edit"][data-id="b5"]')),'en los talones cada cheque tiene ✏️ Corregir');
+ await p.click('#tesoreria [data-kq="del"][data-i="1"]'); await p.waitForTimeout(300);
+ await p.evaluate(()=>{ const b=[...document.querySelectorAll('button')].reverse().find(x=>/^(Sí|Aceptar|OK|Confirmar)/i.test(x.innerText.trim())); b&&b.click(); }); await p.waitForTimeout(500);
+ const d=await p.evaluate(()=>{ const T=window.__tes.st(); return T.chqras.length+'|'+(T.chqrasPap||[]).length+'|'+T.chq.length; }); console.log('   '+d);
+ ok(/^1\|1\|/.test(d),'🗑️ quita la chequera y la guarda en la papelera (los cheques no se borran)');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
