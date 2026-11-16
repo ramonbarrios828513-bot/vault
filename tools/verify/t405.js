@@ -1,0 +1,29 @@
+// v1229 · 🩻 Rayos X: por sucursal (quién vende / quién tiene stock), clientes y vendedores, historial de ventas/stock/mermas, PVP, informe; columnas Stock y Giro en la orden
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.evaluate(()=>{ const A=window.__ar.st(), id='demo23', hoy='2026-11-16';
+  A.ven=Object.assign({},A.ven,{dias:90,s:{[id]:{'KM 7':900,'Franco':300,'KM 8':1500}}}); A.stk=Object.assign({},A.stk,{s:{[id]:{'KM 7':600,'Franco':30,'KM 8':90}}});
+  A.vh={t:1,L:[{id:'a',f:'2025-11-10',dias:90,m:{[id]:2100}},{id:'b',f:hoy,dias:90,m:{[id]:2700},cl:{[id]:{'Clínica Sur':1800,'Juan Pérez':900}},vd:{[id]:{'ANA':2400,'BETO':300}}}]};
+  A.sh={t:1,L:[{id:'c',f:hoy,m:{[id]:720}}]}; A.mh={t:1,L:[{id:'d',f:hoy,dias:90,m:{[id]:90},mo:{[id]:{'Vencido':60,'Rotura':30}}}]};
+  A.items[id].pvpH=[{f:'2026-06-01',de:12000,a:13000,por:'ficha'}]; });
+ await p.click('#articulos [data-ar="tab"][data-v="lista"]'); await p.waitForTimeout(300); await p.fill('#arQ','metformina'); await p.waitForTimeout(300);
+ await p.click('#articulos [data-rx="demo23"]'); await p.waitForTimeout(600);
+ const t=await p.evaluate(()=>document.querySelector('#rxOv').innerText.replace(/\n/g,' '));
+ ok(/Por sucursal/.test(t) && /Vende más: KM 8/.test(t) && /Más stock: KM 7/.test(t) && /reubicar/.test(t),'por sucursal: KM 8 vende más, KM 7 tiene más stock (avisa reubicar)');
+ ok(/Clientes que más compran/.test(t) && /Clínica Sur/.test(t) && /Vendedores que más lo venden/.test(t) && /ANA/.test(t),'ranking de clientes y vendedores');
+ ok(/Historial de mermas/.test(t) && /Vencido/.test(t),'historial de mermas por motivo');
+ ok(await p.evaluate(()=>document.querySelectorAll('#rxOv svg').length)>=4,'con gráficos');
+ ok(/Informe \/ PDF/.test(t) && /Excel del historial/.test(t),'botones de informe (PDF) y Excel');
+ await p.screenshot({path:'/tmp/claude-0/p1228/rayosx.png'});
+ await p.click('#rxOv [data-rx="x"]'); await p.waitForTimeout(200);
+ await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="new"]'); await p.waitForTimeout(300);
+ for(const w of ['metf','omep','lora','aspi']){ await p.fill('#articulos [data-ngadd]',w); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(350); }
+ const th=await p.evaluate(()=>[...document.querySelectorAll('#articulos .ng-tab th')].map(x=>x.innerText).join('|'));
+ ok(/stock/i.test(th) && /giro mes/i.test(th),'la orden en tabla trae columnas Stock y Giro mes');
+ ok(await p.evaluate(()=>!!document.querySelector('#articulos .ng-tab [data-rx]') && !!document.querySelector('#articulos .ng-tab [data-qcrow]') && !!document.querySelector('#articulos [data-qcopen]')),'cada fila tiene 🩻 rayos X y 🧮 calculadora; arriba «Abrir calculadora completa»');
+ await p.click('#articulos .ng-tab [data-qcrow="demo23"]'); await p.waitForTimeout(500);
+ ok(/Metformina/.test(await p.evaluate(()=>document.querySelector('.qc-x').innerText)),'🧮 de la fila abre la calculadora con ese producto');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();

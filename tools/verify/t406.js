@@ -1,0 +1,20 @@
+// v1229 · ⌨️ teclas rápidas en la orden: F2 rayos X, F3 calculadora, F4 herramientas, F1 ayuda; Esc vuelve a la misma fila
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="new"]'); await p.waitForTimeout(300);
+ for(const w of ['metf','omep','lora','aspi']){ await p.fill('#articulos [data-ngadd]',w); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(350); }
+ const cell='#articulos .ng-tab tbody tr[data-ngrowid]:nth-of-type(2) [data-k="q"]'; await p.focus(cell);
+ const rid=await p.evaluate(()=>document.querySelectorAll('#articulos .ng-tab tbody tr[data-ngrowid]')[1].dataset.ngrowid);
+ const back=async()=>p.evaluate(rid=>{ const a=document.activeElement; return a && a.dataset.k==='q' && a.closest('tr') && a.closest('tr').dataset.ngrowid===rid; },rid);
+ await p.keyboard.press('F2'); await p.waitForTimeout(400); ok(await p.evaluate(()=>!document.getElementById('rxOv').hidden),'F2 abre los rayos X del producto de la fila');
+ await p.keyboard.press('Escape'); await p.waitForTimeout(300); ok(await p.evaluate(()=>document.getElementById('rxOv').hidden) && await back(),'Esc cierra y vuelve a la misma celda');
+ await p.keyboard.press('F3'); await p.waitForTimeout(500); ok(await p.evaluate(()=>{ const o=document.getElementById('qcOv'); return o && !o.hidden && /Omeprazol/.test(document.querySelector('.qc-x').innerText); }),'F3 abre la calculadora con ese producto');
+ await p.keyboard.press('Escape'); await p.waitForTimeout(300); ok(await back(),'Esc vuelve a la fila');
+ await p.keyboard.press('F4'); await p.waitForTimeout(400); ok(await p.evaluate(()=>document.querySelectorAll('#articulos .ng-xr .ng-card').length)===1,'F4 abre las herramientas de ese producto');
+ await p.keyboard.press('F4'); await p.waitForTimeout(300);
+ await p.keyboard.press('F1'); await p.waitForTimeout(200); ok(await p.evaluate(()=>/Teclas rápidas/.test((document.getElementById('ngKeys')||{}).innerText||'')),'F1 muestra la ayuda de teclas');
+ await p.keyboard.press('Escape'); await p.waitForTimeout(200); ok(await p.evaluate(()=>!document.getElementById('ngKeys')),'Esc cierra la ayuda');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
