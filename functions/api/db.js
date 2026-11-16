@@ -2,11 +2,11 @@
 // Necesita una base D1 conectada con el nombre DB (Cloudflare → Pages → baul-nissi → Settings → Bindings → D1 → DB).
 // Seguridad: el espacio se identifica con un hash del código de nube; para escribir hace falta otra derivación del mismo código.
 // Los datos llegan cifrados con la clave del Baúl: el servidor nunca ve el contenido.
-const H = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type,X-Space,X-Key,X-App', 'Cache-Control': 'no-store' };
+const H = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type,X-Space,X-Key,X-App,X-Vend', 'Cache-Control': 'no-store' };
 const J = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: { ...H, 'Content-Type': 'application/json' } });
 const HEX = /^[a-f0-9]{64}$/;
 // v1205: versión mínima de la app que puede GUARDAR. Un aparato con versión vieja solo puede leer: así nunca pisa lo cargado en otro.
-const MIN_APP = 1221;
+const MIN_APP = 1222;
 const WRITE = { set: 1, upd: 1, del: 1, inc: 1, rset: 1 };
 async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join(''); }
 let ready = false;
@@ -15,7 +15,8 @@ async function init(db) {
   await db.prepare('CREATE TABLE IF NOT EXISTS docs (sp TEXT NOT NULL, p TEXT NOT NULL, d TEXT, t INTEGER, PRIMARY KEY (sp, p))').run();
   await db.prepare('CREATE TABLE IF NOT EXISTS spaces (sp TEXT PRIMARY KEY, wk TEXT NOT NULL, t INTEGER)').run();
   await db.prepare('CREATE INDEX IF NOT EXISTS docs_sp_t ON docs (sp, t)').run();
-  await db.prepare('CREATE TABLE IF NOT EXISTS workers (sp TEXT NOT NULL, wk TEXT NOT NULL, t INTEGER, PRIMARY KEY (sp, wk))').run(); // v1213: llaves de TRABAJO (solo cierres de caja, carpeta wk/) // v1205: leer «lo nuevo desde» sin recorrer toda la base
+  await db.prepare('CREATE TABLE IF NOT EXISTS workers (sp TEXT NOT NULL, wk TEXT NOT NULL, t INTEGER, PRIMARY KEY (sp, wk))').run();
+  await db.prepare('CREATE TABLE IF NOT EXISTS vendors (sp TEXT NOT NULL, vk TEXT NOT NULL, pre TEXT NOT NULL, t INTEGER, PRIMARY KEY (sp, vk))').run(); // v1222: llaves de VENDEDOR (portal de proveedores): solo su negociación (neg/<id>/) // v1213: llaves de TRABAJO (solo cierres de caja, carpeta wk/) // v1205: leer «lo nuevo desde» sin recorrer toda la base
   ready = true;
 }
 const okPath = (p) => typeof p === 'string' && p.length > 0 && p.length < 400 && !/[%_\\]/.test(p.replace(/_/g, '')) && !p.includes('..');
@@ -29,11 +30,15 @@ export async function onRequestPost({ request, env }) {
     const wk = await sha('w:' + key);
     const row = await env.DB.prepare('SELECT wk FROM spaces WHERE sp = ?').bind(sp).first();
     let worker = false;
-    if (row && row.wk !== wk) { const w = await env.DB.prepare('SELECT 1 AS x FROM workers WHERE sp = ? AND wk = ?').bind(sp, wk).first(); if (!w) return J({ err: 'forbidden' }, 403); worker = true; }
+    let vendor = null;
+    if (row && row.wk !== wk) { const w = await env.DB.prepare('SELECT 1 AS x FROM workers WHERE sp = ? AND wk = ?').bind(sp, wk).first(); if (w) worker = true; else { const v = await env.DB.prepare('SELECT pre FROM vendors WHERE sp = ? AND vk = ?').bind(sp, wk).first(); if (!v) return J({ err: 'forbidden' }, 403); vendor = v.pre + '/'; } }
+    if (!row && request.headers.get('X-Vend')) return J({ err: 'forbidden' }, 403);
     const body = await request.json();
     const ops = Array.isArray(body.ops) ? body.ops.slice(0, 300) : [];
     const app = parseInt(request.headers.get('X-App') || '0', 10) || 0;
-    if (app < MIN_APP && ops.some((o) => o && WRITE[o.op])) return J({ err: 'old', min: MIN_APP }, 426);
+    // v1222: el VENDEDOR (portal) solo lee y guarda dentro de SU negociación; la versión de la app no se le exige
+    if (vendor) { if (ops.some((o) => !o || !['get', 'rget', 'rset'].includes(o.op) || typeof o.p !== 'string' || !o.p.startsWith(vendor) || o.p.length > 200)) return J({ err: 'forbidden', why: 'vendor' }, 403); }
+    else if (app < MIN_APP && ops.some((o) => o && WRITE[o.op])) return J({ err: 'old', min: MIN_APP }, 426);
     // v1213: un aparato de TRABAJO solo puede leer y guardar en la carpeta de cierres (wk/), nada más
     if (worker && ops.some((o) => !o || (o.op !== 'ver' && (!['get', 'set', 'rset', 'rget', 'rlist', 'rver', 'list'].includes(o.op) || typeof o.p !== 'string' || !o.p.startsWith('wk/'))))) return J({ err: 'forbidden', why: 'worker' }, 403);
     if (!row) {
@@ -56,6 +61,8 @@ export async function onRequestPost({ request, env }) {
         if (w) { res.push({ t: +w.t }); continue; } const r = await env.DB.prepare('SELECT d, t FROM docs WHERE sp = ? AND p = ?').bind(sp, o.p).first(); res.push(r ? { c: 1, t: +r.t, d: r.d } : { err: 'retry' }); }
       else if (o.op === 'rget') { const r = await env.DB.prepare('SELECT d, t FROM docs WHERE sp = ? AND p = ?').bind(sp, o.p).first(); res.push(r ? [r.d, +r.t] : null); } // v1205: un registro con su versión (para revisar antes de subir)
       else if (o.op === 'wkadd' && !worker && /^[a-f0-9]{64}$/.test(o.h || '')) { await env.DB.prepare('INSERT OR REPLACE INTO workers (sp, wk, t) VALUES (?, ?, ?)').bind(sp, await sha('w:' + o.h), Date.now()).run(); res.push(true); } // el dueño habilita una llave de trabajo
+      else if (o.op === 'vkadd' && !worker && !vendor && /^[a-f0-9]{64}$/.test(o.h || '') && /^neg\/[A-Za-z0-9-]{4,40}$/.test(o.pre || '')) { await env.DB.prepare('INSERT OR REPLACE INTO vendors (sp, vk, pre, t) VALUES (?, ?, ?, ?)').bind(sp, await sha('w:' + o.h), o.pre, Date.now()).run(); res.push(true); } // v1222: el dueño habilita el enlace de un vendedor para UNA negociación
+      else if (o.op === 'vkdel' && !worker && !vendor && /^[a-f0-9]{64}$/.test(o.h || '')) { await env.DB.prepare('DELETE FROM vendors WHERE sp = ? AND vk = ?').bind(sp, await sha('w:' + o.h)).run(); res.push(true); }
       else if (o.op === 'wkdel' && !worker && /^[a-f0-9]{64}$/.test(o.h || '')) { await env.DB.prepare('DELETE FROM workers WHERE sp = ? AND wk = ?').bind(sp, await sha('w:' + o.h)).run(); res.push(true); }
       else if (o.op === 'rver') { const pre = o.p + '/'; const q = await env.DB.prepare('SELECT p, t FROM docs WHERE sp = ? AND p >= ? AND p < ?').bind(sp, pre, pre + '\uffff').all(); res.push((q.results || []).map((x) => [x.p, +x.t])); } // v1212: lista liviana (registro + versión) para el control de espejo
       else if (o.op === 'rlist') { // v1205: lo que cambió en la central desde (since, ap), en páginas de 3000, ordenado por versión
