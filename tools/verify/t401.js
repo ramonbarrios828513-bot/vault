@@ -1,0 +1,22 @@
+// v1229 · escala = condición del proveedor (no afecta hasta elegir el tramo) · al elegir el tramo la cantidad respeta la escala · bonificación «compro» vacío = cantidad · cajas recibidas
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="calc"]'); await p.waitForTimeout(300);
+ await p.fill('#articulos [data-ngadd]','omep'); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(400);
+ const id=await p.evaluate(()=>document.querySelector('#articulos .ng-card').dataset.ngcard);
+ const q=`#articulos [data-ngl="${id}"][data-k="q"]`, f=async(k,v)=>{ await p.fill(`#articulos [data-ngv="${id}"][data-k="${k}"]`,v); await p.press(`#articulos [data-ngv="${id}"][data-k="${k}"]`,'Tab'); await p.waitForTimeout(150); };
+ await p.fill(q,'10'); await p.press(q,'Tab'); await f('d1','30'); await f('d2','10'); await f('esc.0.d','20'); await p.waitForTimeout(300); await f('esc.0.b','2'); await f('esc.0.p','15');
+ const rt=()=>p.evaluate(id=>document.querySelector(`[data-ngres="${id}"]`).innerText.replace(/\n/g,' '),id);
+ let r=await rt(); console.log('   sin aplicar: '+r.slice(0,160));
+ ok(!/COSTO 3/.test(r) && /COSTO 2 6\.300/.test(r),'con la escala cargada pero SIN elegir tramo, no cambia el costo (solo es la condición)');
+ ok(/Sí, tramo 1: 20 cajas \+ 2 bonif\. · 15% → costo/.test(await p.evaluate(()=>document.querySelector('[data-k="escU"]').innerText)),'el selector muestra el tramo con el costo que daría');
+ await p.selectOption(`#articulos [data-ngv="${id}"][data-k="escU"]`,'0'); await p.waitForTimeout(600);
+ ok(await p.inputValue(q)==='20','al elegir el tramo la cantidad pasa sola a 20 cajas (lo que pide la escala)');
+ r=await rt(); console.log('   aplicada: '+r.slice(0,220));
+ ok(/COSTO 3/.test(r) && /Recibís 22 cajas/.test(r),'aplica la escala: costo 3 y «recibís 22 cajas (20 + 2 bonificadas)»');
+ await p.selectOption(`#articulos [data-ngv="${id}"][data-k="escU"]`,''); await p.waitForTimeout(500); await f('br','1'); await f('bc','1'); await p.waitForTimeout(300);
+ r=await rt(); ok(/Recibís 40 cajas/.test(r) && /−50%/.test(r),'bonificación 1+1 a mano: pedís 20, recibís 40, −50 %');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
