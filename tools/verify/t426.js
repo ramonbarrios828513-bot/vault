@@ -8,9 +8,11 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.click('#articulos [data-ng="view"][data-v="lin"]'); await p.waitForTimeout(800);
  const r='#articulos .ng-lin tr[data-ngrowid="demo23"]';
  ok(await p.evaluate(r=>!!document.querySelector(r),r),'📏 vista lineal: una fila por producto');
- const hd=await p.evaluate(()=>[...document.querySelectorAll('.ng-lin thead th')].map(x=>x.innerText.split('\n')[0].trim()));
- const iS=hd.indexOf('SUGERIDO'), i7=hd.findIndex(x=>/KM 7/.test(x)), iQ=hd.findIndex(x=>/CANT/.test(x)); console.log('   '+hd.slice(0,12).join(' | '));
- ok(iS>0 && i7===iS+1 && iQ>i7,'las sucursales van al lado del sugerido y después la cantidad total');
+ const hd=await p.evaluate(()=>[...document.querySelectorAll('.ng-lin thead tr:first-child th')].map(x=>x.innerText.split('\n')[0].trim()));
+ const iS=hd.indexOf('SUGERIDO'), i7=hd.findIndex(x=>/KM 7/.test(x)), iQ=hd.findIndex(x=>/CANT/.test(x)); console.log('   '+hd.join(' | '));
+ ok(iS>0 && i7>iS && iQ>i7,'después del sugerido vienen las sucursales y después la cantidad total');
+ const sub=await p.evaluate(()=>[...document.querySelectorAll('.ng-lin thead tr.lsub th')].map(x=>x.innerText.trim()).join(','));
+ ok(/Stock,Giro,Sug\.,Días,PIDE/i.test(sub) && /Envía central/i.test(sub),'cada sucursal completa: stock, giro, sugerido, días, PIDE y envía la central');
  await p.fill(r+' [data-k="qs:KM 7"]','5'); await p.fill(r+' [data-k="qs:KM 8"]','15'); await p.waitForTimeout(300);
  ok(await p.inputValue(r+' [data-k="q"]')==='20','la cantidad total al proveedor suma las sucursales (5 + 15 = 20)');
  await p.fill(r+' [data-k="pvp"]','10000'); await p.press(r+' [data-k="pvp"]','Enter'); await p.waitForTimeout(200);

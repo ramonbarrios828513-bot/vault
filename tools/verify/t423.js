@@ -11,5 +11,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.keyboard.press('ArrowDown'); await p.waitForTimeout(150); const a3=await who(); ok(/\|demo23$/.test(a3) && !/^q\|/.test(a3),'↓ baja al campo de abajo del mismo producto ('+a3+')');
  await p.keyboard.press('ArrowUp'); await p.waitForTimeout(150); const a4=await who(); ok(a4==='q|demo23','↑ vuelve a CANTIDAD ('+a4+')');
  for(let i=0;i<6;i++){ await p.keyboard.press('ArrowDown'); await p.waitForTimeout(120); } const a5=await who(); ok(!/\|demo23$/.test(a5),'↓ varias veces pasa al producto de abajo ('+a5+')');
+ await p.evaluate(r=>{ const e=document.querySelector(r+' [data-k="q"]'); e.focus(); e.select(); },r); const seen=new Set(); for(let i=0;i<40;i++){ await p.keyboard.press('ArrowRight'); await p.waitForTimeout(60); seen.add(await p.evaluate(()=>document.activeElement.dataset.k||'')); }
+ console.log('   recorrió: '+[...seen].join(' ')); ok([...seen].some(k=>/^qs:/.test(k)) && seen.has('d1') && seen.has('cd'),'→ recorre TODO el producto de izquierda a derecha sin trabarse (hasta las sucursales)');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
