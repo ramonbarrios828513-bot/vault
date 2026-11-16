@@ -16,7 +16,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  await p.evaluate(()=>{ const A=window.__ar.st(); A.ven=Object.assign({},A.ven,{dias:90,s:{demo23:{'KM 7':900,'Franco':300,'KM 8':1500}}}); A.stk=Object.assign({},A.stk,{s:{demo23:{'KM 7':600,'Franco':30,'KM 8':90}}}); });
  await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="new"]'); await p.waitForTimeout(300);
- for(const w of ['metf','omep','lora','aspi']){ await p.fill('#articulos [data-ngadd]',w); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(350); }
+ for(const w of ['metf','omep','lora','aspi']){ await p.fill('#articulos [data-ngadd]',w); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(350); } await p.click('#articulos [data-ng="view"][data-v="tab"]').catch(()=>{}); await p.waitForTimeout(300);
  await p.selectOption('#articulos [data-ngmisuc]','KM 8'); await p.waitForTimeout(500);
  const th=await p.evaluate(()=>[...document.querySelectorAll('#articulos .ng-tab thead th')].map(x=>x.innerText).join('|'));
  ok(/pedir km 8/i.test(th) && !/pedir km 7/i.test(th) && !/franco/i.test(th),'«Este monitor es de KM 8»: solo ve y carga la columna de KM 8');

@@ -5,7 +5,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="new"]'); await p.waitForTimeout(300);
  await p.fill('#articulos [data-ngh="prov"]','Distrimed'); await p.press('#articulos [data-ngh="prov"]','Tab'); await p.waitForTimeout(400);
- await p.check('#articulos [data-ngtodo]'); await p.click('#articulos [data-ng="fill"]'); await p.waitForTimeout(700);
+ await p.check('#articulos [data-ngtodo]'); await p.click('#articulos [data-ng="fill"]'); await p.waitForTimeout(700); await p.click('#articulos [data-ng="view"][data-v="tab"]').catch(()=>{}); await p.waitForTimeout(300);
  const n=await p.evaluate(()=>document.querySelectorAll('#articulos .ng-tab tbody tr[data-ngrowid]').length); ok(n>=10,'con muchos productos se ve en TABLA: una fila por producto ('+n+')');
  ok(await p.evaluate(()=>!document.querySelector('#articulos .ng-card')),'sin tarjetas grandes en la tabla');
  await p.uncheck('#articulos [data-ngcol="nc"]'); await p.waitForTimeout(300); await p.check('#articulos [data-ngcol="cd"]'); await p.waitForTimeout(300);

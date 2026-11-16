@@ -1,0 +1,22 @@
+// v1232 · 🛒 inicio de Compras con botones claros · orden en 2 filas por producto (campos grandes con nombre) · secciones plegables
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:768}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ const home=await p.evaluate(()=>document.querySelector('#articulos .cp-home').innerText);
+ ok(/PREPARAR ORDEN DE COMPRA/.test(home)&&/PREPARAR PEDIDOS DE LAS SUCURSALES/.test(home)&&/CONSULTA RÁPIDA POR PRODUCTO/.test(home)&&/CALCULADORA DE COMPRA/.test(home)&&/MIS ÓRDENES DE COMPRA/.test(home)&&/CARGAR PRODUCTOS/.test(home),'inicio de Compras con 6 botones con nombre claro');
+ await p.click('#articulos .cp-b.g'); await p.waitForTimeout(400); ok(/Preparar orden de compra: elegí el proveedor/.test(await p.evaluate(()=>document.getElementById('plOv').innerText)),'«Preparar orden de compra» pide el proveedor');
+ await p.fill('#plQ','distri'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200);
+ const n=await p.evaluate(()=>document.querySelectorAll('#articulos .ng-two .ng-p2').length); ok(n>=10,'abre la orden en 2 FILAS por producto ('+n+')');
+ ok(await p.evaluate(()=>getComputedStyle(document.querySelector('#articulos .cp-home')).display==='none'),'dentro de la orden se esconde el inicio (más lugar para los productos)');
+ ok(await p.evaluate(()=>[...document.querySelectorAll('#articulos details.ng-dt')].every(d=>!d.open)),'columnas, política, monitor y herramientas quedan plegadas');
+ const p1=await p.evaluate(()=>{ const r=document.querySelector('#articulos .ng-p2'); return [r.querySelector('.ng-p2a').innerText, r.querySelector('.ng-p2c').innerText].map(x=>x.replace(/\n/g,' ')); }); console.log('   fila 1: '+p1[0].slice(0,160)+'\n   fila 2: '+p1[1].slice(0,200));
+ ok(/CANTIDAD/i.test(p1[0]) && /PVP/i.test(p1[0]) && /Desc\. 1/i.test(p1[1]) && /COSTO FINAL/i.test(p1[1]),'fila 1: producto, stock, giro, cantidad, PVP · fila 2: descuentos, bonif, NC, pago y resultados');
+ const id=await p.evaluate(()=>document.querySelector('#articulos .ng-p2').dataset.ngrowid), r=`#articulos [data-ngrowid="${id}"]`;
+ await p.fill(r+' [data-k="d1"]','30'); await p.waitForTimeout(200);
+ ok(/\d/.test(await p.evaluate(r=>document.querySelector(r+' [data-ngcv$="|fac"]').innerText,r)),'el costo final se calcula al escribir');
+ await p.press(r+' [data-k="d1"]','Enter'); await p.waitForTimeout(200);
+ ok(await p.evaluate(id=>document.activeElement.dataset.k==='d1' && document.activeElement.closest('[data-ngrowid]').dataset.ngrowid!==id,id),'Enter baja al Desc. 1 del producto siguiente');
+ await p.screenshot({path:'/tmp/claude-0/p1228/dosfilas.png'});
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();

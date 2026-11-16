@@ -4,7 +4,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
  await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="new"]'); await p.waitForTimeout(300);
- for(const w of ['metf','omep','lora','aspi']){ await p.fill('#articulos [data-ngadd]',w); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(350); }
+ for(const w of ['metf','omep','lora','aspi']){ await p.fill('#articulos [data-ngadd]',w); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(350); } await p.click('#articulos [data-ng="view"][data-v="tab"]').catch(()=>{}); await p.waitForTimeout(300);
  const cell='#articulos .ng-tab tbody tr[data-ngrowid]:nth-of-type(2) [data-k="q"]'; await p.focus(cell);
  const rid=await p.evaluate(()=>document.querySelectorAll('#articulos .ng-tab tbody tr[data-ngrowid]')[1].dataset.ngrowid);
  const back=async()=>p.evaluate(rid=>{ const a=document.activeElement; return a && a.dataset.k==='q' && a.closest('tr') && a.closest('tr').dataset.ngrowid===rid; },rid);

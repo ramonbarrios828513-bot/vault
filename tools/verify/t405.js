@@ -19,7 +19,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.screenshot({path:'/tmp/claude-0/p1228/rayosx.png'});
  await p.click('#rxOv [data-rx="x"]'); await p.waitForTimeout(200);
  await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="new"]'); await p.waitForTimeout(300);
- for(const w of ['metf','omep','lora','aspi']){ await p.fill('#articulos [data-ngadd]',w); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(350); }
+ for(const w of ['metf','omep','lora','aspi']){ await p.fill('#articulos [data-ngadd]',w); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(350); } await p.click('#articulos [data-ng="view"][data-v="tab"]').catch(()=>{}); await p.waitForTimeout(300);
  const th=await p.evaluate(()=>[...document.querySelectorAll('#articulos .ng-tab th')].map(x=>x.innerText).join('|'));
  ok(/stock/i.test(th) && /giro mes/i.test(th),'la orden en tabla trae columnas Stock y Giro mes');
  ok(await p.evaluate(()=>!!document.querySelector('#articulos .ng-tab [data-rx]') && !!document.querySelector('#articulos .ng-tab [data-qcrow]') && !!document.querySelector('#articulos [data-qcopen]')),'cada fila tiene 🩻 rayos X y 🧮 calculadora; arriba «Abrir calculadora completa»');
