@@ -12,11 +12,11 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  for(const [k,v] of [['d1','30'],['d2','10'],['d3','5'],['br','10'],['nc','300']]){ await p.fill(r+` [data-k="${k}"]`,v); await p.waitForTimeout(120); }
  await p.waitForTimeout(300);
  const st=await p.evaluate(r=>['d1','d2','d3','br','nc'].map(k=>document.querySelector(r+` [data-ngcv$="|st:${k}"]`).innerText),r); console.log('   '+st.join('\n   '));
- ok(/PVF 7\.000 · −30% · acum 30%/.test(st[0]),'Desc. 1 → PVF 7.000 · −30 % · acum 30 %');
- ok(/6\.300 · −10% · acum 37%/.test(st[1]),'Desc. 2 → 6.300 · −10 % · acum 37 %');
- ok(/5\.985 · −5% · acum 40/.test(st[2]),'Desc. 3 → 5.985 · −5 % · acum 40,1 %');
- ok(/2\.993 · −50% · acum 70/.test(st[3]),'Bonificación 10 + 10 → 2.993 · −50 % · acum 70 %');
- ok(/2\.693 · −10% · acum 73/.test(st[4]),'NC Gs 300 → 2.693 · −10 % · acum 73 %');
+ ok(/7\.000 \(−30%\) Σ 30/.test(st[0]),'Desc. 1 → PVF 7.000 · −30 % · acum 30 %');
+ ok(/6\.300 \(−10%\) Σ 37/.test(st[1]),'Desc. 2 → 6.300 · −10 % · acum 37 %');
+ ok(/5\.985 \(−5%\) Σ 40/.test(st[2]),'Desc. 3 → 5.985 · −5 % · acum 40,1 %');
+ ok(/2\.993 \(−50%\) Σ 70/.test(st[3]),'Bonificación 10 + 10 → 2.993 · −50 % · acum 70 %');
+ ok(/2\.693 \(−10%\) Σ 73/.test(st[4]),'NC Gs 300 → 2.693 · −10 % · acum 73 %');
  const dr=await p.evaluate(r=>document.querySelector(r+' [data-ngcv$="|dr"]').innerText,r); ok(/73/.test(dr),'termina en el DESCUENTO REAL conciliado ('+dr+')');
  await p.evaluate(r=>document.querySelector(r).scrollIntoView(),r); await p.screenshot({path:'/tmp/claude-0/p1228/tresfilas.png'});
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
