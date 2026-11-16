@@ -13,5 +13,14 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(await p.evaluate(()=>!!document.querySelector('#articulos .ng-gch.g-ctrl [data-ng="print"]')),'cada grupo tiene su 🖨️ para imprimir o guardar en PDF por separado');
  await p.evaluate(()=>{ window.print=()=>{}; }); await p.click('#articulos .ng-gch.g-ctrl [data-ng="print"]'); await p.waitForTimeout(500);
  const pr=await p.evaluate(()=>{ const w=document.getElementById('ngPrint'); return w?w.innerText:''; }); ok(/CONTROLADOS/.test(pr) && /Quetiapina/.test(pr) && !/Metformina/.test(pr),'la impresión de controlados trae solo los controlados');
+ await p.click('#articulos [data-ng="fl"][data-v=""]'); await p.waitForTimeout(300);
+ await p.click('#articulos [data-ng="junta"][data-v="1"]'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>document.querySelector('#articulos [data-ng="junta"][data-v="1"]').classList.contains('on')),'🔗 Todo junto: queda marcado');
+ await p.evaluate(()=>{ const A=window.__ar.st(); const n=Object.values(A.negs).find(x=>!x.del&&x.lines.some(l=>l.id==='demo23')); n.lines.forEach(l=>{ l.q='5'; if(!l.pvp) l.pvp='10000'; n.v[l.id]=Object.assign({},n.v[l.id]||{},{d1:'10'}); }); }); await p.click('#articulos [data-ng="fl"][data-v=""]'); await p.waitForTimeout(400);
+ await p.click('#articulos [data-ng="oc"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="ocok"]'); await p.waitForTimeout(900);
+ const oc=await p.evaluate(()=>{ const A=window.__ar.st(); const n=Object.values(A.negs).find(x=>!x.del&&x.lines.some(l=>l.id==='demo23')); return JSON.stringify(n.ocs||[]); }); console.log('   '+oc);
+ ok(JSON.parse(oc).length===1 && JSON.parse(oc)[0].k==='todo','al aprobar graba UNA sola orden con todo (controlados y crédito juntos)');
+ await p.click('#articulos .ng-acts [data-ng="print"]'); await p.waitForTimeout(500);
+ const pr2=await p.evaluate(()=>document.getElementById('ngPrint').innerText); ok(/Quetiapina/.test(pr2) && /Metformina/.test(pr2),'la impresión trae todo junto');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
