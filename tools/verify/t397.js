@@ -1,0 +1,26 @@
+// v1228 · ➕ Proveedor nuevo desde factura/cheque, extracto y cierre de cajas → queda en la lista de Gestión de cheques
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ const provs=()=>p.evaluate(()=>{ const C=window.__tes.st().cfg||{}; return Object.keys(C.provN||{}); });
+ await p.evaluate(()=>window.__ex.fac()); await p.waitForTimeout(500);
+ ok(!!(await p.$('[data-provnew="txf"]')),'el formulario de factura/cheque tiene «➕ Proveedor nuevo»');
+ await p.click('[data-provnew="txf"]'); await p.waitForTimeout(200); await p.fill('#pvnN','FARMA NUEVA SA'); await p.press('#pvnN','Enter'); await p.waitForTimeout(300);
+ ok((await provs()).includes('FARMA NUEVA SA'),'queda guardado en la lista de proveedores');
+ ok(await p.evaluate(()=>{ const i=[...document.querySelectorAll('input[data-k="prov"]')].pop(); return i && i.value==='FARMA NUEVA SA'; }),'y se pone solo en el campo Proveedor del formulario');
+ await p.keyboard.press('Escape'); await p.evaluate(()=>document.querySelectorAll('.ico-ov').forEach(x=>x.remove()));
+ await p.evaluate(()=>window.__ex.open()); await p.waitForTimeout(700);
+ ok(await p.evaluate(()=>[...document.querySelectorAll('#extracto [data-exprovsel] option')].some(o=>o.value==='FARMA NUEVA SA')),'el extracto ya lo muestra en la lista');
+ await p.click('#extracto [data-provnew="ex"]'); await p.waitForTimeout(200); await p.fill('#pvnN','farma nueva sa'); await p.waitForTimeout(100);
+ ok(/¿Es alguno de estos\?/.test(await p.evaluate(()=>document.querySelector('#pvnS').innerText)),'avisa si ya hay uno parecido');
+ await p.click('[data-pvn="ok"]'); await p.waitForTimeout(300);
+ ok((await provs()).length===1,'no lo duplica si ya existe (mayúsculas/minúsculas)');
+ ok(await p.evaluate(()=>document.querySelector('#extracto [data-exk="prov"]').value==='FARMA NUEVA SA'),'en el extracto queda elegido');
+ await p.evaluate(()=>{ document.querySelectorAll('.big-ov').forEach(x=>x.hidden=true); window.__cz.open(); }); await p.waitForTimeout(700);
+ await p.selectOption('#cierre [data-czk="suc"]','Local 1 KM7').catch(()=>{}); await p.waitForTimeout(300);
+ await p.click('#cierre [data-cz="add"][data-k="eg"]'); await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>{ const i=document.querySelector('#cierre [data-czk="eg.0.prov"]'); return i && i.getAttribute('list')==='czProvL' && [...document.getElementById('czProvL').options].some(o=>o.value==='FARMA NUEVA SA'); }),'cierre de cajas: el egreso sugiere los proveedores de Gestión de cheques');
+ await p.click('#cierre [data-provnew="cz"]'); await p.waitForTimeout(200); await p.fill('#pvnN','LIMPIEZA DEL ESTE'); await p.press('#pvnN','Enter'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>document.querySelector('#cierre [data-czk="eg.0.prov"]').value==='LIMPIEZA DEL ESTE') && (await provs()).includes('LIMPIEZA DEL ESTE'),'cierre: «Proveedor nuevo» lo agrega y lo pone en el egreso');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
