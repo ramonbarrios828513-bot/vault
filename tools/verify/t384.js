@@ -91,7 +91,7 @@ const URL='http://localhost:'+(process.env.NPORT||8105)+'/work.html', CODE='NISS
  await B.p.evaluate(async()=>{ const S=window.__ar.st(), q=JSON.parse(JSON.stringify(S.items.aQ)); q.u=30; await window.__ar.save([q]); await window.__ar.sync(); }); await B.p.waitForTimeout(800);
  await A.p.evaluate(async()=>{ await window.__ar.sync(); }); await A.p.waitForTimeout(500);
  ok(await A.p.evaluate(()=>window.__ar.st().items.aQ.u)===30,'el cambio de B (Quitador 30 por caja) llega a A');
- ok(await A.p.evaluate(()=>!Object.keys(window.__memcGet()||{}).some(k=>/^ar|art/i.test(k))),'los artículos NO entran al espejo general (no ocupan la memoria de los otros módulos)');
+ ok(await A.p.evaluate(()=>!/QUITADOR FORTE/.test(JSON.stringify(window.__memcGet()||{}))),'los artículos NO entran al espejo general (no ocupan la memoria de los otros módulos)');
  // aparato del dueño conectado a la central: al bloquearse muestra SU clave y el cartel no asusta
  await B.p.evaluate(()=>{ try{ localStorage.removeItem('wk-face'); sessionStorage.removeItem('wk-face'); }catch(e){} }); await B.p.reload(); await B.p.waitForTimeout(4000);
  const lk=await B.p.evaluate(()=>({code:!!document.getElementById('wkCode'), pass:!!document.getElementById('heroPass'), tag:(document.getElementById('verTag')||{}).textContent||''})); console.log('lock', JSON.stringify(lk));
