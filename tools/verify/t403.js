@@ -8,11 +8,11 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  const id=await p.evaluate(()=>document.querySelector('#articulos .ng-card').dataset.ngcard);
  await p.fill(`#articulos [data-ngv="${id}"][data-k="d1"]`,'30'); await p.press(`#articulos [data-ngv="${id}"][data-k="d1"]`,'Tab'); await p.waitForTimeout(300);
  ok(await p.evaluate(()=>!/RETORNO COMERCIAL/i.test([...document.querySelectorAll('#articulos .tes-kp')].map(x=>x.innerText).join(' '))),'una condición vacía NO cuenta (antes mostraba retorno 30 % sin nada cargado)');
- let t=await p.evaluate(()=>document.querySelector('.ng-cnds').innerText.replace(/\n/g,' '));
- ok(/Si/.test(t) && /el proveedor da/.test(t) && /Completá/.test(t),'la condición se lee como frase: «Si … → el proveedor da … de … %»');
+ let t=await p.evaluate(()=>document.querySelector('.ng-hneg').innerText.replace(/\n/g,' '));
+ ok(/Si/.test(t) && /→/.test(t) && /Completá/.test(t),'la condición se lee como frase: «Si … → el proveedor da … de … %»');
  await p.fill('#articulos [data-ngc="0"][data-k="d"]','1000000'); await p.press('#articulos [data-ngc="0"][data-k="d"]','Tab'); await p.waitForTimeout(400);
  await p.fill('#articulos [data-ngc="0"][data-k="p"]','3'); await p.press('#articulos [data-ngc="0"][data-k="p"]','Tab'); await p.waitForTimeout(400);
- t=await p.evaluate(()=>document.querySelector('.ng-cnds').innerText.replace(/\n/g,' ')); console.log('   '+t.slice(-140));
+ t=await p.evaluate(()=>document.querySelector('.ng-hneg').innerText.replace(/\n/g,' ')); console.log('   '+t.slice(-140));
  ok(/Se cumple: −3% en la factura/.test(t) || /Faltan Gs/.test(t),'muestra si se cumple o cuánto falta');
  await p.click('#articulos [data-ng="cadd"]'); await p.waitForTimeout(300);
  ok(await p.evaluate(()=>document.querySelectorAll('.ng-cnd').length)===2,'«Agregar otra condición» suma una fila');
