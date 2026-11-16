@@ -14,8 +14,10 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  const d1s=await p.evaluate(()=>[...document.querySelectorAll('#articulos .ng-tab [data-k="d1"]')].map(i=>i.value)); ok(d1s.length===n && d1s.every(x=>x==='30'),'«Aplicar a todos» llena el Desc. 1 de las '+n+' filas de una vez');
  const r2=await p.evaluate(()=>document.querySelectorAll('#articulos .ng-tab [data-k="d1"]')[1]); 
  const first='#articulos .ng-tab tbody tr[data-ngrowid]:nth-of-type(1) [data-k="d1"]';
- await p.fill(first,'25'); await p.press(first,'Enter'); await p.waitForTimeout(250);
- ok(await p.evaluate(()=>{ const L=[...document.querySelectorAll('#articulos .ng-tab [data-k="d1"]')]; return document.activeElement===L[1]; }),'Enter baja al Desc. 1 del producto siguiente (como Excel)');
+ await p.fill(first,'25'); await p.press(first,'ArrowDown'); await p.waitForTimeout(250);
+ ok(await p.evaluate(()=>{ const L=[...document.querySelectorAll('#articulos .ng-tab [data-k="d1"]')]; return document.activeElement===L[1]; }),'Flecha ↓ baja al Desc. 1 del producto siguiente (como Excel)');
+ await p.press(first,'Enter'); await p.waitForTimeout(250); ok(await p.evaluate(f=>{ const a=document.activeElement, o=document.querySelector(f); return a!==o && a.closest('tr')===o.closest('tr'); },first),'Enter salta al campo de la DERECHA del mismo producto');
+ await p.evaluate(f=>{ const e=document.querySelector(f); e.focus(); e.select(); },first); await p.press(first,'ArrowRight'); await p.waitForTimeout(200); const rk=await p.evaluate(()=>document.activeElement.dataset.k); await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(200); ok(rk!=='d1' && await p.evaluate(()=>document.activeElement.dataset.k)==='d1','Flechas → y ← corren de izquierda a derecha ('+rk+')');
  const id0=await p.evaluate(()=>document.querySelector('#articulos .ng-tab tbody tr[data-ngrowid]').dataset.ngrowid);
  const cf=await p.evaluate(id=>document.querySelector(`#articulos .ng-tab [data-ngcv="${id}|fac"]`).innerText,id0); ok(/\d/.test(cf),'el COSTO FINAL de la fila se calcula al instante ('+cf+')');
  await p.click('#articulos [data-ng="fl"][data-v="ex"]'); await p.waitForTimeout(400);

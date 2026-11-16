@@ -15,8 +15,8 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(/sug\. \d+/.test(await p.getAttribute(row+' [data-k="qs:KM 8"]','placeholder')),'muestra el sugerido de esa sucursal');
  await p.fill(row+' [data-k="qs:KM 7"]','10'); await p.fill(row+' [data-k="qs:KM 8"]','5'); await p.waitForTimeout(300);
  ok(await p.inputValue(row+' [data-k="q"]')==='15' && await p.evaluate(r=>document.querySelector(r+' [data-k="q"]').readOnly,row),'la cantidad total se suma sola (10 + 5 = 15) y no se toca a mano');
- await p.press(row+' [data-k="qs:KM 7"]','Enter'); await p.waitForTimeout(200);
- ok(await p.evaluate(()=>document.activeElement.dataset.k==='qs:KM 7' && document.activeElement.closest('tr').dataset.ngrowid!=='demo23'),'Enter baja a la misma sucursal del producto siguiente');
+ await p.press(row+' [data-k="qs:KM 7"]','ArrowDown'); await p.waitForTimeout(200);
+ ok(await p.evaluate(()=>document.activeElement.dataset.k==='qs:KM 7' && document.activeElement.closest('tr').dataset.ngrowid!=='demo23'),'Flecha ↓ baja a la misma sucursal del producto siguiente');
  await p.click('#articulos [data-ng="sug"]'); await p.waitForTimeout(500);
  const fr=await p.inputValue(row+' [data-k="qs:Franco"]'); ok(+fr>0 && await p.inputValue(row+' [data-k="qs:KM 7"]')==='10','«Usar el sugerido» completa solo las sucursales vacías (Franco '+fr+', KM 7 queda 10)');
  const N=await p.evaluate(()=>{ const A=window.__ar.st(); const n=Object.values(A.negs).find(x=>!x.del&&x.lines.some(l=>l.id==='demo23')); const L=n.lines.find(l=>l.id==='demo23'); return JSON.stringify({q:L.q,qs:L.qs}); });
