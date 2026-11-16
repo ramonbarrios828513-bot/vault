@@ -11,5 +11,8 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  const nc=await p.evaluate(r=>document.querySelector(r+' [data-ngcv$="|ncp"]').innerText,r); ok(/= 7[,.]1\s?%/.test(nc),'NC de Gs 500 muestra al lado su porcentaje ('+nc+')');
  await p.fill(r+' [data-k="pvf"]','6500'); await p.waitForTimeout(300);
  const fac=await p.evaluate(r=>document.querySelector(r+' [data-ngcv$="|fac"]').innerText,r); ok(fac==='6.000','si el proveedor da el PVF directo (6.500) manda ese: 6.500 − NC 500 = 6.000 ('+fac+')');
+ await p.fill(r+' [data-k="pvf"]',''); await p.fill(r+' [data-k="nc"]',''); await p.fill(r+' [data-k="q"]','10'); await p.waitForTimeout(200); await p.fill(r+' [data-k="br"]','10'); await p.waitForTimeout(300);
+ const bq=await p.evaluate(r=>[document.querySelector(r+' [data-ngcv$="|q"]').innerText, document.querySelector(r+' [data-ngcv$="|bp"]').innerText, document.querySelector(r+' [data-ngcv$="|fac"]').innerText, document.querySelector(r+' [data-ngcv$="|dr"]').innerText],r); console.log('   bonif: '+bq.join(' · '));
+ ok(bq[0]==='10' && /= −50/.test(bq[1]) && bq[2]==='3.500' && /65/.test(bq[3]),'bonificación: muestra cantidad pedida (10) + regalo (10) = −50 %, y baja el costo a 3.500 (desc. real 65 %)');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
