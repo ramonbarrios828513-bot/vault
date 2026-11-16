@@ -2,7 +2,7 @@
 const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
- await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(1200);
+ await p.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await p.waitForTimeout(1200);
  await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1800);
  const AZ='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''); let bad=[];
  for(const L of AZ){ await p.fill('#arQ',L.toLowerCase()); await p.waitForTimeout(220); const f=await p.evaluate(()=>{ const r=document.querySelector('#articulos .ar-t tr:nth-child(2) td.w'); return r?r.innerText:''; }); if(!f.toUpperCase().startsWith(L)) bad.push(L+':'+f.slice(0,20)); }

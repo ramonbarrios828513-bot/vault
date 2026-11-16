@@ -1,7 +1,7 @@
 // v1229 · ⏎ Enter salta campo por campo en TODA la tarjeta de negociación (también el último de cada bloque) y todos los campos tienen nombre
 const setup=require('./rvlib.js');
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:768}});
- await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="calc"]'); await p.waitForTimeout(300);
  await p.fill('#articulos [data-ngadd]','ibu'); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(400);
  await p.fill('#articulos [data-ngadd]','met'); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(400);

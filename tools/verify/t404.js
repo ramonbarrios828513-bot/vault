@@ -2,7 +2,7 @@
 const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
- await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="new"]'); await p.waitForTimeout(300);
  await p.fill('#articulos [data-ngh="prov"]','Distrimed'); await p.press('#articulos [data-ngh="prov"]','Tab'); await p.waitForTimeout(400);
  await p.check('#articulos [data-ngtodo]'); await p.click('#articulos [data-ng="fill"]'); await p.waitForTimeout(700); await p.click('#articulos [data-ng="view"][data-v="tab"]').catch(()=>{}); await p.waitForTimeout(300);

@@ -2,7 +2,7 @@
 const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1300,height:900}});
- await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(1200);
+ await p.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await p.waitForTimeout(1200);
  await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  ok(await p.evaluate(()=>Object.values(window.__ar.st().items).filter(x=>x.demo).length)===37,'se cargan 37 productos de prueba');
  ok(await p.evaluate(()=>{ const I=window.__ar.st().items; return window.__ar.eqKey(I.demo6)===window.__ar.eqKey(I.demo7); }),'«Paracetamol + Cafeína 500+65» y «Cafeína + Paracetamol 65+500» son equivalentes');

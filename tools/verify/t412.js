@@ -2,7 +2,7 @@
 const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:768}});
- await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800);
+ await p.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await p.waitForTimeout(800);
  await p.evaluate(()=>{ const A=window.__ar.st(); for(let i=1;i<=300;i++){ const id='mx'+i; A.items[id]={id,cod:'M'+String(i).padStart(5,'0'),n:'Producto Mega '+String(i).padStart(3,'0'),pc:'Caja x 10',f:10,prov:'MEGAFARMA',pvp:10000+i*10,act:true,ctrl:i%50===0?'si':''}; } });
  await p.click('#articulos [data-plan]'); await p.waitForTimeout(400);
  await p.fill('#plQ','mega'); await p.press('#plQ','Enter');

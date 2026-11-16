@@ -9,7 +9,7 @@ const PORT=process.env.NPORT||8105, URL='http://localhost:'+PORT+'/work.html', C
  await A.evaluate(()=>{ try{ window.__syncNow(); }catch(e){} }); await A.waitForTimeout(4000);
  for(let i=0;i<30 && !(await A.evaluate(()=>!!(window.__sv && window.__sv.st().on)));i++) await A.waitForTimeout(1000);
  await A.evaluate(async()=>{ await window.__ar.load(); await window.__ar.save([{id:'aQ',cv:'100',n:'QUITADOR FORTE',pc:'Caja x 20',u:20,prov:'PROV UNO',pvp:10000,act:true},{id:'aI',cv:'200',n:'IBUPROFENO 600',pc:'Caja x 10',u:10,prov:'PROV UNO',pvp:12000,act:true},{id:'aX',cv:'300',n:'OTRO PRODUCTO',u:1,prov:'PROV DOS',act:true}]); await window.__ar.snap('stk',{m:{aQ:500,aI:100},f:'2026-11-15'}); await window.__ar.snap('ven',{m:{aQ:30000,aI:9000},f:'2026-11-15',dias:90}); });
- await A.evaluate(()=>window.__ar.open()); await A.waitForTimeout(1500);
+ await A.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await A.waitForTimeout(1500);
  await A.click('#articulos [data-ar="tab"][data-v="neg"]'); await A.waitForTimeout(300); await A.click('#articulos [data-ng="new"]'); await A.waitForTimeout(300);
  await A.fill('#articulos [data-ngh="prov"]','PROV UNO'); await A.waitForTimeout(200); await A.dispatchEvent('#articulos [data-ngh="prov"]','change'); await A.waitForTimeout(300);
  await A.fill('#articulos [data-ngh="emp"]','Empresa Ramón'); await A.click('#articulos [data-ng="fill"]'); await A.waitForTimeout(500);

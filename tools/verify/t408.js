@@ -2,7 +2,7 @@
 const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
- await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  ok(await p.evaluate(()=>{ const f=document.getElementById('cqFab'); return f && !f.hidden; }),'en compras aparece el botón flotante 🔎');
  await p.evaluate(()=>document.activeElement && document.activeElement.blur()); await p.keyboard.press('F2'); await p.waitForTimeout(500);
  ok(await p.evaluate(()=>{ const o=document.getElementById('cqOv'); return o && !o.hidden && document.activeElement.id==='cqQ'; }),'F2 abre la consulta rápida con el cursor en el buscador');

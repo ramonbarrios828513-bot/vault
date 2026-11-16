@@ -5,7 +5,7 @@ const cat='Codigo;Codigo de barras;Descripcion;Presentacion;Laboratorio;Marca;Pr
 const stk='Codigo;Descripcion;Stock\n100;QUITADOR FORTE;500\n200;IBUPROFENO 600;1000\n300;TALCO BABY;12\n';
 const ven='Codigo;Descripcion;Cantidad vendida\n100;QUITADOR FORTE;30000\n200;IBUPROFENO 600;15000\n300;TALCO BABY;30\n400;PRODUCTO NUEVO;90\n';
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1300,height:900}});
- await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(1200);
+ await p.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await p.waitForTimeout(1200);
  const imp=async(t,txt,name)=>{ await p.click('#articulos [data-ar="tab"][data-v="imp"]'); await p.waitForTimeout(300); await p.setInputFiles(`#articulos input[data-arimp="${t}"]`,{name,mimeType:'text/csv',buffer:Buffer.from(txt)}); await p.waitForTimeout(1500); };
  await imp('cat',cat,'catalogo.csv');
  const m=await p.evaluate(()=>window.__ar.st().ui.imp && window.__ar.st().ui.imp.map); console.log('map',JSON.stringify(m));
@@ -32,7 +32,7 @@ const ven='Codigo;Descripcion;Cantidad vendida\n100;QUITADOR FORTE;30000\n200;IB
  await p.fill('#arQ','7840002'); await p.waitForTimeout(500); const rows=await p.evaluate(()=>document.querySelectorAll('#articulos .ar-t tr').length-1); ok(rows===1,'buscador por código de barras encuentra 1');
  // reabrir (recargar): queda guardado en el aparato
  await p.reload(); await p.waitForTimeout(1500); await p.click('#heroPass'); await p.keyboard.type('1234'); try{ await p.click('text=Entrar',{timeout:2000}); }catch(e){ await p.keyboard.press('Enter'); } await p.waitForTimeout(2500);
- await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(1500);
+ await p.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await p.waitForTimeout(1500);
  const n2=await p.evaluate(()=>Object.keys(window.__ar.st().items).length+'|'+(window.__ar.st().ven&&window.__ar.st().ven.dias)); ok(n2==='4|90','después de recargar siguen los 4 artículos y las ventas de 90 días');
  if(process.env.SHOT){ await p.click('#articulos [data-ar="tab"][data-v="imp"]'); await p.waitForTimeout(300); await p.screenshot({path:'/tmp/claude-0/ar_imp.png'}); }
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));

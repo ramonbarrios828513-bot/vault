@@ -2,10 +2,10 @@
 const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
- await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  await p.evaluate(()=>{ const A=window.__ar.st(); A.ven=Object.assign({},A.ven,{s:{demo23:{'KM 7':900,'Franco':300,'KM 8':1500}}}); A.stk=Object.assign({},A.stk,{s:{demo23:{'KM 7':600,'Franco':30,'KM 8':90}}}); });
  await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="new"]'); await p.waitForTimeout(300);
- for(const w of ['metf','omep','lora','aspi']){ await p.fill('#articulos [data-ngadd]',w); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(350); } await p.click('#articulos [data-ng="view"][data-v="tab"]').catch(()=>{}); await p.waitForTimeout(300);
+ for(const w of ['metf','omep','lora','aspi']){ await p.fill('#articulos [data-ngadd]',w); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(350); } await p.click('#articulos [data-ng="view"][data-v="tab"]').catch(()=>{}); await p.waitForTimeout(300); for(const c of ['i:sucs','i:sucg','i:sucv']){ await p.check('#articulos [data-ngcol="'+c+'"]'); await p.waitForTimeout(250); }
  const th=()=>p.evaluate(()=>[...document.querySelectorAll('#articulos .ng-tab thead th')].map(x=>x.innerText.replace(/\n/g,' ')).join(' | '));
  let h=await th(); console.log('   '+h);
  ok(/stock total/i.test(h) && /giro mes/i.test(h) && /sugerido 90 d/i.test(h),'la fila trae de entrada: stock total, giro mes y sugerido para 90 días');

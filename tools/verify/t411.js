@@ -13,7 +13,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(r.qs['KM 7']==='10' && r.qs['KM 8']==='5' && r.q==='15','KM 7 y KM 8 cargaron al mismo tiempo: quedan los dos y el total es 15');
  ok(r.ids==='a,c','el producto borrado no vuelve y el agregado por el otro monitor aparece');
  ok(r.d1==='35' && r.same,'lo demás (descuentos) toma lo más nuevo, sin importar el orden');
- await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  await p.evaluate(()=>{ const A=window.__ar.st(); A.ven=Object.assign({},A.ven,{dias:90,s:{demo23:{'KM 7':900,'Franco':300,'KM 8':1500}}}); A.stk=Object.assign({},A.stk,{s:{demo23:{'KM 7':600,'Franco':30,'KM 8':90}}}); });
  await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="new"]'); await p.waitForTimeout(300);
  for(const w of ['metf','omep','lora','aspi']){ await p.fill('#articulos [data-ngadd]',w); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(350); } await p.click('#articulos [data-ng="view"][data-v="tab"]').catch(()=>{}); await p.waitForTimeout(300);
