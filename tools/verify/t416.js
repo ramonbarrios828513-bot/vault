@@ -14,5 +14,8 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.fill(r+' [data-k="pvf"]',''); await p.fill(r+' [data-k="nc"]',''); await p.fill(r+' [data-k="q"]','10'); await p.waitForTimeout(200); await p.fill(r+' [data-k="br"]','10'); await p.waitForTimeout(300);
  const bq=await p.evaluate(r=>[document.querySelector(r+' [data-ngcv$="|q"]').innerText, document.querySelector(r+' [data-ngcv$="|bp"]').innerText, document.querySelector(r+' [data-ngcv$="|fac"]').innerText, document.querySelector(r+' [data-ngcv$="|dr"]').innerText],r); console.log('   bonif: '+bq.join(' · '));
  ok(bq[0]==='10' && /= −50/.test(bq[1]) && bq[2]==='3.500' && /65/.test(bq[3]),'bonificación: muestra cantidad pedida (10) + regalo (10) = −50 %, y baja el costo a 3.500 (desc. real 65 %)');
+ await p.fill(r+' [data-k="br"]',''); await p.fill(r+' [data-k="d2"]','10'); await p.fill(r+' [data-k="d3"]','5'); await p.waitForTimeout(300);
+ const ac=await p.evaluate(r=>[document.querySelector(r+' [data-ngcv$="|a2"]').innerText, document.querySelector(r+' [data-ngcv$="|a3"]').innerText, document.querySelector(r+' [data-ngcv$="|fac"]').innerText],r); console.log('   '+ac.join(' · '));
+ ok(/= 37% acum/.test(ac[0]) && /= 40[,.][12]% acum/.test(ac[1]) && ac[2]==='5.985','Desc. 2 muestra el acumulado (30 + 10 = 37 %) y el Desc. 3 adicional 5 % también (40,2 %): costo 5.985');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
