@@ -1,0 +1,23 @@
+// v1229 · fila con lo indispensable: stock total, giro, sugerido por X días, stock y giro por sucursal (una columna c/u), producto fijo a la izquierda y ◀ ▶
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.evaluate(()=>{ const A=window.__ar.st(); A.ven=Object.assign({},A.ven,{s:{demo23:{'KM 7':900,'Franco':300,'KM 8':1500}}}); A.stk=Object.assign({},A.stk,{s:{demo23:{'KM 7':600,'Franco':30,'KM 8':90}}}); });
+ await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="new"]'); await p.waitForTimeout(300);
+ for(const w of ['metf','omep','lora','aspi']){ await p.fill('#articulos [data-ngadd]',w); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(350); }
+ const th=()=>p.evaluate(()=>[...document.querySelectorAll('#articulos .ng-tab thead th')].map(x=>x.innerText.replace(/\n/g,' ')).join(' | '));
+ let h=await th(); console.log('   '+h);
+ ok(/stock total/i.test(h) && /giro mes/i.test(h) && /sugerido 90 d/i.test(h),'la fila trae de entrada: stock total, giro mes y sugerido para 90 días');
+ ok(/KM 7/i.test(h) && /Franco/i.test(h) && /KM 8/i.test(h),'stock por sucursal: una columna por sucursal');
+ ok(/20/.test(await p.evaluate(()=>{ const r=document.querySelector('#articulos .ng-tab tr[data-ngrowid="demo23"]'); return [...r.querySelectorAll('td')].map(x=>x.innerText).join('|'); })),'muestra el stock de cada sucursal en cajas (KM 7 = 20 cajas)');
+ await p.click('#articulos [data-ngdias="60"]'); await p.waitForTimeout(400); h=await th(); ok(/sugerido 60 d/i.test(h),'cambiando los días cambia el sugerido');
+ await p.fill('#articulos .ng-tab tr[data-ngrowid="demo23"] [data-k="q"]','0'); await p.press('#articulos .ng-tab tr[data-ngrowid="demo23"] [data-k="q"]','Tab'); await p.waitForTimeout(200);
+ await p.click('#articulos [data-ng="sug"]'); await p.waitForTimeout(400);
+ ok(+(await p.inputValue('#articulos .ng-tab tr[data-ngrowid="demo23"] [data-k="q"]'))>0,'«Usar el sugerido como cantidad» completa la cantidad vacía');
+ ok(await p.evaluate(()=>getComputedStyle(document.querySelector('#articulos .ng-tab tbody td.w')).position==='sticky'),'el producto queda fijo a la izquierda al recorrer');
+ await p.check('#articulos [data-ngcol="i:sucg"]'); await p.waitForTimeout(300); await p.check('#articulos [data-ngcol="npvp"]'); await p.check('#articulos [data-ngcol="pvf"]'); await p.check('#articulos [data-ngcol="plazo"]'); await p.check('#articulos [data-ngcol="venc"]'); await p.waitForTimeout(300);
+ const s0=await p.evaluate(()=>document.querySelector('#articulos .ng-tw').scrollLeft); await p.click('#articulos [data-ngsc="1"]'); await p.waitForTimeout(700); const s1=await p.evaluate(()=>document.querySelector('#articulos .ng-tw').scrollLeft);
+ ok(s1>s0,'▶ recorre la tabla hacia la derecha ('+s0+' → '+Math.round(s1)+')');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
