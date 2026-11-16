@@ -1,0 +1,21 @@
+// v1229 · condiciones de TODO el pedido como frases: «Si el total llega a Gs X → descuento extra en factura de N %», con estado (se cumple / faltan)
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="calc"]'); await p.waitForTimeout(300);
+ await p.fill('#articulos [data-ngadd]','omep'); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(400);
+ const id=await p.evaluate(()=>document.querySelector('#articulos .ng-card').dataset.ngcard);
+ await p.fill(`#articulos [data-ngv="${id}"][data-k="d1"]`,'30'); await p.press(`#articulos [data-ngv="${id}"][data-k="d1"]`,'Tab'); await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>!/RETORNO COMERCIAL/i.test([...document.querySelectorAll('#articulos .tes-kp')].map(x=>x.innerText).join(' '))),'una condición vacía NO cuenta (antes mostraba retorno 30 % sin nada cargado)');
+ let t=await p.evaluate(()=>document.querySelector('.ng-cnds').innerText.replace(/\n/g,' '));
+ ok(/Si/.test(t) && /el proveedor da/.test(t) && /Completá/.test(t),'la condición se lee como frase: «Si … → el proveedor da … de … %»');
+ await p.fill('#articulos [data-ngc="0"][data-k="d"]','1000000'); await p.press('#articulos [data-ngc="0"][data-k="d"]','Tab'); await p.waitForTimeout(400);
+ await p.fill('#articulos [data-ngc="0"][data-k="p"]','3'); await p.press('#articulos [data-ngc="0"][data-k="p"]','Tab'); await p.waitForTimeout(400);
+ t=await p.evaluate(()=>document.querySelector('.ng-cnds').innerText.replace(/\n/g,' ')); console.log('   '+t.slice(-140));
+ ok(/Se cumple: −3% en la factura/.test(t) || /Faltan Gs/.test(t),'muestra si se cumple o cuánto falta');
+ await p.click('#articulos [data-ng="cadd"]'); await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>document.querySelectorAll('.ng-cnd').length)===2,'«Agregar otra condición» suma una fila');
+ await p.screenshot({path:'/tmp/claude-0/p1228/cond.png'});
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
