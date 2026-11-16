@@ -1,0 +1,31 @@
+// v1228 · buscador desde 1 letra (A a Z), Enter agrega en la negociación, ruta del costo y pantalla a lo ancho
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(1200);
+ await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1800);
+ const AZ='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''); let bad=[];
+ for(const L of AZ){ await p.fill('#arQ',L.toLowerCase()); await p.waitForTimeout(220); const f=await p.evaluate(()=>{ const r=document.querySelector('#articulos .ar-t tr:nth-child(2) td.w'); return r?r.innerText:''; }); if(!f.toUpperCase().startsWith(L)) bad.push(L+':'+f.slice(0,20)); }
+ ok(!bad.length,'con UNA letra (A…Z) el primer resultado empieza con esa letra '+bad.join(' '));
+ ok(await p.evaluate(()=>document.activeElement && document.activeElement.id==='arQ'),'el cursor queda en el buscador mientras escribís');
+ await p.fill('#arQ','xarelto'); await p.waitForTimeout(250); await p.press('#arQ','Enter'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>/Ficha/.test(document.querySelector('#articulos h3').innerText)),'Enter con un solo resultado abre la ficha');
+ await p.click('#articulos [data-ar="tab"][data-v="neg"]'); await p.waitForTimeout(300); await p.click('#articulos [data-ng="new"]'); await p.waitForTimeout(400);
+ await p.fill('#articulos [data-ngadd]','m'); await p.waitForTimeout(200);
+ ok(await p.evaluate(()=>/Metformina/.test(document.querySelector('#ngAddRes .ng-first').innerText)),'agregar producto busca desde 1 letra (m → Metformina primero)');
+ await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(500);
+ await p.fill('#articulos [data-ngadd]','z'); await p.waitForTimeout(200); await p.press('#articulos [data-ngadd]','Enter'); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>document.querySelectorAll('#articulos .ng-card').length)===2,'Enter en el buscador agrega el producto (2 tarjetas)');
+ ok(await p.evaluate(()=>document.activeElement && document.activeElement.dataset.ngadd!==undefined),'después de agregar el cursor vuelve al buscador');
+ await p.evaluate(()=>{ const t=document.querySelector('#articulos [data-ngt="cas"]'); if(!t.checked) t.click(); }); await p.waitForTimeout(400);
+ const id=await p.evaluate(()=>document.querySelector('#articulos .ng-card').dataset.ngcard);
+ await p.fill(`#articulos [data-ngv="${id}"][data-k="d1"]`,'30'); await p.fill(`#articulos [data-ngv="${id}"][data-k="d2"]`,'10'); await p.waitForTimeout(300);
+ const rt=await p.evaluate(id=>document.querySelector(`[data-ngres="${id}"] .ng-route`).innerText.replace(/\n/g,' '),id); console.log('   ruta:',rt);
+ ok(/PVP/.test(rt)&&/COSTO 1/.test(rt)&&/COSTO 2/.test(rt)&&/DESCUENTO REAL/.test(rt)&&/37/.test(rt),'ruta del costo PVP → COSTO 1 → COSTO 2 → DESCUENTO REAL 37 %');
+ const w=await p.evaluate(()=>{ const c=document.querySelector('#articulos .ng-card').getBoundingClientRect(); return [c.left, innerWidth-c.right]; });
+ ok(w[0]<40 && w[1]<40,'la tarjeta usa todo el ancho (márgenes '+w.map(Math.round).join(' / ')+' px)');
+ const rows=await p.evaluate(()=>{ const s=[...document.querySelectorAll('#articulos .ng-card')[0].querySelectorAll('.ng-flow>.ng-step')].map(x=>Math.round(x.getBoundingClientRect().top)); return new Set(s).size+'/'+s.length; });
+ ok(+rows.split('/')[0] < +rows.split('/')[1],'los pasos van uno al lado del otro ('+rows+' filas/pasos)');
+ await p.screenshot({path:'/tmp/claude-0/p1228/neg.png'});
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
