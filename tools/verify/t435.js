@@ -1,0 +1,22 @@
+// v1246 · 🏢 Mis 2 empresas: cada cuenta del banco se asigna tocando el nombre de la empresa (sin tener que guardar antes)
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__tes.open()); await p.waitForTimeout(1200);
+ await p.evaluate(()=>{ const T=window.__tes.st(); T.cfg.emp={nom:'Nissifarma',raz:'X',tim:'123'}; T.chq.push({id:'q1',prov:'A',cta:'Basa-G',num:'1',monto:1,em:'2026-11-01',co:'2026-11-20',st:'pend'},{id:'q2',prov:'A',cta:'Ueno-R',num:'2',monto:1,em:'2026-11-01',co:'2026-11-20',st:'pend'}); const d=document.createElement('button'); d.dataset.rucb='emps'; d.id='zz'; document.body.appendChild(d); });
+ await p.evaluate(()=>document.getElementById('zz').click()); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>document.querySelectorAll('.ico-ov [data-pick]').length>=6),'cada cuenta tiene botones con las empresas');
+ await p.fill('.ico-ov [data-k="n2"]','KM 11'); await p.waitForTimeout(100);
+ ok(await p.evaluate(()=>/KM 11/.test(document.querySelector('.ico-ov [data-pkl="e2"]').innerText)),'el botón toma el nombre que vas escribiendo');
+ await p.fill('.ico-ov [data-k="r1"]','1234567'); await p.fill('.ico-ov [data-k="d1"]','8'); await p.fill('.ico-ov [data-k="r2"]','7654321'); await p.fill('.ico-ov [data-k="d2"]','1');
+ const idx=await p.evaluate(()=>{ const L=[...document.querySelectorAll('.ico-ov label')]; return [L.findIndex(l=>/Basa-G/.test(l.innerText)),L.findIndex(l=>/Ueno-R/.test(l.innerText))]; });
+ await p.evaluate(i=>{ const L=[...document.querySelectorAll('.ico-ov label')]; L[i[0]].querySelector('[data-pick="e1"]').click(); L[i[1]].querySelector('[data-pick="e2"]').click(); },idx);
+ ok(await p.evaluate(i=>/✅/.test([...document.querySelectorAll('.ico-ov label')][i[0]].querySelector('[data-pick="e1"]').innerText),idx),'la elegida queda marcada ✅');
+ await p.click('.ico-ov [data-tx="ok"]'); await p.waitForTimeout(500);
+ const r=await p.evaluate(()=>{ const c=window.__tes.st().cfg; return JSON.stringify([c.ctaEmp,c.emp.raz,c.emp.tim,c.emp.nom]); }); console.log('   '+r);
+ ok(/"Basa-G":"1234567-8"/.test(r)&&/"Ueno-R":"7654321-1"/.test(r),'guarda cada cuenta con su empresa en el primer guardado');
+ ok(/"X","123"/.test(r),'no borra lo cargado en «Datos de la empresa»');
+ await p.evaluate(()=>document.getElementById('zz').click()); await p.waitForTimeout(500);
+ ok(await p.evaluate(i=>/✅/.test([...document.querySelectorAll('.ico-ov label')][i[1]].querySelector('[data-pick="e2"]').innerText),idx),'al volver a abrir muestra lo elegido');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
