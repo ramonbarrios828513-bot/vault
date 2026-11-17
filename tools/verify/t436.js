@@ -1,0 +1,23 @@
+// v1246 · 📌 no perder el lugar al tocar un botón que redibuja + la configuración no se copia (no se pierden datos guardados desde ventanas)
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__tes.open()); await p.waitForTimeout(1000);
+ ok(await p.evaluate(()=>{ const a=window.__tes.st().cfg, c=window.__tes.st().cfg; a.zz=1; return a===c && window.__tes.st().cfg.zz===1; }),'la configuración de Tesorería es siempre la misma (no se pierde lo guardado)');
+ await p.evaluate(()=>{ const box=document.createElement('div'); box.id='bx'; box.style.cssText='position:fixed;inset:0;overflow:auto;z-index:2147483646;background:#fff'; const draw=()=>{ box.innerHTML='<div style="height:3000px;position:relative"><button data-zk="a" style="position:absolute;top:2000px">Botón</button></div>'; }; draw(); box.addEventListener('click',e=>{ if(e.target.closest('[data-zk]')){ draw(); box.scrollTop=0; } }); document.body.appendChild(box); box.scrollTop=1700; });
+ const t0=await p.evaluate(()=>document.querySelector('[data-zk]').getBoundingClientRect().top);
+ await p.click('[data-zk]'); await p.waitForTimeout(300);
+ const t1=await p.evaluate(()=>document.querySelector('[data-zk]').getBoundingClientRect().top);
+ ok(Math.abs(t1-t0)<5,'después de redibujar, el botón queda en el mismo lugar ('+Math.round(t0)+' → '+Math.round(t1)+')');
+ await p.evaluate(()=>{ document.getElementById('bx').remove(); window.__fc.open(); }); await p.waitForTimeout(800);
+ await p.evaluate(()=>{ const a=document.getElementById('faltan'); a.scrollTop=a.scrollHeight; });
+ const y0=await p.evaluate(()=>document.getElementById('faltan').scrollTop);
+ await p.evaluate(()=>{ const bs=[...document.querySelectorAll('#faltan [data-fc="go"]')]; const x=bs.find(b=>/empresa/i.test(b.closest('div').innerText))||bs[bs.length-1]; x.click(); }); await p.waitForTimeout(900);
+ const open1=await p.evaluate(()=>!!document.querySelector('.ico-ov'));
+ await p.evaluate(()=>{ const x=document.querySelector('.ico-ov [data-tx="x"]'); x&&x.click(); }); await p.waitForTimeout(1200);
+ ok(!open1 || await p.evaluate(()=>!!document.getElementById('fcBack')),'al cancelar sin guardar NO te saca solo: queda «Volver a la guía»');
+ await p.evaluate(()=>{ const b=document.querySelector('#fcBack [data-fcb="back"]'); b&&b.click(); }); await p.waitForTimeout(900);
+ const y1=await p.evaluate(()=>{ const a=document.getElementById('faltan'); return a&&!a.hidden?a.scrollTop:-1; });
+ ok(y0<50 || Math.abs(y1-y0)<60,'al volver a la guía queda en el mismo lugar ('+y0+' → '+y1+')');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
