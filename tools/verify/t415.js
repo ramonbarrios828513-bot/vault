@@ -4,7 +4,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
  await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
  await p.evaluate(()=>{ const A=window.__ar.st(); A.ven=Object.assign({},A.ven,{dias:90,s:{demo23:{'KM 7':900,'KM 8':1800}}}); A.stk=Object.assign({},A.stk,{s:{demo23:{'KM 7':300,'KM 8':0}}}); });
- await p.click('#articulos .cp-b.o'); await p.waitForTimeout(300); await p.fill('#plQ','distrimed'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200);
+ await p.click('#articulos .cp-b.o'); await p.waitForTimeout(300); await p.fill('#plQ','distrimed'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200); await p.click('#articulos [data-ng="view"][data-v="tab2"]').catch(()=>{}); await p.waitForTimeout(500);
  const r='#articulos [data-ngrowid="demo23"]';
  const bd=await p.evaluate(r=>document.querySelector(r+' .ng-bdg').innerText,r); console.log('   '+bd.replace(/\n/g,' '));
  ok(/Medicamento/.test(bd)&&/Diabetes/.test(bd)&&/Receta simple/.test(bd),'al lado del producto: categoría, clasificación y tipo de receta');
