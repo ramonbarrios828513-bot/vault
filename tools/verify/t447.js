@@ -1,0 +1,27 @@
+// v1251 · 🧮 modo sin cargar fechas + ✅ «Bien» por fila (llegó y salió a hora = carga su horario) + el desplegable de feriado no salta al tocarlo
+const setup=require('./rvlib2.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}, pla:true});
+ await p.evaluate(()=>{ const P=window.__pla.st(); const E=P.emps[3]; P.cur.emp=E.id; P.cur.mon='2026-06'; delete E.aud; E.days['2026-06']={'1':{e:'08:30',s:'23:00'}}; });
+ await p.evaluate(()=>window.__pla.open()); await p.waitForTimeout(1500); await p.evaluate(()=>document.querySelectorAll('.ico-ov,.k-party').forEach(x=>x.remove()));
+ await p.evaluate(()=>{ window.__selA=document.querySelector('#planilla .pl-fsel[data-ferd="2"]'); window.__selA.scrollIntoView({block:'center'}); });
+ await p.click('#planilla .pl-fsel[data-ferd="2"]'); await p.waitForTimeout(700);
+ ok(await p.evaluate(()=>window.__selA.isConnected && document.activeElement===window.__selA),'el desplegable «Día común» no se redibuja ni salta al tocarlo');
+ await p.keyboard.press('Escape');
+ await p.evaluate(()=>document.querySelector('#planilla [data-plok="3"]').scrollIntoView({block:'center'}));
+ await p.click('#planilla [data-plok="3"]'); await p.waitForTimeout(600);
+ const r=await p.evaluate(()=>{const E=window.__pla.st().emps[3];return {x:E.days['2026-06']['3'], btn:document.querySelector('#planilla [data-plok="3"]').textContent, dis1:document.querySelector('#planilla [data-plok="1"]').disabled}});
+ ok(r.x && r.x.e==='06:30' && r.x.s==='23:00' && r.x._ok,'«Bien» carga el horario del día: '+JSON.stringify(r.x));
+ ok(/✅/.test(r.btn),'el botón queda marcado ✅');
+ ok(r.dis1,'una fila cargada a mano no se pisa');
+ await p.click('#planilla [data-plok="3"]'); await p.waitForTimeout(600);
+ ok(await p.evaluate(()=>!window.__pla.st().emps[3].days['2026-06']['3']),'tocar de nuevo desmarca');
+ const c=()=>p.evaluate(()=>{const P=window.__pla.st(),E=P.emps[3],R=window.__pla.calc(E,'2026-06',P.cfg);return {neto:Math.round(R.neto),falta:Math.round(R.L.falta||0),keys:Object.keys(E.days['2026-06']).length}});
+ const a0=await c(); await p.click('#planilla [data-plsolo]'); await p.waitForTimeout(700); const a1=await c();
+ ok(a0.falta>0 && a1.falta===0 && a1.neto>a0.neto,'modo sin cargar fechas: filas vacías = día completo ('+JSON.stringify([a0,a1])+')');
+ ok(a1.keys===a0.keys,'el modo no guarda filas inventadas');
+ ok(await p.evaluate(()=>document.querySelectorAll('#planilla .pl-solotag').length>5),'se ve «Sin novedad: vino completo»');
+ await p.click('#planilla [data-plsolo]'); await p.waitForTimeout(700);
+ ok((await c()).falta===a0.falta,'apagarlo vuelve como antes');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
