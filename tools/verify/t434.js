@@ -1,0 +1,21 @@
+// v1245 · 📱 modo celular: un producto por vez, sucursales en lista, negociación abajo, ◀ ▶
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:360,height:780}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.evaluate(()=>{ const A=window.__ar.st(); A.ven=Object.assign({},A.ven,{dias:90,s:{demo23:{'KM 7':900,'KM 8':1800}}}); A.stk=Object.assign({},A.stk,{s:{demo23:{'KM 7':600,'KM 8':0}}}); });
+ await p.click('#articulos .cp-b.o'); await p.waitForTimeout(300); await p.fill('#plQ','distrimed'); await p.press('#plQ','Enter'); await p.waitForTimeout(1500);
+ ok(await p.evaluate(()=>document.querySelectorAll('#articulos .ng-mob').length===1),'en el celular se ve UN producto por vez');
+ const n1=await p.evaluate(()=>document.querySelector('.ng-mname').innerText); await p.click('.ng-mbot [data-mnav="1"]'); await p.waitForTimeout(500); const n2=await p.evaluate(()=>document.querySelector('.ng-mname').innerText);
+ ok(n1!==n2,'Siguiente ▶ pasa al otro producto ('+n2+')');
+ await p.evaluate(()=>{ const s=document.querySelector('.ng-mjump'); const o=[...s.options].find(x=>/Metformina/.test(x.text)); s.value=o.value; s.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(600);
+ const r='#articulos .ng-mob[data-ngrowid="demo23"]';
+ await p.fill(r+' [data-k="qs:KM 8"]','15'); await p.fill(r+' [data-k="qs:KM 7"]','5'); await p.waitForTimeout(300);
+ ok(await p.inputValue(r+' [data-k="q"]')==='20','el PIDE de cada sucursal suma la cantidad (15 + 5 = 20)');
+ await p.fill(r+' [data-k="pvp"]','10000'); await p.fill(r+' [data-k="d1"]','30'); await p.waitForTimeout(300);
+ ok(await p.evaluate(r=>document.querySelector(r+' .ng-mres [data-ngcv$="|fac"]').innerText,r)==='7.000','negocia igual: PVP 10.000 − 30 % = 7.000');
+ ok(await p.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2),'no se sale de la pantalla a los costados');
+ await p.click('[data-mobcomp]'); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>!document.querySelector('.ng-mob')),'«Ver como en la computadora» vuelve a la vista completa');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
