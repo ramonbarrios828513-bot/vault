@@ -3,7 +3,7 @@ const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
  await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
- await p.click('#articulos .cp-b.o'); await p.waitForTimeout(300); await p.fill('#plQ','distrimed'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200);
+ await p.click('#articulos .cp-b.o'); await p.waitForTimeout(300); await p.fill('#plQ','distrimed'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200); await p.click('#articulos [data-ng="view"][data-v="tab2"]').catch(()=>{}); await p.waitForTimeout(500);
  const ch=await p.evaluate(()=>[...document.querySelectorAll('#articulos .ng-gch')].map(x=>x.innerText.replace(/\n/g,' '))); console.log('   '+ch.join(' | '));
  ok(ch.length===3 && /CONTADO/.test(ch[0]) && /CRÉDITO/.test(ch[1]) && /CONTROLADOS/.test(ch[2]),'arriba hay 3 filtros: contado, crédito y controlados');
  const nc=+((ch[2].match(/\((\d+)\)/)||[])[1]||0); ok(nc>=1,'los controlados (normal o cuadruplicada) van aparte ('+nc+')');

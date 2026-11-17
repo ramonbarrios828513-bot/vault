@@ -3,7 +3,7 @@ const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
  await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
- await p.click('#articulos .cp-b.g'); await p.waitForTimeout(300); await p.fill('#plQ','distri'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200);
+ await p.click('#articulos .cp-b.g'); await p.waitForTimeout(300); await p.fill('#plQ','distri'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200); await p.click('#articulos [data-ng="view"][data-v="tab2"]').catch(()=>{}); await p.waitForTimeout(500);
  ok(await p.evaluate(()=>{ const h=document.querySelector('#articulos .ng-hneg'); return h && /NEGOCIACIÓN DEL PEDIDO/.test(h.innerText) && h.getBoundingClientRect().top < document.querySelector('#articulos .ng-two').getBoundingClientRect().top; }),'arriba de los productos hay un bloque aparte (violeta) «NEGOCIACIÓN DEL PEDIDO»');
  const ids=await p.evaluate(()=>[...document.querySelectorAll('#articulos .ng-p2')].map(x=>x.dataset.ngrowid));
  const r=id=>`#articulos [data-ngrowid="${id}"]`;

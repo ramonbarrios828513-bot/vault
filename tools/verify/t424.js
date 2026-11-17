@@ -3,7 +3,7 @@ const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
  await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
- const open=async(mode)=>{ await p.evaluate(()=>{ const a=document.getElementById('articulos'); a.querySelector('[data-ar="tab"][data-v="neg"]') && 0; window.__ar.st().ui.ng=null; window.__ar.open(); }); await p.waitForTimeout(500); await p.click('#articulos .cp-b.o'); await p.waitForTimeout(300); await p.click('#plOv [data-pl="'+mode+'"]'); await p.fill('#plQ','distrimed'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200); };
+ const open=async(mode)=>{ await p.evaluate(()=>{ const a=document.getElementById('articulos'); a.querySelector('[data-ar="tab"][data-v="neg"]') && 0; window.__ar.st().ui.ng=null; window.__ar.open(); }); await p.waitForTimeout(500); await p.click('#articulos .cp-b.o'); await p.waitForTimeout(300); await p.click('#plOv [data-pl="'+mode+'"]'); await p.fill('#plQ','distrimed'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200); await p.click('#articulos [data-ng="view"][data-v="tab2"]').catch(()=>{}); await p.waitForTimeout(500); };
  // monitor de la sucursal KM 8
  await p.evaluate(()=>{ window.__ar.st().ui.miSuc='Local 2 KM8'; });
  await open('msuc');

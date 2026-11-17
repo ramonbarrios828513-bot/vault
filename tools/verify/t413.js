@@ -6,7 +6,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  const home=await p.evaluate(()=>document.querySelector('#articulos .cp-home').innerText);
  ok(/PREPARAR ORDEN DE COMPRA/.test(home)&&/PREPARAR PEDIDOS DE LAS SUCURSALES/.test(home)&&/CONSULTA RÁPIDA POR PRODUCTO/.test(home)&&/NEGOCIACIÓN RÁPIDA POR PRODUCTO/.test(home)&&/MIS ÓRDENES DE COMPRA/.test(home)&&/CARGAR PRODUCTOS/.test(home),'inicio de Compras con 6 botones con nombre claro');
  await p.click('#articulos .cp-b.g'); await p.waitForTimeout(400); ok(/Preparar orden de compra: elegí el proveedor/.test(await p.evaluate(()=>document.getElementById('plOv').innerText)),'«Preparar orden de compra» pide el proveedor');
- await p.fill('#plQ','distri'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200);
+ await p.fill('#plQ','distri'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200); await p.click('#articulos [data-ng="view"][data-v="tab2"]').catch(()=>{}); await p.waitForTimeout(500);
  const n=await p.evaluate(()=>document.querySelectorAll('#articulos .ng-two .ng-p2').length); ok(n>=10,'abre la orden en 2 FILAS por producto ('+n+')');
  ok(await p.evaluate(()=>getComputedStyle(document.querySelector('#articulos .cp-home')).display==='none'),'dentro de la orden se esconde el inicio (más lugar para los productos)');
  ok(await p.evaluate(()=>[...document.querySelectorAll('#articulos details.ng-dt')].every(d=>!d.open)),'columnas, política, monitor y herramientas quedan plegadas');
