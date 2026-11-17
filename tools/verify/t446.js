@@ -1,22 +1,21 @@
-// v1250 · 🎌 feriado: se paga PROPORCIONAL a las horas cargadas, sin nada cargado = no asistió y se descuenta (sin tocar los domingos), conceptos propios y filtros
+// v1250 · 🎌 FERIADO (domingos sin cambios): trabajó → horas × (salario÷30÷8) aparte, todas las horas (día o noche, más de 8 también);
+//   faltó horas → se descuentan (salvo permiso) · abandonó sin aviso → descuenta el día · no vino → descuenta 8 h (salvo permiso)
 const setup=require('./rvlib2.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}, pla:true});
- const r=await p.evaluate(()=>{ const P=window.__pla.st(), C=P.cfg, E=P.emps[3]; delete E.aud; E.valFer=100000; E.valDom=70000;
-   E.days['2026-06']={'22':{e:'08:00',s:'12:00',f:true}}; const R1=window.__pla.calc(E,'2026-06',C);
-   E.days['2026-06']={'22':{e:'08:00',s:'16:00',f:true}}; const R2=window.__pla.calc(E,'2026-06',C);
-   E.days['2026-06']={}; const R3=window.__pla.calc(E,'2026-06',C); const left=JSON.stringify(E.days['2026-06']);
-   E.days['2026-06']={'22':{fsel:'fl'}}; const R4=window.__pla.calc(E,'2026-06',C);
-   return {f4:R1.L.fer, f8:R2.L.fer, falta0:R4.L.falta, faltaAuto:R3.L.falta, left, dom:R2.L.dom}; });
- console.log('   '+JSON.stringify(r));
- ok(Math.round(r.f4)===50000 && Math.round(r.f8)===100000,'feriado: 4 h cobra la mitad, 8 h cobra completo');
- ok(r.left==='{}','la fila vacía no se modifica en los datos');
- ok(r.faltaAuto>=r.falta0,'feriado sin nada cargado cuenta como no asistió (descuenta)');
- // concepto propio
- await p.evaluate(()=>{ const P=window.__pla.st(); P.cur.emp=P.emps[3].id; P.cur.mon='2026-06'; P.cfg.fCon=[{id:'kx',n:'Inventario',ef:'fijo',m:50000}]; });
- await p.evaluate(()=>window.__pla.open()); await p.waitForTimeout(1500); await p.evaluate(()=>document.querySelectorAll('.ico-ov,.k-party').forEach(x=>x.remove()));
- ok(await p.evaluate(()=>{ const s=document.querySelector('#planilla .pl-fsel[data-plf="10"]'); return [...s.options].some(o=>o.value==='c:kx') && [...s.options].some(o=>o.value==='new'); }),'el desplegable tiene los conceptos propios y «➕ Crear concepto nuevo»');
- await p.evaluate(()=>{ const s=document.querySelector('#planilla .pl-fsel[data-plf="10"]'); s.value='c:kx'; s.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(600);
- ok(await p.evaluate(()=>{ const P=window.__pla.st(), E=P.emps.find(x=>x.id===P.cur.emp); return (E.con['2026-06']||[]).some(c=>c.fday==='10' && c.m===50000); }),'el concepto propio se suma en los conceptos del mes');
+ const r=await p.evaluate(()=>{ const P=window.__pla.st(), C=P.cfg, E=P.emps[3]; delete E.aud; E.sal=3044000; E.valFer=0; E.con={};
+   const full=()=>{ const D={}; for(let d=1;d<=30;d++){ const w=new Date(2026,5,d).getDay(); if(w===0||d===22) continue; D[d]={e:'07:00',s:'11:00'}; } return D; };
+   const run=(x)=>{ const D=full(); if(x) D[22]=x; E.days['2026-06']=D; const R=window.__pla.calc(E,'2026-06',C); const plus=(R.ferDet||[]).filter(q=>/22\/6/.test(q.n)).reduce((a,q)=>a+q.m,0); return {falta:Math.round(R.L.falta), exD:Math.round(R.L.exD+R.L.exN), plus, det:(R.ferDet||[]).map(q=>q.n).join(' | '), keep:JSON.stringify(E.days['2026-06'][22]||null), con:(E.con['2026-06']||[]).length}; };
+   return { nada:run(null), fd:run({fsel:'fd'}), fl:run({fsel:'fl'}), h8:run({e:'07:00',s:'15:00',fsel:'fp'}), h4:run({e:'07:00',s:'11:00',fsel:'fp'}), h4p:run({e:'07:00',s:'11:00',fsel:'fpp'}), fab:run({e:'07:00',s:'11:00',fsel:'fab'}), h10n:run({e:'18:00',s:'04:00',fsel:'fp'}) }; });
+ for (const k in r) console.log('   '+k+' '+JSON.stringify(r[k]).slice(0,240));
+ const H=3044000/30/8;
+ ok(r.nada.falta===r.fd.falta && r.fd.plus===0 && r.nada.falta>r.h8.falta,'feriado sin nada cargado = no vino, se descuenta igual que elegir «No vino»');
+ ok(r.fl.plus===0 && r.fl.falta<r.fd.falta,'no vino con permiso: se devuelven las 8 h (no se descuenta)');
+ ok(Math.abs(r.h4.plus-4*H)<2 && r.h4.falta>r.h8.falta && Math.abs(r.h8.plus-7*H)<2,'trabajó 4 h: cobra 4 h de feriado y del salario se descuentan las horas que faltó (8 h con 1 h de almuerzo = 7 h)');
+ ok(Math.abs(r.h4p.plus-4*H)<2 && r.h4p.falta<r.h4.falta,'trabajó 4 h con permiso: cobra 4 h y no se descuentan las otras 4');
+ ok(r.fab.plus===0 && r.fab.falta===r.fd.falta,'abandonó sin aviso: no cobra nada y se descuenta el día');
+ ok(Math.abs(r.h10n.plus-9*H)<3 && /Horas extra del feriado/.test(r.h10n.det),'feriado de noche con 9 h: 8 h de feriado + 1 h extra, todo a valor diurno ('+r.h10n.plus+')');
+ ok(r.h10n.exD===r.h8.exD,'las horas extra del feriado no se pagan dos veces');
+ ok(r.h4.keep.indexOf('"fsel":"fp"')>=0 && r.h4.con===0,'los datos guardados no se cambian al calcular');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
