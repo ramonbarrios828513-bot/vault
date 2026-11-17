@@ -11,5 +11,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.evaluate(()=>window.__pla.open()); await p.waitForTimeout(1500);
  const c=await p.evaluate(()=>JSON.stringify(window.__pla.st().cur)); console.log('   '+c.slice(0,150));
  ok(c.indexOf(id)>=0 && /2026-06/.test(c),'al volver a entrar está el mismo funcionario y el mismo mes');
+ const th=await p.evaluate(()=>{ const a=document.getElementById('planilla'); const x=a.querySelector('.pl-thbar [data-plth="celeste"]'); if(x) x.click(); return {bar:!!x, th:a.getAttribute('data-plth'), sat:a.querySelectorAll('.pl-r.pl-sat').length, dom:a.querySelectorAll('.pl-r.pl-dom').length}; });
+ ok(th.bar && th.th==='celeste' && th.sat>=4 && th.dom>=4,'🎨 días con colores (sábado/domingo) y colores a elección: '+JSON.stringify(th));
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
