@@ -18,6 +18,6 @@ run t379.js "NPORT=8105 SRV=$SRV VB=$VB BIGLIM=60000"
 run t384.js "NPORT=8105 SRV=$SRV VB=$VB"
 run t386.js "NPORT=8105 SRV=$SRV VB=$VB"
 run t391.js "NPORT=8105 SRV=$SRV VB=$VB"
-for t in t380.js t381.js t382.js t383.js t385.js t387.js t388.js t389.js t390.js t392.js t393.js t394.js t395.js t396.js t397.js t398.js t399.js t400.js t401.js t402.js t403.js t404.js t405.js t406.js t407.js t408.js t409.js t410.js t411.js t412.js t413.js t414.js t415.js t416.js t417.js t418.js t419.js t420.js t421.js t422.js t423.js t424.js t425.js t426.js t427.js t378.js t371.js t372.js t373.js t366.js t368.js t344.js t351.js; do run $t "PORT=8100"; done
+for t in t380.js t381.js t382.js t383.js t385.js t387.js t388.js t389.js t390.js t392.js t393.js t394.js t395.js t396.js t397.js t398.js t399.js t400.js t401.js t402.js t403.js t404.js t405.js t406.js t407.js t408.js t409.js t410.js t411.js t412.js t413.js t414.js t415.js t416.js t417.js t418.js t419.js t420.js t421.js t422.js t423.js t424.js t425.js t426.js t427.js t428.js t378.js t371.js t372.js t373.js t366.js t368.js t344.js t351.js; do run $t "PORT=8100"; done
 kill $(cat "$SRV/h.pid") 2>/dev/null; pkill -f "central-mock.js" 2>/dev/null; rm -rf "$SRV"
 [ $FAIL = 0 ] && say "✅ VERIFICADO: se puede publicar" || say "⛔ NO PUBLICAR: hay fallas"; exit $FAIL
