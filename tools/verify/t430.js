@@ -1,0 +1,20 @@
+// v1242 · ⚫ anular un cheque pide motivo, «ANULAR» escrito y doble confirmación
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__tes.open()); await p.waitForTimeout(1200);
+ await p.evaluate(()=>{ const T=window.__tes.st(); const f=d=>d.toISOString().slice(0,10); const d=new Date(); d.setDate(d.getDate()+3); T.chq.push({id:'q1',prov:'QUIMFA SA',cta:'Basa-G',num:'15566116',monto:46400800,em:f(new Date()),co:f(d),st:'pend',tipo:'Diferido'}); window.__tes.ui.tab='apag'; window.__tes.draw(); }); await p.waitForTimeout(800);
+ await p.selectOption('#tesoreria [data-tesst="q1"]','anu'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>!!document.querySelector('.ico-ov [data-k="mot"]')),'pide el motivo antes de anular');
+ ok(await p.evaluate(()=>window.__tes.st().chq.find(c=>c.id==='q1').st)==='pend','todavía no cambió el estado');
+ await p.click('.ico-ov [data-tx="ok"]'); await p.waitForTimeout(200);
+ ok(/motivo/i.test(await p.evaluate(()=>document.getElementById('txErr').innerText)),'sin motivo no deja seguir');
+ await p.fill('.ico-ov [data-k="mot"]','El banco lo devolvió por mal escrito'); await p.fill('.ico-ov [data-k="rep"]','15566120'); await p.fill('.ico-ov [data-k="ok"]','anula'); await p.click('.ico-ov [data-tx="ok"]'); await p.waitForTimeout(200);
+ ok(/ANULAR/.test(await p.evaluate(()=>document.getElementById('txErr').innerText)),'hay que escribir ANULAR exacto');
+ await p.fill('.ico-ov [data-k="ok"]','ANULAR'); await p.click('.ico-ov [data-tx="ok"]'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>{ const m=[...document.querySelectorAll('.ask-msg')].pop(); return !!m && /LTIMA CONFIRMACI/.test(m.textContent); }),'segunda confirmación');
+ await p.evaluate(()=>{ const b=[...document.querySelectorAll('button')].reverse().find(x=>/^(Sí|Aceptar|OK|Confirmar)/i.test(x.innerText.trim())); b&&b.click(); }); await p.waitForTimeout(600);
+ const c=await p.evaluate(()=>JSON.stringify(window.__tes.st().chq.find(c=>c.id==='q1'))); console.log('   '+c.slice(0,300));
+ ok(/"st":"anu"/.test(c) && /mal escrito/.test(c) && /15566120/.test(c),'queda Anulado con motivo y el cheque que lo reemplaza');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
