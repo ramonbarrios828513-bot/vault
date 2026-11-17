@@ -13,7 +13,8 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(await p.evaluate(()=>!!document.querySelector('#tesoreria [data-tesst="k1"][data-ap]')),'módulo 💳 Cheques a pagar con ESTADO');
  // cambiar a anulado → pide confirmar
  await p.selectOption('#tesoreria [data-tesst="k2"]','anu'); await p.waitForTimeout(300);
- ok(await p.evaluate(()=>window.__tes.st().chq.find(x=>x.id==='k2').st==='pend' && !!document.querySelector('.ask-ov')),'antes de aplicar pide confirmar');
+ ok(await p.evaluate(()=>window.__tes.st().chq.find(x=>x.id==='k2').st==='pend' && !!document.querySelector('.ico-ov [data-k="mot"]')),'antes de aplicar pide motivo y confirmar');
+ await p.fill('.ico-ov [data-k="mot"]','Prueba de anulación'); await p.fill('.ico-ov [data-k="ok"]','ANULAR'); await p.click('.ico-ov [data-tx="ok"]'); await p.waitForTimeout(400);
  await p.click('.ask-ov [data-ak="yes"]'); await p.waitForTimeout(400);
  ok(await p.evaluate(()=>window.__tes.st().chq.find(x=>x.id==='k2').st==='anu'),'confirmado → aplicado');
  // pagado sin saldo
