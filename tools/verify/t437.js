@@ -1,0 +1,20 @@
+// v1246 · 🛡️ CHEQUES A PAGAR: nada desaparece al sincronizar, al borrar va a la papelera, al cerrar se graba ya, y siempre se ve «Guardado»
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ const r=await p.evaluate(()=>{ const M=window.__memcMerge; const ch=(id,o)=>Object.assign({id,prov:'PARMA INTERNACIONAL S.A.',cta:'Basa-G',num:id,monto:100,em:'2026-11-16',co:'2026-11-17',st:'pend'},o||{});
+   const nb={__mt:{tes:2000}, tes:{chq:[ch('1'),ch('2')]}}, op={__mt:{tes:9000}, tes:{chq:[ch('1'),ch('3')]}};
+   const m1=M(nb,op), m2=M(op,nb), ids=m=>m.tes.chq.map(c=>c.id).sort().join(',');
+   const del={__mt:{tes:9500}, tes:{chq:[ch('1')], chqDel:[ch('2',{delAt:'2026-11-17T10:00'})]}}, m3=M(nb,del);
+   return {a:ids(m1), b:ids(m2), c:ids(m3), d:(m3.tes.chqDel||[]).map(c=>c.id).join(',')}; });
+ console.log('   '+JSON.stringify(r));
+ ok(r.a==='1,2,3' && r.b==='1,2,3','un cheque cargado en otro aparato (aunque la otra copia sea más nueva) NO desaparece al sincronizar');
+ ok(!/2/.test(r.c) && r.d==='2','un cheque borrado a propósito sale de la lista pero queda en la papelera');
+ await p.evaluate(()=>window.__tes.open()); await p.waitForTimeout(1000);
+ const s=await p.evaluate(async()=>{ const T=window.__tes.st(); T.chq.push({id:'zz9',prov:'PARMA INTERNACIONAL S.A.',cta:'Basa-G',num:'9',monto:5,em:'2026-11-16',co:'2026-11-17',st:'pend'}); const t0=Date.now(); window.__tes.save ? window.__tes.save() : null; document.dispatchEvent(new Event('visibilitychange')); window.__vaultFlush(); await new Promise(r=>setTimeout(r,800)); const S=window.__saveSt||{}; return {ok:S.ok, rec:S.t>=t0-10}; });
+ ok(s.ok===true && s.rec,'al guardar/cerrar se graba enseguida en este aparato');
+ await p.waitForTimeout(1700);
+ const chip=await p.evaluate(()=>{ const e=document.getElementById('saveChip'); return e&&!e.hidden?e.textContent:''; });
+ ok(/Guardado|Guardando/.test(chip),'siempre se ve el estado del guardado abajo al centro: «'+chip+'»');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
