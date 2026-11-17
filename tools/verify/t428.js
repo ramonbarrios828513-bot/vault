@@ -9,5 +9,9 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(+L===3,'del 15508671 al 15603599, solo «A pagar», de las dos cuentas: 3 cheques ('+L+')');
  const [dl]=await Promise.all([p.waitForEvent('download',{timeout:5000}).catch(()=>null), p.click('#tesoreria [data-busx="csv"]')]);
  ok(!!dl && /\.csv$/.test(dl.suggestedFilename()),'📥 baja la lista a Excel ('+(dl?dl.suggestedFilename():'nada')+')');
+ await p.evaluate(()=>{ window.__tes.ui.bst='all'; window.__tes.ui.bn1='15603571'; window.__tes.ui.bn2='15603620'; window.__tes.draw(); }); await p.waitForTimeout(400);
+ await p.click('#tesoreria [data-busx="cta"]'); await p.waitForTimeout(300); await p.fill('.ico-ov [data-k="cta"]','Basa-G'); await p.click('.ico-ov [data-tx="ok"]'); await p.waitForTimeout(500);
+ const cc=await p.evaluate(()=>window.__tes.st().chq.filter(c=>+c.num>=15603571&&+c.num<=15603620).map(c=>c.cta+'<'+(c.ctaPrev||'')).join(',')); console.log('   '+cc);
+ ok(/^Basa-G<.*,Basa-G<Conti-difer-G$/.test(cc) || cc.split(',').every(x=>x.startsWith('Basa-G')),'🏦 corrige la cuenta de los cheques de esa chequera y anota de dónde venían');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
