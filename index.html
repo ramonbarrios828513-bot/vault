@@ -4144,7 +4144,18 @@
   var VID = 'u-vault-estudio';
   var LOCK_KEYS = { 'le-notes': 1, 'le-changes': 1, 'le-expl': 1, 'le-pos': 1, 'le-listened': 1, 'le-sessions': 1, 'le-chat': 1, 'le-vocab': 1, 'le-cards': 1, 'le-feyn': 1, 'le-radar': 1 };
   function isEncId(id) { return userMatsRef().some(function (m) { return m.id === id && m.locked; }); }
-  function persistMats() { return SVraw('le-mats', userMats.map(function (x) { if (x.locked) { var c = {}; Object.keys(x).forEach(function (k) { if (k !== 'text') c[k] = x[k]; }); return c; } return x; })); }
+  /* v1248 · 🗄️ ALMACÉN GRANDE: cuando la memoria chica del navegador (localStorage, ~5 MB) se llena, el Baúl pasa solo a IndexedDB (cientos de MB). Nada se borra: primero se graba en el almacén grande y recién ahí se libera el chico. */
+  var MATS_IDB = false; try { MATS_IDB = !!localStorage.getItem('le-mats-idb'); } catch (e) {}
+  function kvDB() { if (kvDB._p) return kvDB._p; kvDB._p = new Promise(function (ok, no) { try { var r = indexedDB.open('iv-kv', 1); r.onupgradeneeded = function () { r.result.createObjectStore('kv'); }; r.onsuccess = function () { ok(r.result); }; r.onerror = function () { kvDB._p = null; no(r.error); }; } catch (e) { kvDB._p = null; no(e); } }); return kvDB._p; }
+  function kvPut(k, v) { return kvDB().then(function (db) { return new Promise(function (ok, no) { var t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = function () { ok(true); }; t.onerror = t.onabort = function () { no(t.error); }; }); }); }
+  function kvGet(k) { return kvDB().then(function (db) { return new Promise(function (ok, no) { var t = db.transaction('kv', 'readonly'), q = t.objectStore('kv').get(k); q.onsuccess = function () { ok(q.result); }; q.onerror = function () { no(q.error); }; }); }); }
+  function matsPlain() { return userMats.map(function (x) { if (x.locked) { var c = {}; Object.keys(x).forEach(function (k) { if (k !== 'text') c[k] = x[k]; }); return c; } return x; }); }
+  function persistMats() { var arr = matsPlain(); if (!MATS_IDB) { if (SVraw('le-mats', arr)) return true; } return kvPut('le-mats', arr).then(function () { if (!MATS_IDB) { MATS_IDB = true; try { localStorage.removeItem('le-mats'); localStorage.setItem('le-mats-idb', String(Date.now())); } catch (e) {} } return true; }).catch(function () { return false; }); }
+  window.__lsGet = function (k) { if (k === 'le-mats' && MATS_IDB) { try { return JSON.stringify(matsPlain()); } catch (e) { return null; } } return localStorage.getItem(k); };
+  window.__kv = { get: kvGet, put: kvPut, idb: function () { return MATS_IDB; } };
+  /* v1248 · 🔒 pedir al navegador que NO borre nunca los datos del Baúl por falta de espacio + aviso temprano si el disco se llena */
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(function (y) { if (!y) navigator.storage.persist(); }); } catch (e) {}
+  window.__stoInfo = function () { try { if (!navigator.storage || !navigator.storage.estimate) return Promise.resolve(null); return navigator.storage.estimate().then(function (e) { return { used: e.usage || 0, max: e.quota || 0, pct: e.quota ? Math.round((e.usage || 0) / e.quota * 100) : 0, idb: MATS_IDB }; }); } catch (e) { return Promise.resolve(null); } };
   function userMatsRef() { return (typeof userMats !== 'undefined') ? userMats : []; }
   var SVraw = SV;
   SV = function (k, v) {
@@ -4171,6 +4182,7 @@
   }
   function lockAllOpen() { Object.keys(sessionPass).forEach(function (id) { lockMaterial(id); }); }
   var userMats = LS('le-mats', []);
+  window.__matsReady = MATS_IDB ? kvGet('le-mats').then(function (v) { if (Array.isArray(v)) userMats = v; }).catch(function () {}) : Promise.resolve();
   var notes = LS('le-notes', {});
   var changes = LS('le-changes', {});
   var posMap = LS('le-pos', {});
@@ -5674,7 +5686,7 @@
     pass = pass || groupPass; if (!vaultIsOpen || !pass) { window.__saveSt = { ok: false, t: Date.now(), why: 'bloqueado' }; return; }
     var um = userMats.find(function (x) { return x.id === VID; });
     if (!um) { um = { id: VID, title: 'Estudio (plan, rutas y diccionario)', lang: 'es', created: Date.now(), locked: true }; userMats.push(um); }
-    try { um.enc = await encryptJSON({ subj: SUBJ, study: STUDY, routes: ROUTES, dict: dictSaved, memc: MEMC }, pass); um.locked = true; um.mt = Date.now(); var okP = persistMats(); window.__saveSt = okP === false ? { ok: false, t: Date.now(), why: 'lleno' } : { ok: true, t: Date.now() }; window.__savePend = 0; try { window.__saveChip && window.__saveChip(); } catch (e) {} if (window.__syncSoon) window.__syncSoon(); } catch (e) { window.__saveSt = { ok: false, t: Date.now(), why: 'cifrado' }; toast('No se pudo guardar tu estudio protegido.'); }
+    try { um.enc = await encryptJSON({ subj: SUBJ, study: STUDY, routes: ROUTES, dict: dictSaved, memc: MEMC }, pass); um.locked = true; um.mt = Date.now(); var okP = persistMats(); if (okP && okP.then) okP = await okP; window.__saveSt = okP === false ? { ok: false, t: Date.now(), why: 'lleno' } : { ok: true, t: Date.now() }; window.__savePend = 0; try { window.__saveChip && window.__saveChip(); } catch (e) {} if (window.__syncSoon) window.__syncSoon(); } catch (e) { window.__saveSt = { ok: false, t: Date.now(), why: 'cifrado' }; toast('No se pudo guardar tu estudio protegido.'); }
   }
   function vaultSave(slow) {
     try { if (!slow && window.__fcx && window.__fcx.ret) window.__fcx.saved = true; } catch (e) {}
@@ -5684,8 +5696,9 @@
   }
   /* v1246 · 🛡️ si cerrás o cambiás de pestaña justo después de guardar, se graba YA (antes podía quedar esperando y perderse) */
   function vaultFlush() { try { if (vaultT && vaultIsOpen) { clearTimeout(vaultT); vaultT = null; vaultWrite(); } } catch (e) {} }
-  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') vaultFlush(); }); window.addEventListener('pagehide', vaultFlush); window.addEventListener('beforeunload', vaultFlush); window.__vaultFlush = vaultFlush;
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') vaultFlush(); }); window.addEventListener('pagehide', vaultFlush); window.addEventListener('beforeunload', vaultFlush); window.__vaultFlush = vaultFlush; window.__vaultSaveNow = function () { vaultSave(); vaultFlush(); };
   async function vaultLoad(pass) {
+    try { await window.__matsReady; } catch (e) {}
     var um = userMats.find(function (x) { return x.id === VID; }), data = null;
     window.__vaultBad = false;
     if (um && um.enc) { try { data = await decryptJSON(um.enc, pass); } catch (e) { data = null; } if (!data && um.prevEnc) { try { data = await decryptJSON(um.prevEnc, pass); } catch (e) { data = null; } } if (!data) { window.__vaultBad = true; setTimeout(function () { askBox('⚠️ Tus datos de estudio (doctrina, árboles, notas) están guardados con una contraseña anterior. Para recuperarlos: ☰ Menú › 🔄 Cambiar contraseña y escribí la contraseña ANTERIOR en «Contraseña actual». Mientras tanto no se borra nada.', false, '', function () {}); }, 1500); } }
@@ -8904,7 +8917,7 @@
   function backupNow() {
     flushAll(); toast('🛡️ Preparando tu copia…');
     setTimeout(async function () {
-      saveLog(true); var o = { lector: 1, fecha: new Date().toISOString() }; KEYS.forEach(function (k) { try { var v = localStorage.getItem(k); if (v) o[k] = JSON.parse(v); } catch (e) {} });
+      saveLog(true); var o = { lector: 1, fecha: new Date().toISOString() }; KEYS.forEach(function (k) { try { var v = window.__lsGet(k); if (v) o[k] = JSON.parse(v); } catch (e) {} });
       var t = JSON.stringify(o), fn = 'IntegratedVault-copia-' + new Date().toISOString().slice(0, 10) + '.json', ok = false;
       if (dlApi) { try { await dlApi.save({ filename: fn, data: t }); ok = true; } catch (e) {} }
       if (!ok && !IN_CLAUDE) { try { var a0 = document.createElement('a'); a0.href = URL.createObjectURL(new Blob([t], { type: 'application/json' })); a0.download = fn; document.body.appendChild(a0); a0.click(); setTimeout(function () { URL.revokeObjectURL(a0.href); a0.remove(); }, 4000); ok = true; } catch (e) {} }
@@ -15337,11 +15350,11 @@
       var hh = new Date(S.t || Date.now()).toLocaleTimeString('es-PY'); st.className = 'cz-msg g'; st.innerHTML = '✅ Guardado en este aparato a las ' + hh + '<br>' + (!navigator.onLine ? '📴 Sin internet: queda guardado acá y se sube solo a la nube cuando vuelva.' : sy.st === 'ok' ? '☁️ También copiado en la nube.' : sy.st === 'noperm' ? '💻 En esta vista la copia queda en este aparato.' : '☁️ Subiendo a la nube…'); if (navigator.onLine && sy.st !== 'ok' && sy.st !== 'noperm' && Date.now() - t0 < 20000) setTimeout(chk, 1200); })(); return o; }
   window.__svRcpt = svRcpt;
   /* v1246 · 💾 SIEMPRE A LA VISTA: cuándo se grabó lo último, si quedó en este aparato y si subió a la nube */
-  (function () { var el = null; function paint() { try { if (!window.__vaultOpen || !window.__vaultOpen()) { if (el) el.hidden = true; return; } if (!el) { el = document.createElement('div'); el.id = 'saveChip'; el.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:6px;opacity:.95;z-index:2147483200;padding:3px 10px;border-radius:999px;font:800 11.5px system-ui;box-shadow:0 2px 8px rgba(0,0,0,.4);pointer-events:auto;cursor:pointer;max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'; el.title = 'Estado del guardado'; el.onclick = function () { var S = window.__saveSt || {}, sy = window.__syncState || {}; toast(S.ok === false ? '⚠️ No se pudo guardar en este aparato (' + (S.why || 'error') + '). No cierres y avisá.' : '💾 Todo lo que cargás se graba cifrado en este aparato' + (S.t ? ' (último: ' + new Date(S.t).toLocaleTimeString('es-PY') + ')' : '') + (sy.st === 'ok' ? ' y ya está copiado en la nube ☁️.' : navigator.onLine ? '. La copia a la nube se hace sola en segundos.' : '. Sin internet: sube solo a la nube cuando vuelva.')); }; document.body.appendChild(el); var st2 = document.createElement('style'); st2.textContent = 'body:has(.ng-mob) #saveChip{bottom:70px!important}'; document.head.appendChild(st2); }
+  (function () { var el = null; function paint() { try { if (!window.__vaultOpen || !window.__vaultOpen()) { if (el) el.hidden = true; return; } if (!el) { el = document.createElement('div'); el.id = 'saveChip'; el.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:6px;opacity:.95;z-index:2147483200;padding:3px 10px;border-radius:999px;font:800 11.5px system-ui;box-shadow:0 2px 8px rgba(0,0,0,.4);pointer-events:auto;cursor:pointer;max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'; el.title = 'Estado del guardado'; el.onclick = function () { var S = window.__saveSt || {}, sy = window.__syncState || {}; try { window.__stoInfo().then(function (I) { if (I && I.max) setTimeout(function () { toast('🗄️ Espacio del Baúl: usa ' + (I.used / 1048576).toFixed(1) + ' MB de ' + (I.max / 1073741824).toFixed(1) + ' GB disponibles (' + I.pct + '%)' + (I.idb ? ' · almacén grande ✓' : '')); }, 2600); }); } catch (e) {} toast(S.ok === false ? '⚠️ No se pudo guardar en este aparato (' + (S.why || 'error') + '). No cierres y avisá.' : '💾 Todo lo que cargás se graba cifrado en este aparato' + (S.t ? ' (último: ' + new Date(S.t).toLocaleTimeString('es-PY') + ')' : '') + (sy.st === 'ok' ? ' y ya está copiado en la nube ☁️.' : navigator.onLine ? '. La copia a la nube se hace sola en segundos.' : '. Sin internet: sube solo a la nube cuando vuelva.')); }; document.body.appendChild(el); var st2 = document.createElement('style'); st2.textContent = 'body:has(.ng-mob) #saveChip{bottom:70px!important}'; document.head.appendChild(st2); }
       el.hidden = false; var S = window.__saveSt || {}, sy = window.__syncState || {}, pend = window.__savePend && Date.now() - window.__savePend < 15000, txt, bg;
       if (S.ok === false) { txt = '⚠️ NO SE GUARDÓ — tocá acá'; bg = '#dc2626'; } else if (pend) { txt = '💾 Guardando…'; bg = '#ca8a04'; } else if (S.t) { txt = '✅ Guardado ' + new Date(S.t).toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' }) + (sy.st === 'ok' ? ' · ☁️ nube ✓' : !navigator.onLine ? ' · 📴 sin internet (sube después)' : sy.st === 'busy' ? ' · ☁️ subiendo…' : ''); bg = '#15803d'; } else { el.hidden = true; return; }
       el.textContent = txt; el.style.background = bg; el.style.color = '#fff'; } catch (e) {} }
-    window.__saveChip = paint; setInterval(paint, 1500); })();
+    window.__saveChip = paint; setInterval(paint, 1500); setInterval(function () { try { if (!window.__vaultOpen || !window.__vaultOpen()) return; window.__stoInfo().then(function (I) { if (I && I.pct >= 80) toast('⚠️ El disco de este aparato está casi lleno (' + I.pct + '%). Liberá espacio en la computadora para que el Baúl siga guardando.'); }); } catch (e) {} }, 600000); })();
   // 📍 dónde estaba: módulo abierto, pestaña, borrador del cierre y scroll. Se guarda siempre y se recupera después de una actualización, un corte o un cierre.
   var SV_OPEN = { faltan: function () { fcOpen(); }, extracto: function () { exOpen(); }, tesoreria: function () { tesOpen(); }, cierre: function () { czOpen(); }, nissi: function () { nisOpen(); }, escudo: function () { escOpen(); } };
   function svWhereSave() { try { if (window.__vaultOpen && !window.__vaultOpen()) return; var vis = Array.prototype.filter.call(document.querySelectorAll('.big-ov'), function (a) { return !a.hidden && SV_OPEN[a.id]; }).map(function (a) { return { id: a.id, sc: a.scrollTop }; }); var W = { at: Date.now(), vis: vis, tes: typeof TES_UI !== 'undefined' ? { tab: TES_UI.tab } : null, cz: { tab: CZ_UI.tab, zf: CZ_UI.zf, zs: CZ_UI.zs, d: CZ_D && !CZ_D.id ? CZ_D : null } }; sessionStorage.setItem('iv-where', JSON.stringify(W)); } catch (e) {} }
@@ -26630,7 +26643,7 @@
   var KEYS = ['le-settings', 'le-mats', 'le-notes', 'le-changes', 'le-pos', 'le-listened', 'le-sessions', 'le-ideas', 'le-expl', 'le-chat', 'le-vocab', 'le-cards', 'le-feyn', 'le-subj', 'le-study', 'le-routes', 'le-dict', 'le-radar'];
   $('btnBackup').onclick = function () {
     saveLog(true);
-    var o = { lector: 1, fecha: new Date().toISOString() }; KEYS.forEach(function (k) { try { var v = localStorage.getItem(k); if (v) o[k] = JSON.parse(v); } catch (e) {} });
+    var o = { lector: 1, fecha: new Date().toISOString() }; KEYS.forEach(function (k) { try { var v = window.__lsGet(k); if (v) o[k] = JSON.parse(v); } catch (e) {} });
     var t = JSON.stringify(o);
     $('exportText').value = t; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function () { toast('Copia copiada. Guardala en un correo, en notas o en un chat con vos mismo.'); }, function () {});
     openSheet('sheetExport');
@@ -31226,7 +31239,7 @@
   function txB64(s) { var b = new TextEncoder().encode(s), out = '', CH = 0x8000; for (var i = 0; i < b.length; i += CH) out += String.fromCharCode.apply(null, b.subarray(i, i + CH)); return btoa(out); }
   function txUnB64(t) { var bin = atob(t), b = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i); return new TextDecoder().decode(b); }
   function txPack() { try { flushAll(); } catch (e) {} var o = { baulTodo: 1, t: Date.now(), from: window.claude ? 'claude' : 'app', ls: {}, arq: [] };
-    KEYS.forEach(function (k) { if (k === 'le-settings') return; try { var v = localStorage.getItem(k); if (v) o.ls[k] = JSON.parse(v); } catch (e) {} });
+    KEYS.forEach(function (k) { if (k === 'le-settings') return; try { var v = window.__lsGet(k); if (v) o.ls[k] = JSON.parse(v); } catch (e) {} });
     try { o.arq = JSON.parse(JSON.stringify(arqList().filter(function (P) { return P && P.items && !P.practice; }))); } catch (e) {} return o; }
   function txCount(o) { var m = (o.ls['le-mats'] || []).filter(function (x) { return x && x.id !== VID; }).length; return m + ' archivo' + (m === 1 ? '' : 's') + ' y ' + o.arq.length + ' plano' + (o.arq.length === 1 ? '' : 's'); }
   function txDec(t) { t = String(t || '').trim(); if (t.charAt(0) === '{') { try { var j = JSON.parse(t); return j && j.baulTodo ? j : null; } catch (e) { return null; } } var i = t.indexOf(TX_TAG); if (i < 0) return null; var body = t.slice(i + TX_TAG.length), k = body.indexOf(TX_TAG); if (k >= 0) body = body.slice(0, k); body = body.replace(/[^A-Za-z0-9+\/=]/g, ''); try { var o = JSON.parse(txUnB64(body)); return o && o.baulTodo ? o : null; } catch (e) { return null; } }
