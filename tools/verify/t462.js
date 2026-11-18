@@ -23,4 +23,8 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(z2.bk===1&&z2.real.join()==='1','queda la copia para ♻️ Recuperar y los datos reales intactos');
  await p.evaluate(()=>document.querySelector('#planilla [data-plaz="rec"]').click()); await p.waitForTimeout(400);
  ok(await p.evaluate(()=>Object.keys(window.__pla.st().emps[3].days['2026-06']).join()==='3,4'),'♻️ Recuperar devuelve lo vaciado');
+ ok(await p.evaluate(()=>((window.__pla.st().emps[3].audBk||{})['2026-06']||[]).length>=1),'la copia de seguridad sigue guardada después de recuperar');
+ for (const k of ['pra','prc']) { await p.evaluate((k)=>{ document.querySelectorAll('iframe').forEach(f=>f.remove()); document.querySelector('#planilla [data-plaz="'+k+'"]').click(); },k); await p.waitForTimeout(700);
+  const t=await p.evaluate(()=>{ const f=[...document.querySelectorAll('iframe')].pop(); try{ return f.contentDocument.body.innerText.slice(0,200); }catch(e){ return ''; } });
+  ok(k==='pra'?/AUDITORÍA/.test(t):/COPIA DE SEGURIDAD/.test(t),'🖨️ '+(k==='pra'?'imprimir auditoría':'imprimir copia de seguridad')+' ('+t.slice(0,60)+')'); }
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | ')); await b.close(); process.exit(fail?1:0); })();
