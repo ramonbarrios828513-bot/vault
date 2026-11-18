@@ -50,4 +50,17 @@ const URL='http://localhost:'+(process.env.NPORT||8105)+'/work.html', CODE='NISS
  ok(a==='15:00-23:00','A sigue con 15:00–23:00 (B atrasado no lo devolvió) → '+a);
  ok(bb==='15:00-23:00','B quedó espejo: 15:00–23:00 → '+bb);
  ok(extra==='cargado en B sin internet|dia','lo que B cargó sin internet (nota y día) SÍ llegó a A → '+extra);
+
+ // ===== 🛡️ SOLO SUBE LO EDITADO: B solo «mira»; un cambio automático NO llega a la central =====
+ await B.p.evaluate(()=>{ window.__svStrict=true; window.__svI.at=0; const E=window.__pla.st().emps.find(e=>e.id==='eM'); E.sch[1]={e:'06:30',s:'23:00',off:false}; E.nota='cambio solo'; window.__pla.save(); });
+ await B.p.waitForTimeout(800); await B.p.evaluate(()=>window.__sv.push()); await B.p.waitForTimeout(4000); await A.p.evaluate(()=>window.__sv.pull()); await A.p.waitForTimeout(2000);
+ const a2=await sch(A), b2=await sch(B), al=await B.p.evaluate(()=>window.__svI.autoL.length), an=await A.p.evaluate(()=>window.__pla.st().emps.find(e=>e.id==='eM').nota);
+ ok(a2==='15:00-23:00'&&an!=='cambio solo','un cambio que nadie editó NO llega a la central ('+a2+' / '+an+')');
+ ok(b2==='15:00-23:00'&&al>0,'el aparato que solo miraba vuelve a ser espejo de la central ('+b2+')');
+ // B edita DE VERDAD (toque con el dedo en un botón de guardar)
+ await B.p.evaluate(()=>{ const x=document.createElement('button'); x.id='tGuardar'; x.textContent='Guardar nota'; x.style.cssText='position:fixed;top:300px;left:300px;z-index:2147483647'; x.onclick=()=>{ const E=window.__pla.st().emps.find(e=>e.id==='eM'); E.nota='editado a mano'; window.__pla.save(); }; document.body.appendChild(x); document.querySelectorAll('.ico-ov,.ask-ov,.dbl-ov').forEach(o=>o.remove()); });
+ await B.p.click('#tGuardar',{force:true}); await B.p.waitForTimeout(1500); try{ await B.p.click('.dbl-ov [data-dbl="ok"], .dbl-ov button:has-text("Sí")',{timeout:1500}); }catch(e){} await B.p.waitForTimeout(1200);
+ await B.p.evaluate(()=>window.__sv.push()); await B.p.waitForTimeout(4000); await A.p.evaluate(()=>window.__sv.pull()); await A.p.waitForTimeout(2000);
+ const an2=await A.p.evaluate(()=>window.__pla.st().emps.find(e=>e.id==='eM').nota); console.log('nota B', await B.p.evaluate(()=>window.__pla.st().emps.find(e=>e.id==='eM').nota));
+ ok(an2==='editado a mano','lo que se editó y guardó a mano SÍ llega a la central ('+an2+')');
  await b.close(); process.exit(fail?1:0); })();
