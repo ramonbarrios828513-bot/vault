@@ -2,9 +2,10 @@
 const setup=require('./rvlib2.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}, pla:true});
- await p.evaluate(()=>{ const P=window.__pla.st(), E=P.emps[3], C=P.cfg; P.cur.emp=E.id; P.cur.mon='2026-06'; delete E.aud; E.sch=[0,1,2,3,4,5,6].map(i=>({e:'06:30',s:'23:00',off:i===0})); E.asig=[]; delete E.schM; const t=C.turnos.find(t=>t.e==='15:00'&&t.s==='23:00'); window.__plTurApply(E,C,t.id,'2026-06',true); E.schM=E.schM||{}; E.schM['2026-06']={sch:[0,1,2,3,4,5,6].map(i=>({e:'06:30',s:'23:00',off:i===0})),n:'EXTENDIDO',ts:Date.now()+5000}; });
+ await p.evaluate(()=>{ const P=window.__pla.st(), E=P.emps[3], C=P.cfg; P.cur.emp=E.id; P.cur.mon='2026-06'; delete E.aud; E.sch=[0,1,2,3,4,5,6].map(i=>({e:'06:30',s:'23:00',off:i===0})); E.asig=[]; delete E.schM; E.tipo='ext'; E.turnoX='EXTENDIDO'; const t=C.turnos.find(t=>t.e==='15:00'&&t.s==='23:00'); window.__plTurApply(E,C,t.id,'2026-06',true); delete E.sinHibDesde; E.schM=E.schM||{}; E.schM['2026-06']={sch:[0,1,2,3,4,5,6].map(i=>({e:'06:30',s:'23:00',off:i===0})),n:'EXTENDIDO',ts:Date.now()+5000}; });
  await p.evaluate(()=>window.__pla.open()); await p.waitForTimeout(1200); await p.evaluate(()=>document.querySelectorAll('.k-party').forEach(x=>x.remove()));
  const pr=await p.evaluate(()=>{ const h=window.__plaAsis('2026-06',4).split('class="pg"')[4]||''; return [...new Set(h.match(/\d\d:\d\d a \d\d:\d\d/g)||[])].join(); });
+ const bx=await p.evaluate(()=>{ const b=document.querySelector('#planilla .pl-extbox'); return b?b.textContent.slice(0,200):''; }); ok(!/Extendido \/ híbrido/.test(bx)&&/Tarde-noche/.test(bx),'el cálculo de junio dice Tarde-noche (no «Extendido / híbrido» ni Mañana-tarde) ('+bx.slice(0,90)+')');
  ok(pr==='15:00 a 23:00','junio imprime 15:00 a 23:00 aunque haya un apartado viejo ('+pr+')');
  await p.evaluate(()=>{ document.querySelectorAll('.ico-ov').forEach(x=>x.remove()); document.querySelector('#planilla [data-plg="ficha"]').click(); }); await p.waitForTimeout(800);
  const t=await p.evaluate(()=>document.querySelector('.ico-ov').textContent);
