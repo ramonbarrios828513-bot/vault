@@ -1,0 +1,28 @@
+// v1259 · 📥 Cargar gastos y préstamos: un solo lugar (préstamos por banco, gastos por cuenta y concepto, anular/reactivar, concepto nuevo, pérdidas, imprimir)
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1280,height:900}});
+ await p.evaluate(()=>{ const T=window.__tes.st(); window.confirm=()=>true; T.chq.push({id:'g1',st:'pag',fp:'Transferencia',cta:'Basa-G',cat:'Alquiler',prov:'Rodan',suc:'KM 7',monto:2500000,fdeb:'2026-11-05'}); T.chq.push({id:'g2',st:'pend',fp:'Cheque diferido',cta:'Itau',cat:'Mercaderías',prov:'Lab X',monto:1000000,fdeb:'2026-11-20',num:'55'}); T.deu.push({id:'d9',acr:'Banco Basa',est:'Activo',saldo:12000000,cuota:1000000,faltan:12,dia:10,ffin:'2027-10-10'}); window.__tes.open(); }); await p.waitForTimeout(1200);
+ await p.evaluate(()=>document.querySelector('#tesoreria [data-tx2="gcar"]').click()); await p.waitForTimeout(600);
+ const t=await p.evaluate(()=>document.getElementById('gcOv').innerText);
+ ok(/Préstamo nuevo/.test(t)&&/Gasto general/.test(t)&&/Concepto nuevo/.test(t)&&/Mis cuentas/.test(t),'botones para cargar todo');
+ ok(/Banco Basa/.test(t)&&/Faltan 12 cuotas = 12\.000\.000 · hasta 10\/2027/.test(t),'préstamos por banco con lo que falta y hasta cuándo');
+ ok(/Basa-G: 2\.500\.000/.test(t)&&/Alquiler: 2\.500\.000/.test(t),'totales por cuenta y por concepto');
+ await p.evaluate(()=>{ const s=document.querySelector('#gcOv [data-gcf="cta"]'); s.value='Itau'; s.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>{ const t=document.querySelector('#gcOv .gc-tw').innerText; return /Lab X/.test(t)&&!/Rodan/.test(t); }),'filtro por cuenta');
+ await p.evaluate(()=>{ document.querySelector('#gcOv [data-gc="an"][data-id="g2"]').click(); }); await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>window.__tes.st().chq.find(x=>x.id==='g2').st==='anul'),'🚫 anular (no se borra)');
+ await p.evaluate(()=>{ const s=document.querySelector('#gcOv [data-gcf="st"]'); s.value='anul'; s.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(300);
+ await p.evaluate(()=>{ document.querySelector('#gcOv [data-gc="re"][data-id="g2"]').click(); }); await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>window.__tes.st().chq.find(x=>x.id==='g2').st==='pend'),'↩️ reactivar vuelve a «por pagar»');
+ await p.evaluate(()=>document.querySelector('#gcOv [data-gc="cat"]').click()); await p.waitForTimeout(400);
+ await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov')].pop(); o.querySelector('[data-k="n"]').value='Mantenimiento de aire'; [...o.querySelectorAll('button')].find(x=>/Guardar/.test(x.textContent)).click(); }); await p.waitForTimeout(400);
+ await p.evaluate(()=>document.querySelector('#gcOv [data-gc="gasto"]').click()); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov')].pop(); return [...o.querySelector('[data-k="cat"]').options].some(x=>x.value==='Mantenimiento de aire'); }),'concepto nuevo aparece al cargar un gasto');
+ await p.evaluate(()=>{ [...document.querySelectorAll('.ico-ov')].pop().remove(); document.querySelector('#gcOv [data-gc="perd"]').click(); }); await p.waitForTimeout(400);
+ await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov')].pop(); o.querySelector('[data-k="suc"]').value='KM 7'; o.querySelector('[data-k="m"]').value='150.000'; [...o.querySelectorAll('button')].find(x=>/Guardar/.test(x.textContent)).click(); }); await p.waitForTimeout(1500);
+ ok(await p.evaluate(()=>(window.__tes.st().perd||[]).length===1&&/150\.000/.test(document.getElementById('gcOv').innerText)),'📉 pérdida cargada y visible');
+ await p.evaluate(()=>{ document.querySelectorAll('iframe').forEach(f=>f.remove()); document.querySelector('#gcOv [data-gc="pr"]').click(); }); await p.waitForTimeout(700);
+ ok(await p.evaluate(()=>{ const f=[...document.querySelectorAll('iframe')].pop(); return f&&/Gastos y pagos/.test(f.contentDocument.body.innerText); }),'🖨️ imprimir / PDF');
+ ok(await p.evaluate(()=>window.__toolreg.some(t=>t[1]==='Cargar gastos y préstamos')),'se encuentra en el GPS');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | ')); await b.close(); process.exit(fail?1:0); })();
