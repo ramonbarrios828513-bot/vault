@@ -1,0 +1,24 @@
+// v1254 · saldos reales: columnas Banco / Cuenta / N.º (últimos 4) / Titular, ✏️ editar, 🚫 desvincular, agregar cuenta guarda al instante
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1280,height:900}});
+ await p.evaluate(()=>{ const T=window.__tes.st(), c=T.cfg; c.emp={nom:'Nissifarma',ruc:'1234567',dv:'1',t1:'Ramón Barrios'}; c.emp2={nom:'KM 11',ruc:'7654321',dv:'5',tit:'Gisele Simon'}; T.sal.push({cta:'Basa-G',f:'2026-11-17',m:33018622}); T.sal.push({cta:'Ueno-R',f:'2026-11-09',m:0}); c.ctaEmp={'Basa-G':'7654321-5'}; window.__tes.open(); });
+ await p.waitForTimeout(1200); await p.evaluate(()=>document.querySelector('#tesoreria [data-tx2="sal"]').click()); await p.waitForTimeout(600);
+ await p.evaluate(()=>document.querySelector('#txST tr[data-row="0"] input').value='33000000');
+ await p.evaluate(()=>document.querySelector('#txST [data-s="ed"][data-i="0"]').click()); await p.waitForTimeout(500);
+ await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov')].pop(); o.querySelector('[data-k="banco"]').value='Banco Basa'; o.querySelector('[data-k="nom"]').value='Cuenta corriente Gisele'; o.querySelector('[data-k="n4"]').value='1234'; [...o.querySelectorAll('button')].find(x=>/Guardar/.test(x.textContent)).click(); }); await p.waitForTimeout(700);
+ const r=await p.evaluate(()=>({row:document.querySelector('#txST tr[data-row="0"]')&&document.querySelector('#txST tr[data-row="0"]').innerText.replace(/\s+/g,' '), v:document.querySelector('#txST tr[data-row="0"] input')&&document.querySelector('#txST tr[data-row="0"] input').value, info:window.__tes.st().cfg.ctaInfo, open:!!document.getElementById('txST')}));
+ ok(/Banco Basa/.test(r.row)&&/Cuenta corriente Gisele/.test(r.row)&&/•••1234/.test(r.row)&&/Gisele Simon/.test(r.row),'la fila muestra banco, nombre real, últimos 4 y titular'); ok(r.v==='33.000.000','no se pierde el monto que estabas escribiendo'); ok(r.open,'el formulario de saldos sigue abierto');
+ await p.evaluate(()=>{ document.querySelector('#txST [data-s="ed"][data-i="1"]').click(); }); await p.waitForTimeout(400);
+ const er=await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov')].pop(); o.querySelector('[data-k="n4"]').value='123456789'; [...o.querySelectorAll('button')].find(x=>/Guardar/.test(x.textContent)).click(); return new Promise(r=>setTimeout(()=>r(o.innerText),300)); });
+ ok(/ÚLTIMOS 4/.test(er),'rechaza el número completo'); await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov')].pop(); o.remove(); });
+ const n0=await p.evaluate(()=>document.querySelectorAll('#txST [data-s="off"]').length);
+ await p.evaluate(()=>{ window.confirm=()=>true; document.querySelector('#txST [data-s="off"][data-i="1"]').click(); }); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>!!(window.__tes.st().cfg.ctaOff||{})['Ueno-R']),'🚫 desvincular Ueno-R');
+ ok(await p.evaluate(()=>document.querySelectorAll('#txST [data-s="off"]').length)===n0-1,'la fila desaparece');
+ await p.evaluate(()=>{ document.getElementById('txSNew').value='Itau-R'; document.querySelector('[data-s="add"]').click(); }); await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>!!(window.__tes.st().cfg.ctaNew||{})['Itau-R']),'agregar cuenta queda guardada al instante');
+ await p.evaluate(()=>{ document.getElementById('txSNew').value='Cta 12345678'; document.querySelector('[data-s="add"]').click(); }); await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>/número de cuenta/.test(document.getElementById('txSE').textContent)),'rechaza número de cuenta al agregar');
+ await p.screenshot({path:'/tmp/claude-0/s131/sal2.png'});
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | ')); await b.close(); process.exit(fail?1:0); })();
