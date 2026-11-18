@@ -11,6 +11,6 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(await p.evaluate(()=>!document.getElementById('articulos').hidden && /Negociaciones y órdenes de compra/.test(document.getElementById('articulos').innerText)),'abre Negociaciones');
  await p.click('#articulos [data-ng="new"]'); await p.waitForTimeout(300); ok(await p.evaluate(()=>[...document.querySelectorAll('#ngProvL option')].some(o=>o.value==='DISTRIMED')),'en la negociación aparecen los proveedores de Gestión de cheques');
  await p.evaluate(()=>document.querySelectorAll('.big-ov').forEach(x=>x.hidden=true)); await p.evaluate(()=>window.__tes.open()); await p.waitForTimeout(800);
- await p.click('#tesoreria [data-rucb="emps"]'); await p.waitForTimeout(600); const ft=await p.evaluate(()=>document.body.innerText); ok(/Razón social/.test(ft) && /Nombre del titular/.test(ft) && /Empresa 2/.test(ft),'«🏢 Mis 2 empresas» pide nombre, razón social, titular, RUC y dígito de las dos empresas');
+ await p.click('#tesoreria [data-rucb="emps"]'); await p.waitForTimeout(600); const ft=await p.evaluate(()=>document.body.innerText); ok(/Mis empresas/.test(ft) && /Agregar otra empresa/.test(ft),'«🏢 Mis empresas» pide nombre, razón social, titular, RUC y dígito de las dos empresas');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();

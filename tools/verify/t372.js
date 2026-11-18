@@ -23,5 +23,5 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  // mis 2 empresas
  await p.evaluate(()=>{ document.querySelectorAll('.ico-ov').forEach(o=>o.remove()); window.__tes.ui.tab='prov'; document.querySelectorAll('.big-ov').forEach(a=>a.hidden=true); window.__tes.open(); }); await p.waitForTimeout(600);
  const hasB=await p.evaluate(()=>!!document.querySelector('[data-rucb="emps"]')); ok(hasB,'botón 🏢 Mis 2 empresas en Proveedores');
- if(hasB){ await p.evaluate(()=>document.querySelector('[data-rucb="emps"]').click()); await p.waitForTimeout(400); ok(await p.evaluate(()=>document.querySelector('.ico-ov [data-k="r2"]').value==='7654321'),'formulario de 2 empresas con datos'); }
+ if(hasB){ await p.evaluate(()=>document.querySelector('[data-rucb="emps"]').click()); await p.waitForTimeout(400); ok(await p.evaluate(()=>{ const o=document.getElementById('fcEmpOv'); return !!o && /•••4321/.test(o.innerText); }),'«Mis empresas» muestra las empresas cargadas (RUC oculto)'); }
  console.log('errs',errs,'fallas',fail); await b.close(); })();
