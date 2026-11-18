@@ -38,8 +38,8 @@ const URL='http://localhost:'+(process.env.NPORT||8105)+'/work.html', CODE='NISS
  await A.p.evaluate(()=>{ const P=window.__pla.st(), E=P.emps.find(e=>e.id==='eM'), C=P.cfg; const t=window.__pla.st().cfg && (window.__plaTurs? null:null); const T=(C.turnos||[]).find(t=>t.e==='15:00'&&t.s==='23:00'); window.__plTurApply(E,C,T?T.id:'tn','2026-06',true); E.mt=Date.now(); window.__pla.save(); });
  await A.p.waitForTimeout(1500); await A.p.evaluate(()=>window.__sv.push()); await A.p.waitForTimeout(5000);
  console.log('A después de aplicar',await sch(A));
- // B, sin internet, toca OTRA cosa del mismo funcionario (un día y una nota) — con el reloj ADELANTADO 2 horas
- await B.p.evaluate(()=>{ const off=7200000, D0=Date.now; Date.now=()=>D0()+off; const P=window.__pla.st(), E=P.emps.find(e=>e.id==='eM'); E.days=E.days||{}; E.days['2026-11']=E.days['2026-11']||{}; E.days['2026-11']['5']={e:'15:10',s:'23:00'}; E.nota='cargado en B sin internet'; E.mt=Date.now(); window.__pla.save(); });
+ // B, sin internet, toca OTRA cosa del mismo funcionario (un día y una nota)
+ await B.p.evaluate(()=>{ const P=window.__pla.st(), E=P.emps.find(e=>e.id==='eM'); E.days=E.days||{}; E.days['2026-11']=E.days['2026-11']||{}; E.days['2026-11']['5']={e:'15:10',s:'23:00'}; E.nota='cargado en B sin internet'; E.mt=Date.now(); window.__pla.save(); });
  await B.p.waitForTimeout(1500); await B.p.evaluate(()=>window.__sv.push()); await B.p.waitForTimeout(2000);
  // segundo cambio sin internet (antes se perdía la base y el aparato pisaba la ficha entera)
  await B.p.evaluate(()=>{ const P=window.__pla.st(), E=P.emps.find(e=>e.id==='eM'); E.days['2026-11']['6']={e:'15:00',s:'23:00'}; E.mt=Date.now(); window.__pla.save(); }); await B.p.waitForTimeout(1500); await B.p.evaluate(()=>window.__sv.push()); await B.p.waitForTimeout(2000);
