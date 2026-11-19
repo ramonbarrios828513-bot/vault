@@ -9714,10 +9714,13 @@
   (function () {
     var mk = function (host, cls) { if (!host || host.querySelector(':scope > .lift-h')) return; var h = document.createElement('div'); h.className = 'lift-h ' + (cls || ''); h.title = 'Mantené apretado y subí: la barra de abajo sube y deja libre el borde'; h.innerHTML = '<span></span>'; host.insertBefore(h, host.firstChild);
       var y0 = 0, l0 = 0, on = false;
-      h.addEventListener('pointerdown', function (e) { on = true; y0 = e.clientY; l0 = settings.liftPx || 0; h.setPointerCapture(e.pointerId); e.preventDefault(); e.stopPropagation(); });
-      h.addEventListener('pointermove', function (e) { if (!on) return; liftSet(l0 + (y0 - e.clientY), false); });
-      h.addEventListener('pointerup', function (e) { if (!on) return; on = false; liftSet(l0 + (y0 - e.clientY), true); toast((settings.liftPx ? '⬆️ Barra de abajo subida ' + settings.liftPx + ' px' : 'Barra de abajo en su lugar') + ' (doble toque en la rayita: volver a 0)'); });
-      h.addEventListener('dblclick', function () { liftSet(0, true); });
+      var mp = null, m0 = 0; /* v1266: con el Menú abierto, la rayita agranda o achica el cuadro del Menú (antes quedaba sin hacer nada) */
+      var still = function () { try { return getComputedStyle(host).position === 'static'; } catch (e) { return false; } };
+      h.addEventListener('pointerdown', function (e) { on = true; y0 = e.clientY; l0 = settings.liftPx || 0; mp = null; var M = document.getElementById('menuPane'); if (M && M.classList.contains('open')) { mp = M; m0 = M.getBoundingClientRect().height; } h.setPointerCapture(e.pointerId); e.preventDefault(); e.stopPropagation(); });
+      h.addEventListener('pointermove', function (e) { if (!on) return; if (mp) { var nh = Math.max(120, Math.min(window.innerHeight * 0.9, m0 + (e.clientY - y0))); mp.style.maxHeight = nh + 'px'; mp.style.height = nh + 'px'; mp.style.overflowY = 'auto'; return; } if (still()) return; liftSet(l0 + (y0 - e.clientY), false); });
+      h.addEventListener('pointerup', function (e) { if (!on) return; on = false; if (mp) { settings.rsz = settings.rsz || {}; settings.rsz['#menuPane'] = Math.round(mp.getBoundingClientRect().height); SV('le-settings', settings); toast('↕ Menú: ' + settings.rsz['#menuPane'] + ' px (doble toque en la rayita: tamaño normal)'); mp = null; return; } if (still()) return; liftSet(l0 + (y0 - e.clientY), true); toast((settings.liftPx ? '⬆️ Barra de abajo subida ' + settings.liftPx + ' px' : 'Barra de abajo en su lugar') + ' (doble toque en la rayita: volver a 0)'); });
+      h.addEventListener('dblclick', function () { var M = document.getElementById('menuPane'); if (M && M.classList.contains('open')) { M.style.maxHeight = ''; M.style.height = ''; if (settings.rsz) { delete settings.rsz['#menuPane']; SV('le-settings', settings); } return; } liftSet(0, true); });
+      setInterval(function () { var M = document.getElementById('menuPane'); h.style.visibility = (still() && !(M && M.classList.contains('open'))) ? 'hidden' : ''; }, 700); /* quieta y sin Menú: la rayita no hace nada, entonces no se muestra */
     };
     var put = function () { mk(document.querySelector('#viewReader .controls')); mk(document.querySelector('.homebar'), 'lift-home'); mk(document.querySelector('#presOv .pres-ctl'), 'lift-pres'); };
     put(); setInterval(put, 1500);
