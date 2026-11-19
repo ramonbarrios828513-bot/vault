@@ -12,12 +12,12 @@ const ven='Codigo;Descripcion;Cantidad vendida\n100;QUITADOR FORTE;30000\n200;IB
  ok(m && m.cv===0 && m.bar===1 && m.n===2 && m.pc===3 && m.lab===4 && m.marca===5 && m.prov===6 && m.pa===7,'reconoce solo las columnas del catálogo');
  await p.click('#articulos [data-ar="imp1"]'); await p.waitForTimeout(200); await p.click('#articulos [data-ar="impok"]'); await p.waitForTimeout(1200);
  let A=await p.evaluate(()=>Object.values(window.__ar.st().items)); ok(A.length===3,'3 artículos creados');
- const q=A.find(x=>x.cv==='100'); ok(q && q.u===20 && q.uo==='pres','Quitador: 20 unidades por caja sacadas de «Caja x 20 comp.»');
+ const q=A.find(x=>x.cv==='100'); ok(q && q.u===20 && q.uo==='pres','Kitadol: 20 unidades por caja sacadas de «Caja x 20 comp.»');
  ok(A.find(x=>x.cv==='300' && !x.u),'Talco sin conversión queda marcado');
  await imp('stk',stk,'stock.csv'); await p.click('#articulos [data-ar="imp1"]'); await p.waitForTimeout(200); await p.click('#articulos [data-ar="impok"]'); await p.waitForTimeout(1000);
  await imp('ven',ven,'ventas.csv'); await p.fill('#articulos [data-ardias]','90'); await p.dispatchEvent('#articulos [data-ardias]','change'); await p.click('#articulos [data-ar="imp1"]'); await p.waitForTimeout(200); await p.click('#articulos [data-ar="impok"]'); await p.waitForTimeout(1200);
  const c=await p.evaluate(()=>{ const S=window.__ar.st(), q=Object.values(S.items).find(x=>x.cv==='100'); return window.__ar.calc(q,90); }); console.log(JSON.stringify(c));
- ok(c.sC===25 && c.vC===1500 && Math.round(c.mC)===500,'Quitador: stock 500 u = 25 cajas · vendió 30.000 u = 1.500 cajas en 90 días · giro 500 cajas/mes');
+ ok(c.sC===25 && c.vC===1500 && Math.round(c.mC)===500,'Kitadol: stock 500 u = 25 cajas · vendió 30.000 u = 1.500 cajas en 90 días · giro 500 cajas/mes');
  ok(c.nC===1475 && c.nU===29500,'para 90 días: comprar 1.475 cajas (29.500 unidades)');
  const c60=await p.evaluate(()=>{ const S=window.__ar.st(), q=Object.values(S.items).find(x=>x.cv==='100'); return window.__ar.calc(q,60); }); ok(c60.nC===975,'para 60 días: 975 cajas');
  A=await p.evaluate(()=>Object.values(window.__ar.st().items)); ok(A.length===4 && A.some(x=>x.cv==='400'),'producto que aparece solo en ventas se crea (sin conversión)');
