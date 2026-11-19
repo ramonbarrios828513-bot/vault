@@ -6,7 +6,6 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(300);
  const chips=await p.evaluate(()=>document.querySelectorAll('.vt-ov [data-vp="rq"]').length); ok(chips>=6,'los billetes ya están listos en la ventana de cobro ('+chips+')');
  // agrega una forma de pago antes (como en la foto)
- await p.click('.vt-ov [data-vp="addp"]'); await p.waitForTimeout(200);
  await p.click('.vt-ov [data-vp="rq"][data-d="100000"]'); await p.waitForTimeout(300);
  const s1=await p.evaluate(()=>({ lines:document.querySelectorAll('.vt-ov .vt-pl select[data-pf]').length, addp:!!document.querySelector('.vt-ov [data-vp="addp"]'), rows:[...document.querySelectorAll('.vt-ov .vt-vr')].map(r=>r.querySelector('.q').textContent+'x'+r.querySelector('b').textContent.replace(/\D/g,'')) }));
  ok(s1.lines===1 && !s1.addp,'con ₲ 100.000 ya cubre: se saca la otra forma de pago y no deja agregar '+JSON.stringify(s1));

@@ -48,12 +48,14 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.selectOption('#ventas [data-vf="st"]','aprobado'); await p.waitForTimeout(200); await p.click('#ventas [data-vt="avent"]'); await p.waitForTimeout(300);
  const pr=await p.evaluate(()=>{ const V=window.__vt.st(); const P=V.tabs.find(t=>t.k==='p'&&t.n===1); const cur=V.tabs.find(t=>t.id===V.cur); return { st:P.st, curK:cur.k, n:cur.lines.length }; });
  ok(pr.st==='confirmado'&&pr.curK==='v'&&pr.n===1,'presupuesto aprobado pasa a una venta libre y queda ✅ Confirmado '+JSON.stringify(pr));
- // pago mixto: 5.000 en efectivo + el resto con débito
+ // pago mixto: primero la tarjeta (el resto menos 5.000) y después 5.000 en efectivo
  await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(300);
- await p.click('.vt-ov [data-vp="rec"]'); await p.waitForTimeout(200); await p.fill('.vt-ov:last-of-type [data-vn="GS:5000"]','1'); await p.dispatchEvent('.vt-ov:last-of-type [data-vn="GS:5000"]','change'); await p.waitForTimeout(100); await p.click('.vt-ov:last-of-type [data-vc="ok"]'); await p.waitForTimeout(300);
- await p.click('.vt-ov [data-vp="addp"]'); await p.waitForTimeout(200); await p.click('.vt-ov [data-vp="resto"]'); await p.waitForTimeout(200); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400);
+ await p.click('.vt-ov [data-vp="addp"]'); await p.waitForTimeout(200);
+ const tm=await p.evaluate(()=>+document.querySelector('.vt-ov .vt-big').textContent.replace(/\D/g,''));
+ await p.fill('.vt-ov [data-pm="0"]',String(tm-5000)); await p.dispatchEvent('.vt-ov [data-pm="0"]','change'); await p.waitForTimeout(250);
+ await p.click('.vt-ov [data-vp="rq"][data-d="5000"]'); await p.waitForTimeout(250); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400);
  const mx=await p.evaluate(()=>{ const V=window.__vt.st(); const s=V.sales[V.sales.length-1]; return { n:V.sales.length, pays:s.pays.map(x=>x.fp+':'+x.m), tot:s.total }; });
- ok(mx.n===2 && mx.pays.length===2 && mx.pays[0].startsWith('ef:5000') && +mx.pays[1].split(':')[1]===mx.tot-5000,'pago mixto: efectivo + débito '+JSON.stringify(mx));
+ ok(mx.n===2 && mx.pays.length===2 && mx.pays[0]==='tc:'+(mx.tot-5000) && mx.pays[1]==='ef:5000','pago mixto: primero tarjeta, después efectivo '+JSON.stringify(mx));
  // remesa sin pasar el stock
  await p.evaluate(()=>{ window.__askOrig=window.askBox; }); 
  await p.click('#ventas [data-vt="all"]'); await p.waitForTimeout(200); const cards=await p.evaluate(()=>document.querySelectorAll('.vt-ov [data-go]').length); ok(cards>=10,'🖥️ Ver todas muestra todas las ventanas ('+cards+')'); await p.click('.vt-ov [data-x="1"]');
