@@ -12,7 +12,7 @@ const PORT=process.env.NPORT||8105, URL='http://localhost:'+PORT+'/work.html', C
  await A.evaluate(()=>(window.__ar.st().ui.ngOpen={cols:true,pol:true,mon:true,tools:true}, window.__ar.open())); await A.waitForTimeout(1500);
  await A.click('#articulos [data-ar="tab"][data-v="neg"]'); await A.waitForTimeout(300); await A.click('#articulos [data-ng="new"]'); await A.waitForTimeout(300);
  await A.fill('#articulos [data-ngh="prov"]','PROV UNO'); await A.waitForTimeout(200); await A.dispatchEvent('#articulos [data-ngh="prov"]','change'); await A.waitForTimeout(300);
- await A.fill('#articulos [data-ngh="emp"]','Empresa Ramón'); await A.click('#articulos [data-ng="fill"]'); await A.waitForTimeout(500);
+ await A.evaluate(()=>{ const s=document.querySelector('#articulos [data-ngh="emp"]'); if(s&&s.options.length>1){ s.selectedIndex=1; s.dispatchEvent(new Event('input',{bubbles:true})); } }); await A.click('#articulos [data-ng="fill"]'); await A.waitForTimeout(500);
  const lines=await A.evaluate(()=>{ const S=window.__ar.st(); const N=S.negs[S.ui.ng]; return N.lines.map(l=>l.n+':'+l.q+':'+l.pvp).join(','); }); console.log('lines',lines);
  ok(/QUITADOR FORTE:1475:10000/.test(lines) && /IBUPROFENO 600:/.test(lines) && !/OTRO/.test(lines),'trae los productos de ese proveedor con la cantidad a comprar y el PVP');
  await A.check('#articulos [data-ngt="cas"]'); await A.waitForTimeout(400); await A.check('#articulos [data-ngt="esc"]'); await A.waitForTimeout(400);
