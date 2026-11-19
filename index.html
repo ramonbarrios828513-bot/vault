@@ -6679,6 +6679,7 @@
   function libShown() { var p = $('filesPane'); return !!(p && p.offsetParent !== null); }
   function fileShown() { return !$('viewReader').classList.contains('ws-files') && !!mat && $('viewReader').classList.contains('open'); }
   async function heroEnter() {
+    window.__hmFiles = false; /* v1266: al entrar siempre empieza con la lista cerrada */
     var pass = $('heroPass').value; if (!pass) { $('heroPass').focus(); return; }
     if (settings.autoFull === true && !fsOn()) { /* v1266: sin pantalla completa salvo que él lo pida: así quedan las barras lilas del teléfono arriba y abajo */ try { var de = document.documentElement, rq = de.requestFullscreen || de.webkitRequestFullscreen; if (rq) { var pr = rq.call(de); if (pr && pr.catch) pr.catch(function () {}); } } catch (e) {} }
     if (!settings.groupLock) { for (var w = 0; w < 40 && window.__syncState && window.__syncState.st === 'busy'; w++) await new Promise(function (r) { setTimeout(r, 200); }); }
@@ -6929,7 +6930,7 @@
     else if (a === 'aa') { if (mat && !$('viewReader').classList.contains('no-file')) $('btnSettings').click(); else $('btnSettings2').click(); }
     else if (a === 'lock') lockNowAll();
   }
-  function lockNowAll() { stopSpeech(); closeSheets(); closePanes(); if (editing) exitEdit(); closeWord(); if (cpIsOpen()) closePanel(); closeGroup().then(function () { show('viewLib'); renderLib(); toast('Bloqueado.'); }); }
+  function lockNowAll() { window.__hmFiles = false; stopSpeech(); closeSheets(); closePanes(); if (editing) exitEdit(); closeWord(); if (cpIsOpen()) closePanel(); closeGroup().then(function () { show('viewLib'); renderLib(); toast('Bloqueado.'); }); }
   // ---------- ❓ Método de uso ----------
   var GUIDE = [
     ['1. Elegí el archivo', 'Entrá con tu clave. En 📁 Carpeta o 🔍 Buscar están todos tus archivos protegidos: tocás uno y se abre para leer. Lo nuevo se trae con 📥 Importar (no duplica lo que ya está).'],
@@ -7013,7 +7014,7 @@
   }
   // v985 · el buscador solo filtra con lo que VOS escribís: si el navegador lo autocompleta solo (p. ej. «reimon»), se ignora
   window.__hmFiles = false;
-  document.addEventListener('click', function (ev) { var t = ev.target; if (!t.closest || !ev.isTrusted) return; /* v1266: solo un toque de verdad abre la lista (no cuando el sistema vuelve solo a «Mis archivos» al entrar) */ var a = t.closest('[data-hmfiles], [data-htab="files"]'), b = t.closest('[data-hmback], [data-htab]:not([data-htab="files"])'); if (a) { window.__hmFiles = true; if (a.dataset.hmfiles) { ev.preventDefault(); ev.stopPropagation(); settings.homeTab = 'files'; } setTimeout(function () { try { renderHome(); var l = document.getElementById('homeList'); if (l) l.scrollIntoView({ block: 'start' }); } catch (e) {} }, 0); return; } if (b) { window.__hmFiles = false; if (b.dataset.hmback) { ev.preventDefault(); ev.stopPropagation(); setTimeout(function () { try { renderHome(); window.scrollTo(0, 0); } catch (e) {} }, 0); } } }, true);
+  document.addEventListener('click', function (ev) { var t = ev.target; if (!t.closest || !ev.isTrusted) return; /* v1266: solo un toque de verdad abre la lista (no cuando el sistema vuelve solo a «Mis archivos» al entrar) */ var a = t.closest('[data-hmfiles], [data-htab="files"]'), b = t.closest('[data-hmback], [data-htab]:not([data-htab="files"])'); if (a) { window.__hmFiles = true; if (a.dataset.hmfiles) { ev.preventDefault(); ev.stopPropagation(); settings.homeTab = 'files'; } setTimeout(function () { try { renderHome(); var l = document.getElementById('homeList'); if (l) l.scrollIntoView({ block: 'start' }); } catch (e) {} }, 0); return; } if (b) { window.__hmFiles = false; if (b.dataset.hmback) { ev.preventDefault(); ev.stopPropagation(); setTimeout(function () { try { renderHome(); window.scrollTo(0, 0); /* v1266: también subir el cuadro que tiene la lista (si no, quedaba en cualquier lado) */ var l = document.getElementById('homeList'); for (var n = l; n && n !== document.body; n = n.parentElement) { if (n.scrollTop) n.scrollTop = 0; } var hh = document.querySelector('.home-today') || l; if (hh && hh.scrollIntoView) hh.scrollIntoView({ block: 'start' }); } catch (e) {} }, 0); } } }, true);
   (function () { var st = document.createElement('style'); st.textContent = 'body.hm-fonly #hsInline{display:none!important}'; document.head.appendChild(st); })();
   function hsQ() { var i = $('hsearch'); if (!i) return ''; var mine = window.__hsq || ''; if (document.activeElement !== i && i.value !== mine) i.value = mine; return (i.value || '').trim().toLowerCase(); }
   try { $('hsearch').setAttribute('name', 'hq' + Date.now().toString(36)); $('hsearch').setAttribute('autocomplete', 'off'); $('hsearch').setAttribute('autocorrect', 'off'); $('hsearch').setAttribute('autocapitalize', 'off'); $('hsearch').setAttribute('spellcheck', 'false'); } catch (e) {}
