@@ -1,0 +1,20 @@
+// v1271 · 🤝 Descuento adicional (ayuda): datos reales obligatorios, acepta llamada y visita, tope = depósito, queda por verificar
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const W=+(process.env.W||1366); const {b,p,errs}=await setup({vp:{width:W,height:W>1000?768:900}});
+ await p.evaluate(()=>{ window.__vt.open(); const V=window.__vt.st(); V.open=true; V.stock={GS:{100000:2,50000:5,20000:5,10000:5,5000:5,2000:5,1000:5},BRL:{},USD:{}}; const t=V.tabs[0]; V.cur=t.id; t.cat='cd'; t.fp='ef'; t.lines=[{aid:'m1',n:'Prueba PVP 100.000',q:1,pvp:100000,cost:35000,uq:1}]; window.__vt.open(); });
+ const big=()=>p.evaluate(()=>+document.querySelector('#ventas .vt-big').textContent.replace(/\D/g,''));
+ ok(await big()===80000,'registrado en efectivo: ₲ 80.000');
+ await p.click('#ventas [data-vt="ayu"]'); await p.waitForTimeout(300);
+ await p.fill('.vt-ov [data-a="pct"]','40'); await p.click('.vt-ov [data-ok]'); await p.waitForTimeout(200);
+ let tx=await p.evaluate(()=>document.getElementById('toast').textContent); ok(/Falta/.test(tx)&&/C\.I\./.test(tx)&&/visita/.test(tx),'sin datos reales no deja otorgar: '+tx.slice(0,120));
+ for (const [k,v] of [['n','Juana Pérez'],['ci','4567890'],['tel','0981 111 222'],['tel2','0982 333 444'],['sit','Madre soltera sin trabajo, el hijo tiene neumonía'],['dir','Barrio San José, calle 3, frente a la capilla'],['vend','Vendedora Ana']]) await p.fill('.vt-ov [data-a="'+k+'"]',v);
+ await p.check('.vt-ov [data-a="exa"]'); await p.check('.vt-ov [data-a="ok1"]'); await p.check('.vt-ov [data-a="ok2"]');
+ await p.click('.vt-ov [data-ok]'); await p.waitForTimeout(400);
+ ok(await big()===50000,'ayuda +40 % pero con tope en el depósito 50 % → ₲ 50.000 (nunca baja de la ganancia retenida)');
+ const why=await p.evaluate(()=>document.querySelector('#ventas .vt-why').textContent); ok(/ayuda/.test(why)&&/tope/.test(why),'explica la ayuda y el tope: '+why);
+ await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(300); await p.click('.vt-ov [data-vp="rq"][data-d="50000"]'); await p.waitForTimeout(250); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400);
+ const inc=await p.evaluate(()=>{ const x=window.__vt.st().inc[0]; return {est:x.est,n:x.n,sale:x.sale&&x.sale.total,sin:x.sale&&x.sale.sin}; }); ok(inc.est==='pend'&&inc.sale===50000&&inc.sin===80000,'queda 🟡 por verificar con la venta (ayuda ₲ 30.000) '+JSON.stringify(inc));
+ await p.click('#ventas [data-vt="ayus"]'); await p.waitForTimeout(300); await p.click('.vt-ov [data-ae$=":llam"]'); await p.waitForTimeout(300); await p.fill('.ask-in','Encargado: llamé y confirmó'); await p.click('.ask-ov [data-ak=yes]'); await p.waitForTimeout(300);
+ const st=await p.evaluate(()=>window.__vt.st().inc[0].est); ok(st==='llam','el encargado lo marca 📞 Llamado: confirmó');
+ ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
