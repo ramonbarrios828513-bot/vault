@@ -27,10 +27,10 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.fill('#vtQ',code); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
  const fr=await p.evaluate(()=>window.__vt.st().tabs[0].lines.map(l=>({n:l.n,uq:l.uq,pvp:l.pvp})));
  ok(fr.length===2 && fr[1].uq===1,'al pasar el código de la fracción entra la UNIDAD (descuenta 1) '+JSON.stringify(fr));
- // cliente nuevo con datos
- await p.click('#ventas [data-vt="pickcli"]'); await p.waitForTimeout(200); await p.click('.vt-ov [data-cn="1"]'); await p.waitForTimeout(200);
- await p.fill('.vt-ov [data-c="n"]','Cliente QA'); await p.fill('.vt-ov [data-c="ci"]','1234567'); await p.click('.vt-ov [data-ok="1"]'); await p.waitForTimeout(300);
- const cl=await p.evaluate(()=>{ const V=window.__vt.st(); return { n:V.clients.length, cat:V.tabs[0].cat, cli:V.tabs[0].cli }; }); ok(cl.n===1&&cl.cat==='cd'&&cl.cli==='Cliente QA','registra cliente nuevo y queda en la venta con su categoría '+JSON.stringify(cl));
+ // cliente nuevo rápido (nombre, C.I., WhatsApp) desde la venta
+ await p.click('#ventas [data-vt="quickcli"]'); await p.waitForTimeout(200);
+ await p.fill('.vt-ov [data-q="n"]','Cliente QA'); await p.fill('.vt-ov [data-q="doc"]','1234567'); await p.fill('.vt-ov [data-q="tel"]','0981 123 456'); await p.click('.vt-ov [data-ok="1"]'); await p.waitForTimeout(300);
+ const cl=await p.evaluate(()=>{ const V=window.__vt.st(); return { n:V.clients.filter(c=>c.ci==='1234567').length, cat:V.tabs[0].cat, cli:V.tabs[0].cli }; }); ok(cl.n===1&&cl.cat==='cd'&&cl.cli==='Cliente QA','⚡ registra cliente nuevo rápido y queda en la venta como registrado '+JSON.stringify(cl));
  // cobrar en efectivo con 100.000 → vuelto por billetes
  const total=await p.evaluate(()=>{ const t=window.__vt.st().tabs[0]; return t; }); 
  await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(300);
