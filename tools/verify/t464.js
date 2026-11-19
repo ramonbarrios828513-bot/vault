@@ -2,7 +2,7 @@
 const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1280,height:900}});
- const r=await p.evaluate(()=>{ const T=window.__tes.st(), hoy=new Date(); const f=d=>{const x=new Date(hoy); x.setDate(x.getDate()+d); return x.toISOString().slice(0,10);};
+ const r=await p.evaluate(()=>{ const T=window.__tes.st(), hoy=new Date(); const f=d=>{const x=new Date(hoy); x.setDate(x.getDate()+d); return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');};
   T.chq.push({id:'z1',st:'pend',tipo:'cheque',cta:'Basa-G',num:'1001',prov:'Parma Internacional S.A.',monto:5000000,fdeb:f(0)});
   T.chq.push({id:'z2',st:'pend',tipo:'cheque',cta:'Basa-G',num:'1002',prov:'Lab X',monto:3000000,fdeb:f(-2)});
   T.chq.push({id:'z3',st:'pend',tipo:'cheque',cta:'Itau',num:'77',prov:'Prov Y',monto:1000000,fdeb:f(3)});
