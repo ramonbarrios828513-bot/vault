@@ -8,7 +8,8 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.evaluate(()=>{ const s=[...document.querySelectorAll('.ico-ov [data-ff="show"]')].pop(); if(s) s.click(); document.querySelectorAll('.ico-ov').forEach(x=>x.remove()); document.querySelectorAll('.big-ov').forEach(x=>{ if(!/home/.test(x.id)) x.hidden=true; }); }); await p.waitForTimeout(500);
  const st=()=>p.evaluate(()=>({ rows:[...document.querySelectorAll('#homeList [data-hopen]')].length, abrir:!!document.querySelector('#homeList [data-hmfiles]'), back:!!document.querySelector('#homeList [data-hmback]'), grp:document.body.classList.contains('hm-fonly') }));
  await p.evaluate(()=>{ const x=document.createElement('button'); x.dataset.hmback='1'; document.body.appendChild(x); x.click(); x.remove(); }); await p.waitForTimeout(500);
- const z=await st(); ok(z.rows===0&&z.abrir,'el inicio NO muestra los archivos, solo «📂 Abrir mis archivos» ('+JSON.stringify(z)+')');
+ await p.evaluate(()=>{ const t=[...document.querySelectorAll('[data-htab="files"]')][0]; if(t) t.click(); }); await p.waitForTimeout(500);
+ const z=await st(); ok(z.rows===0&&z.abrir,'el inicio NO muestra los archivos aunque el sistema vuelva solo a «Mis archivos» ('+JSON.stringify(z)+')');
  await p.click('#homeList [data-hmfiles]'); await p.waitForTimeout(700);
  const a=await st(); ok(a.rows>=1&&a.back&&a.grp,'al entrar se ven los archivos y se esconden los otros botones ('+JSON.stringify(a)+')');
  await p.click('#homeList [data-hmback]'); await p.waitForTimeout(600);
