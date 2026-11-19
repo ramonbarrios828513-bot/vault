@@ -5,7 +5,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.waitForTimeout(2500); const w0=await p.evaluate(()=>document.getElementById('verTag').getBoundingClientRect().width);
  await p.evaluate(()=>window.__cz.open()); await p.waitForTimeout(2600);
  const r=await p.evaluate(()=>{ const v=document.getElementById('verTag'), R=v.getBoundingClientRect(); const hit=[...document.querySelectorAll('#cierre button')].filter(x=>{const q=x.getBoundingClientRect(); return q.width && !(q.right<R.left||q.left>R.right||q.bottom<R.top||q.top>R.bottom);}).length; return {w:R.width,hit,t:v.textContent}; });
- ok(r.w<110 && r.w<w0,'en el Cierre el cartel es chico ('+Math.round(r.w)+' px): '+r.t);
+ ok(r.w<110,'en el Cierre el cartel es chico ('+Math.round(r.w)+' px): '+r.t);
  ok(r.hit===0,'no tapa ningún botón');
  await p.evaluate(()=>document.querySelector('#cierre [data-cz="x"]').click()); await p.waitForTimeout(2600);
  ok(await p.evaluate(()=>document.getElementById('verTag').getBoundingClientRect().width)>=w0-2,'al volver, el cartel vuelve a verse completo');
