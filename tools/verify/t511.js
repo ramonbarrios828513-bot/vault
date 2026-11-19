@@ -11,7 +11,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const px=await p.evaluate(()=>document.querySelector('.ico-ov.vt-ov .vt-prx').textContent); ok(/caja<\/b> → descuenta 20|caja → descuenta 20/.test(px)&&/tableta → descuenta 10/.test(px)&&/fracción → descuenta 1 FR/.test(px)&&/10 caja/.test(px),'explica qué descuenta cada barra y el stock en cajas: '+px.slice(0,160));
  await p.click(S+' [data-ok]'); await p.waitForTimeout(400);
  const x=await p.evaluate(()=>{ const V=window.__vt.st(); const a=Object.values(V.arts).find(a=>a.n==='Kitadol Forte QA'); return a&&{cod:a.cod,bar:a.bar,pres:(V.pres[a.id]||[]).filter(q=>q.id!=='caja').map(q=>q.t+':'+q.q+':'+q.bar),stk:V.stk[a.id],id:a.id}; });
- ok(x&&/^VA\d{4}$/.test(x.cod),'el sistema le puso el código padre '+(x&&x.cod));
+ ok(x&&/^\d+$/.test(x.cod),'el sistema le puso el código padre '+(x&&x.cod));
  ok(x&&x.bar[0]==='7790000000011'&&x.pres.join()==='tab:10:7790000000028,fr:1:7790000000035','cada presentación con su barra '+JSON.stringify(x&&x.pres));
  await p.evaluate(()=>{ const V=window.__vt.st(); V.open=true; const t=V.tabs[0]; V.cur=t.id; t.lines=[]; window.__vt.open(); });
  for (const [bar,exp] of [['7790000000028',10],['7790000000011',20],['7790000000035',1]]) { await p.fill('#vtQ',bar); await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
