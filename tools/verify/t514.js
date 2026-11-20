@@ -10,7 +10,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.keyboard.press('Enter'); await p.keyboard.type('1'); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
  const st=await p.evaluate(()=>({ rec:window.__vt.st && JSON.stringify(document.querySelector('.vt-ov [data-live]').textContent) }));
  ok(/70\.000/.test(st.rec)&&/Vuelto/.test(st.rec),'1 de 50.000 + 1 de 20.000 = 70.000 → vuelto '+st.rec);
- await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(400);
+ if(!(await p.$('[data-vok]'))) await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(400);
  const s=await p.evaluate(()=>window.__vt.st().stock.GS); ok(s[50000]===1&&s[20000]===6,'los billetes entraron al stock de la caja '+JSON.stringify(s));
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
