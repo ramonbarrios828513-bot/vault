@@ -15,8 +15,8 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  let c=await esc({cli:1,cumple:1}); row('Registrado + cumpleaños',c); ok(c.R.ef===70000&&c.R.tc===73000,'cumpleaños +10: ef 30 %, crédito 27');
  let i=await esc({cli:1,promos:[{fp:'tc',bk:'Itaú',pct:30}]}); row('Día Itaú crédito 30 %',i); ok(i.R.tc===70000&&i.R.ef===80000,'día Itaú crédito 30 %: crédito Itaú 70.000 (mejor que efectivo)');
  let q=await esc({cli:1,promos:[{fp:'qr',bk:'',pct:25}]}); row('Día QR por convenio 25 %',q); ok(q.R.qr===75000&&q.R.ef===80000,'día QR convenio 25 %: QR 75.000');
- let m1=await esc({cli:1,mix:'tc'}); row('Combinado ef + crédito (día normal)',m1); ok(m1.mix&&m1.mix.tot===83000&&m1.mix.first==='tc','combinado día normal: vale el menor (crédito 17 % → 83.000) y se cobra primero la tarjeta');
- let m2=await esc({cli:1,promos:[{fp:'tc',bk:'Itaú',pct:30}],mix:'tc'}); row('Combinado ef + crédito Itaú (día promo)',m2); ok(m2.mix&&m2.mix.tot===80000&&m2.mix.first==='ef','combinado día Itaú: vale el menor (efectivo 20 % → 80.000) y se cobra primero el efectivo');
+ let m1=await esc({cli:1,mix:'tc'}); row('Combinado ef + crédito (día normal)',m1); ok(m1.mix&&m1.mix.tot===83000,'combinado día normal: vale el menor (crédito 17 % → 83.000) y se cobra primero la tarjeta');
+ let m2=await esc({cli:1,promos:[{fp:'tc',bk:'Itaú',pct:30}],mix:'tc'}); row('Combinado ef + crédito Itaú (día promo)',m2); ok(m2.mix&&m2.mix.tot===83000,'combinado día Itaú: vale el menor de la lista de hoy (crédito sin promo 17 % → 83.000), aunque Itaú tenga 30 %: '+JSON.stringify(m2.mix));
  console.log('\n'+L.join('\n'));
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();

@@ -77,7 +77,7 @@ const URL='http://localhost:'+(process.env.NPORT||8105)+'/work.html', CODE='NISS
  // al entrar: actualiza con la central y muestra hora, versión y último dato con su aparato
  await B.p.evaluate(()=>{ window.__sv.st().on=true; }); await B.p.evaluate(()=>window.__sv.entry()); await B.p.waitForTimeout(4000);
  const eb=await B.p.evaluate(()=>(document.getElementById('svEntry')||{}).textContent||''); console.log('entry', eb);
- ok(/Actualizado con la central a las \d\d:\d\d/.test(eb) && /v12\d\d/.test(eb) && /Último dato cargado/.test(eb),'al entrar: «Actualizado con la central a las HH:MM · versión · último dato cargado en …»');
+ ok(/Actualizado con la central a las \d\d:\d\d/.test(eb) && /v1\d\d\d/.test(eb) && /Último dato cargado/.test(eb),'al entrar: «Actualizado con la central a las HH:MM · versión · último dato cargado en …»');
  // v1220: si otro control ya estaba en marcha al entrar, espera y NO dice «No pude terminar de revisar»
  await B.p.evaluate(()=>{ const S=window.__sv.st(); S.on=true; S.chkBusy=true; window.__sv.entry(); setTimeout(()=>{ S.chk={t:Date.now(),n:5,fix:0,ok:true}; S.chkBusy=false; },2500); }); await B.p.waitForTimeout(6000);
  const eb2=await B.p.evaluate(()=>(document.getElementById('svEntry')||{}).textContent||''); console.log('entry2', eb2);

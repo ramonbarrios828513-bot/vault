@@ -4,7 +4,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
 (async()=>{ const b=await chromium.launch(); const ctx=await b.newContext(); await ctx.route(/fonts\.googleapis|jsdelivr|gstatic|cdnjs/, r=>r.abort());
  let apiCalls=0; await ctx.route('**/api/db', r=>{ apiCalls++; r.continue(); });
  await ctx.addInitScript(()=>{ window.__dblOK=true; try{ localStorage.setItem('wk-face','fam'); localStorage.setItem('nube-code','NISSI-ABCD-EFGH-JKLM-NPQR-STUV'); }catch(e){} }); const p=await ctx.newPage();
- fs.writeFileSync(process.env.SRV+'/version.json','{"build": 1299}');
+ fs.writeFileSync(process.env.SRV+'/version.json','{"build": 9999}');
  await p.goto('http://localhost:8105/work.html'); await p.waitForTimeout(9000);
  const t=await p.evaluate(()=>(document.getElementById('verGate')||{}).innerText||''); console.log(t.slice(0,160), 'url', p.url().slice(-30), 'api', apiCalls);
  ok(/desactualizada|Actualizando/.test(t),'versión publicada más nueva → primero intenta actualizarse');
