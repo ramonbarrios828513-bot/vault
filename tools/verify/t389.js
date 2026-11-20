@@ -8,6 +8,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(r.w<110,'en el Cierre el cartel es chico ('+Math.round(r.w)+' px): '+r.t);
  ok(r.hit===0,'no tapa ningún botón');
  await p.evaluate(()=>document.querySelector('#cierre [data-cz="x"]').click()); await p.waitForTimeout(2600);
- ok(await p.evaluate(()=>document.getElementById('verTag').getBoundingClientRect().width)>=w0-2,'al volver, el cartel vuelve a verse completo');
+ let w1=0; for(let k=0;k<10;k++){ w1=await p.evaluate(()=>document.getElementById('verTag').getBoundingClientRect().width); if(w1>=w0-2) break; await p.waitForTimeout(500); }
+ ok(w1>=w0-2,'al volver, el cartel vuelve a verse completo ('+Math.round(w1)+' / '+Math.round(w0)+' px)');
  ok(!errs.length,'sin errores: '+errs.slice(0,2).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
