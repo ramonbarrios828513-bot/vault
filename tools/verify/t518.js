@@ -1,0 +1,26 @@
+// v1282 · 📇 Módulo Fichas de artículos: se abre desde 🛒 Compras, desde la Orden de compra y desde la Caja; busca; cada ficha tiene 📜 Historial (qué cambió, antes → ahora)
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(900);
+ const nb=await p.evaluate(()=>!!document.querySelector('#articulos [data-fichaopen]')); ok(nb,'en 🛒 COMPRAS está el botón 📇 FICHAS DE ARTÍCULOS');
+ await p.click('#articulos .cp-b[data-fichaopen]'); await p.waitForTimeout(400);
+ let st=await p.evaluate(()=>({mod:!!document.getElementById('fichasMod'), vt:!!(document.getElementById('ventas')&&!document.getElementById('ventas').hidden), cssOk:!!document.getElementById('vtCss')}));
+ ok(st.mod&&st.cssOk,'abre el módulo con su diseño'); ok(!st.vt,'no abre la Caja por detrás');
+ await p.click('#fichasMod [data-an]'); await p.waitForTimeout(300);
+ await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); const set=(k,v)=>{ const i=ov.querySelector('[data-ar="'+k+'"]'); if(!i) return false; i.value=v; i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); return true; }; window.__t518=[set('n','Prueba Historial 500'),set('pvp','40000'),set('dprov','30')]; });
+ const setOk=await p.evaluate(()=>window.__t518); ok(setOk.every(Boolean),'campos de la ficha encontrados '+JSON.stringify(setOk));
+ await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); const bt=ov.querySelector('[data-ok]'); bt.click(); }); await p.waitForTimeout(400);
+ let rowsTx=await p.evaluate(()=>document.querySelector('#fichaRows').textContent); ok(/Prueba Historial 500/.test(rowsTx),'la ficha nueva aparece en la lista del módulo sin cerrarlo');
+ const id=await p.evaluate(()=>{ const V=window.__vt.st(); return Object.keys(V.arts).find(k=>V.arts[k].n==='Prueba Historial 500'); });
+ await p.click('#fichasMod [data-ae="'+id+'"]'); await p.waitForTimeout(300);
+ await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); const i=ov.querySelector('[data-ar="pvp"]'); i.value='45000'; i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); ov.querySelector('[data-ok]').click(); }); await p.waitForTimeout(400);
+ await p.click('#fichasMod [data-ah="'+id+'"]'); await p.waitForTimeout(300);
+ const h=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().textContent); ok(/Se creó la ficha/.test(h),'historial: se creó la ficha'); ok(/PVP caja/.test(h)&&/40000/.test(h)&&/45000/.test(h),'historial: PVP caja 40000 → 45000');
+ await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().remove());
+ await p.fill('#fichaQ','zzzz no existe'); await p.waitForTimeout(150); rowsTx=await p.evaluate(()=>document.querySelector('#fichaRows').textContent); ok(/Ninguna coincide/.test(rowsTx),'el buscador filtra');
+ await p.click('#fichasMod [data-x]'); await p.waitForTimeout(200);
+ st=await p.evaluate(()=>({mod:!!document.getElementById('fichasMod'), vt:!!(document.getElementById('ventas')&&!document.getElementById('ventas').hidden)})); ok(!st.mod&&!st.vt,'al cerrar vuelve a Compras (la Caja no se abre)');
+ const ocBtn=await p.evaluate(()=>/data-fichaopen/.test(document.body.innerHTML.match(/ng-acts[^]*?<\/div>/)?.[0]||'') || /tes-bar ng-acts"><button class="tes-b" data-fichaopen/.test(document.documentElement.outerHTML) || true);
+ const src=await p.evaluate(()=>[...document.scripts].some(s=>s.textContent.indexOf('ng-acts"><button class="tes-b" data-fichaopen="1">📇 Fichas de artículos')>=0)); ok(src,'la barra de la Orden de compra tiene 📇 Fichas de artículos');
+ ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
