@@ -4,7 +4,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.evaluate(()=>window.__vt.open()); await p.waitForTimeout(700);
  await p.click('#ventas [data-vt="arts"]'); await p.waitForTimeout(200); await p.click('.vt-ov [data-an]'); await p.waitForTimeout(200);
  const S='.ico-ov.vt-ov';
- ok(await p.evaluate(()=>/Código padre/.test(document.querySelector('.ico-ov.vt-ov').textContent)),'la ficha muestra el 🔑 código padre (código interno Nissi)');
+ ok(await p.evaluate(()=>/Código padre/.test([...document.querySelectorAll('.ico-ov.vt-ov')].pop().textContent)),'la ficha muestra el 🔑 código padre (código interno Nissi)');
  await p.fill(S+' [data-ar="n"]','Kitadol Forte QA'); await p.fill(S+' [data-ar="pvp"]','100000'); await p.fill(S+' [data-ar="dprov"]','65');
  await p.fill(S+' [data-ar="u"]','20'); await p.check(S+' [data-frac]'); await p.waitForTimeout(250);
  await p.fill(S+' [data-ar="tb"]','10'); await p.fill(S+' [data-ar="bar0"]','7790000000011'); await p.fill(S+' [data-ar="bt"]','7790000000028'); await p.fill(S+' [data-ar="bf"]','7790000000035'); await p.fill(S+' [data-ar="pFr"]','7000'); await p.fill(S+' [data-ar="dF"]','Kitadol Forte comprimido suelto'); await p.fill(S+' [data-ar="stk0"]','200'); await p.dispatchEvent(S+' [data-ar="stk0"]','input'); await p.waitForTimeout(200);
