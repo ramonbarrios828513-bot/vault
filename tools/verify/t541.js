@@ -15,7 +15,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  console.log(JSON.stringify(r).slice(0,900));
  ok(r.k&&r.k.bar==='7840199086491'&&r.k.u===20&&r.k.pvp===19600,'Kitadol código 1: barra del fabricante en la caja x20, PVP 19.600');
  ok(r.k&&r.k.pres.some(x=>/^tab:2000000120003:9800/.test(x))&&r.k.pres.some(x=>/^fr:2000000130002:1050/.test(x)),'tableta x10 ₲ 9.800 y fracción ₲ 1.050 con barras internas: '+(r.k&&r.k.pres.join(' | ')));
- ok(r.k&&r.k.stk===996,'stock 996 FR');
+ ok(r.k&&r.k.stk===996,'stock 996 FR'); ok(await p.evaluate(()=>{ window.__fichas.open(); return /996 FR \(comp\.\) = 49 CJ \+ 16 FR/.test(document.getElementById('fichasMod').textContent); }),'se muestra «996 FR (comp.) = 49 CJ + 16 FR»');
  ok(r.b3==='caja+tab','Blotenol (código 3): caja + tableta, sin fracción');
  ok(r.demo===0,'las fichas de prueba se borraron'); ok(r.n===3071,'3071 fichas, ninguna pisada: '+r.n);
  ok(/Importadas/.test(r.toast),'importación terminada: '+r.toast.slice(0,160)+' · tamaño '+Math.round(r.size/1024)+' KB');
