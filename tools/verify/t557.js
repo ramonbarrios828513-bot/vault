@@ -3,6 +3,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
  await p.evaluate(()=>{ const u=window.__tes.ui; window.__tes.open(); u.tab='gasto'; u.solo='gasto'; window.__tes.draw(); }); await p.waitForTimeout(500);
  const fill=async(vals)=>p.evaluate((vals)=>{ const ov=[...document.querySelectorAll('.ico-ov')].pop(); for(const [k,v] of Object.entries(vals)){ const i=[...ov.querySelectorAll('[data-k="'+k+'"]')].pop(); if(!i) { window.__miss=(window.__miss||[]).concat(k); continue; } i.value=v; i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); } const bs=[...ov.querySelectorAll('button')].filter(x=>/Guardar/.test(x.textContent)); bs[bs.length-1].click(); },vals);
+ const sem=()=>p.evaluate(()=>window.__tes.semanas(6).reduce((x,w)=>x+(w.deu||0),0)); const S0=await sem();
  await p.click('#tesoreria .tg-wz[data-tx2="tar"]'); await p.waitForTimeout(400);
  const tits=await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.ico-ov')].pop(); return ov.innerHTML; }); ok(/Ramón Barrios Gauto/.test(tits)&&/Gisele Leticia Martínez Simón/.test(tits),'el formulario ofrece los dos titulares');
  await fill({tit:'Ramón Barrios Gauto',banco:'Itaú',marca:'Visa',alias:'4111 1111 1111 1111',lim:'20.000.000',deuda:'8.000.000',min:'900.000',cierre:'25',dia:'5'}); await p.waitForTimeout(500);
@@ -17,5 +18,6 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  ok(/Gisele Leticia Martínez Simón Continental Mastercard Clásica 10\.000\.000 9\.500\.000 500\.000 95 % 700\.000/.test(sec),'Gisele: disponible 500.000, usado 95 %');
  ok(/TOTAL TARJETAS 30\.000\.000 17\.500\.000 12\.500\.000 58 % 1\.600\.000/.test(sec),'total: límite 30.000.000, deuda 17.500.000, mínimos 1.600.000');
  ok(/💳 Tarjeta/i.test(r.all)&&/M[íÍ]NIMOS DE TARJETAS/i.test(r.all),'el pago mínimo entra a los compromisos del mes');
+ const S1=await sem(); ok(S1-S0>=1600000,'los mínimos entran solos a «Compromisos por semana» (suma '+(S1-S0)+' en 6 semanas)');
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
