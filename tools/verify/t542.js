@@ -1,0 +1,27 @@
+// v1303 · pendientes de importación: los que no entraron quedan en «⛔ Pendientes de importación» dentro de Fichas y se corrigen ahí (✏️ Corregir abre la ficha con los datos del Excel)
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>{ window.__vt.open(); }); await p.waitForTimeout(300);
+ await p.evaluate(async()=>{ const wb=await (await fetch('/mig.json')).json(); window.__fichas.mig(wb); }); await p.waitForTimeout(1500);
+ const pv=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText);
+ ok(/Pendientes de importación/.test(pv),'la vista previa avisa que los ⛔ quedan en Pendientes');
+ await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().querySelector('[data-impgo]').click());
+ await p.waitForFunction(()=>/Importadas|demasiadas/.test((document.getElementById('toast')||{}).textContent||'')||!!document.querySelector('[data-ak]'),null,{timeout:600000});
+ await p.evaluate(()=>{ document.querySelectorAll('.vt-ov').forEach(o=>o.remove()); });
+ const n0=await p.evaluate(()=>(window.__vt.st().impErr||[]).length);
+ ok(n0===5,'quedaron 5 pendientes guardados: '+n0);
+ const btn=await p.evaluate(()=>{ window.__fichas.open(); const x=document.querySelector('#fichasMod [data-ipend]'); return x&&x.textContent; });
+ ok(/Pendientes de importación \(5\)/.test(btn||''),'botón en Fichas: '+btn);
+ await p.evaluate(()=>document.querySelector('#fichasMod [data-ipend]').click()); await p.waitForTimeout(300);
+ const lst=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].filter(o=>/Pendientes de importación \(/.test(o.innerText)&&o.id!=='fichasMod').pop().innerText.replace(/\s+/g,' '));
+ ok(/13910/.test(lst)&&/barra/i.test(lst),'la lista muestra Nivea 13910 con su problema');
+ await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].filter(o=>/Pendientes de importación \(/.test(o.innerText)&&o.id!=='fichasMod').pop(); const tr=[...ov.querySelectorAll('tr')].find(t=>/13910/.test(t.textContent)); tr.querySelector('[data-pfix]').click(); }); await p.waitForTimeout(400);
+ const fv=await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].filter(o=>o.querySelector('[data-ar="bar0"]')).pop(); return { n:ov.querySelector('[data-ar="n"]').value, bar:ov.querySelector('[data-ar="bar0"]').value }; });
+ ok(/nivea/i.test(fv.n),'la ficha se abre con los datos del Excel: '+fv.n+' · '+fv.bar);
+ await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].filter(o=>o.querySelector('[data-ar="bar0"]')).pop(); const i=ov.querySelector('[data-ar="bar0"]'); i.value='7790000000017'; i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); ov.querySelector('[data-ok]').click(); });
+ await p.waitForTimeout(600);
+ const r=await p.evaluate(()=>{ const V=window.__vt.st(); return { n:(V.impErr||[]).length, f:Object.values(V.arts).some(x=>String(x.cod)==='13910') }; });
+ ok(r.f,'Nivea 13910 quedó importada con la barra corregida');
+ ok(r.n===4,'quedan 4 pendientes: '+r.n);
+ ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
