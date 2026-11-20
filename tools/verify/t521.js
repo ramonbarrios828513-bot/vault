@@ -6,7 +6,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click('#ventas [data-vt="tabla"]'); await p.waitForTimeout(300);
  const tb=await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); const g=k=>{ const i=ov.querySelector('[data-cm="'+k+'"]'); return i?i.value:null; }; return {tr:g('tr'),tb:g('tb'),qr:g('qr'),tx:ov.textContent}; });
  ok(tb.tr==='0'&&tb.tb==='0','en Reglas: Transferencia directa y Transferencia Brasil con comisión 0 % '+JSON.stringify([tb.tr,tb.tb]));
- ok(tb.qr==='2'&&/QR \(pago con QR\)/.test(tb.tx),'QR (pago con QR) sigue con 2 %');
+ ok(tb.qr==='2'&&/QR del POS \(Dinelco \/ Bancard\)/.test(tb.tx),'QR (pago con QR) sigue con 2 %');
  await p.evaluate(()=>document.querySelectorAll('.vt-ov').forEach(o=>o.remove()));
  await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(300);
  await p.evaluate(()=>{ const s=document.querySelector('.vt-ov [data-pf="0"]'); s.value='tb'; s.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(250);
