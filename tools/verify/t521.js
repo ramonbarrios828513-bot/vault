@@ -10,11 +10,11 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.evaluate(()=>document.querySelectorAll('.vt-ov').forEach(o=>o.remove()));
  await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(300);
  await p.evaluate(()=>{ const s=document.querySelector('.vt-ov [data-pf="0"]'); s.value='tb'; s.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(250);
- const has=await p.evaluate(()=>!!document.querySelector('.vt-ov [data-pbr="0"]')); ok(has,'Transferencia Brasil pide el monto en R$');
+ const has=await p.evaluate(()=>!!document.querySelector('.vt-ov [data-pbr="0"]')); ok(has,'PIX pide el monto en R$');
  await p.evaluate(()=>{ const i=document.querySelector('.vt-ov [data-pbr="0"]'); i.value='100'; i.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(250);
  const tx=await p.evaluate(()=>document.querySelector('.vt-ov [data-live]').textContent); ok(/115\.000/.test(tx)&&!/Falta/.test(tx),'100 R$ × 1.150 = ₲ 115.000 cubre el total: '+tx);
  await p.evaluate(()=>{ const s=document.querySelector('.vt-ov [data-pf="0"]'); s.value='tc'; s.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(250);
- const tip=await p.evaluate(()=>document.querySelector('.vt-ov').textContent); ok(/Ofrecele/.test(tip)&&/Transferencia Brasil/.test(tip),'con tarjeta avisa que para el cliente de Brasil conviene la transferencia');
+ const tip=await p.evaluate(()=>document.querySelector('.vt-ov').textContent); ok(/Ofrecele/.test(tip)&&/PIX/.test(tip),'con tarjeta avisa que para el cliente de Brasil conviene la transferencia');
  const opt=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov [data-pf="0"] option')].map(o=>o.value).join(',')); ok(/tr/.test(opt)&&/tb/.test(opt),'las formas nuevas están en el cobro: '+opt);
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
