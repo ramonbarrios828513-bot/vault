@@ -1,4 +1,4 @@
-// v1303 · pendientes de importación: los que no entraron quedan en «⛔ Pendientes de importación» dentro de Fichas y se corrigen ahí (✏️ Corregir abre la ficha con los datos del Excel)
+// v1303/v1304 · pendientes de importación: los que no entraron quedan en «⛔ Pendientes de importación» dentro de Fichas y se corrigen ahí (✏️ Corregir abre la ficha con los datos del Excel)
 const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
  await p.evaluate(()=>{ window.__vt.open(); }); await p.waitForTimeout(300);
@@ -9,9 +9,11 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.waitForFunction(()=>/Importadas|demasiadas/.test((document.getElementById('toast')||{}).textContent||'')||!!document.querySelector('[data-ak]'),null,{timeout:600000});
  await p.evaluate(()=>{ document.querySelectorAll('.vt-ov').forEach(o=>o.remove()); });
  const n0=await p.evaluate(()=>(window.__vt.st().impErr||[]).length);
- ok(n0===5,'quedaron 5 pendientes guardados: '+n0);
+ ok(n0===4,'quedaron 4 pendientes guardados: '+n0);
+ const hd=await p.evaluate(()=>{ const V=window.__vt.st(); const x=Object.values(V.arts).find(a=>String(a.cod)==='7892128'); return x&&{u:x.u,pvp:x.pvp,costo:x.costo,frac:x.frac,pres:(V.pres[x.id]||[]).map(q=>(q.t||'caja')+':'+(q.pvp||'')).join('|')}; });
+ ok(hd&&hd.u===30&&hd.pvp===240000&&hd.frac,'Hidrolágeno (Vital: unidad x1 con costo de caja) se arma Caja x30, PVP 240.000 y fracción: '+JSON.stringify(hd));
  const btn=await p.evaluate(()=>{ window.__fichas.open(); const x=document.querySelector('#fichasMod [data-ipend]'); return x&&x.textContent; });
- ok(/Pendientes de importación \(5\)/.test(btn||''),'botón en Fichas: '+btn);
+ ok(/Pendientes de importación \(4\)/.test(btn||''),'botón en Fichas: '+btn);
  await p.evaluate(()=>document.querySelector('#fichasMod [data-ipend]').click()); await p.waitForTimeout(300);
  const lst=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].filter(o=>/Pendientes de importación \(/.test(o.innerText)&&o.id!=='fichasMod').pop().innerText.replace(/\s+/g,' '));
  ok(/13910/.test(lst)&&/barra/i.test(lst),'la lista muestra Nivea 13910 con su problema');
@@ -22,6 +24,6 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.waitForTimeout(600);
  const r=await p.evaluate(()=>{ const V=window.__vt.st(); return { n:(V.impErr||[]).length, f:Object.values(V.arts).some(x=>String(x.cod)==='13910') }; });
  ok(r.f,'Nivea 13910 quedó importada con la barra corregida');
- ok(r.n===4,'quedan 4 pendientes: '+r.n);
+ ok(r.n===3,'quedan 3 pendientes: '+r.n);
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
