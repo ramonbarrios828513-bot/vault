@@ -2,7 +2,7 @@
 const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
  await p.evaluate(()=>{ const u=window.__tes.ui; window.__tes.open(); u.tab='gasto'; u.solo='gasto'; window.__tes.draw(); }); await p.waitForTimeout(500);
- const cards=await p.evaluate(()=>[...document.querySelectorAll('#tesoreria .tg-wz')].map(x=>x.dataset.tx2)); ok(cards.join()==='deu,fijA,fijS,tgVar,chq','5 opciones: '+cards);
+ const cards=await p.evaluate(()=>[...document.querySelectorAll('#tesoreria .tg-wz')].map(x=>x.dataset.tx2)); ok(cards.join()==='deu,fijA,fijS,tgVar,tar,chq','6 opciones (v1308 suma tarjeta de crédito): '+cards);
  const fill=async(vals)=>p.evaluate((vals)=>{ const ov=[...document.querySelectorAll('.ico-ov')].pop(); for(const [k,v] of Object.entries(vals)){ const i=[...ov.querySelectorAll('[data-k="'+k+'"]')].pop(); if(!i) { window.__miss=(window.__miss||[]).concat(k); continue; } i.value=v; i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); } const bs=[...ov.querySelectorAll('button')].filter(x=>/Guardar/.test(x.textContent)); bs[bs.length-1].click(); },vals);
  await p.click('#tesoreria .tg-wz[data-tx2="deu"]'); await p.waitForTimeout(400);
  await fill({acr:'Coomecipar T529',tipo:'Cooperativa',saldo:'30.000.000',cuota:'1.500.000',faltan:'20',dia:'15',fini:'2025-12-15',ffin:'2028-07-15'}); await p.waitForTimeout(500);

@@ -1,0 +1,21 @@
+// v1308 · 💳 tarjetas de crédito por titular en Gastos: límite, deuda total, disponible, pago mínimo; sin el número de la tarjeta; el mínimo entra a los compromisos
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>{ const u=window.__tes.ui; window.__tes.open(); u.tab='gasto'; u.solo='gasto'; window.__tes.draw(); }); await p.waitForTimeout(500);
+ const fill=async(vals)=>p.evaluate((vals)=>{ const ov=[...document.querySelectorAll('.ico-ov')].pop(); for(const [k,v] of Object.entries(vals)){ const i=[...ov.querySelectorAll('[data-k="'+k+'"]')].pop(); if(!i) { window.__miss=(window.__miss||[]).concat(k); continue; } i.value=v; i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); } const bs=[...ov.querySelectorAll('button')].filter(x=>/Guardar/.test(x.textContent)); bs[bs.length-1].click(); },vals);
+ await p.click('#tesoreria .tg-wz[data-tx2="tar"]'); await p.waitForTimeout(400);
+ const tits=await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.ico-ov')].pop(); return ov.innerHTML; }); ok(/Ramón Barrios Gauto/.test(tits)&&/Gisele Leticia Martínez Simón/.test(tits),'el formulario ofrece los dos titulares');
+ await fill({tit:'Ramón Barrios Gauto',banco:'Itaú',marca:'Visa',alias:'4111 1111 1111 1111',lim:'20.000.000',deuda:'8.000.000',min:'900.000',cierre:'25',dia:'5'}); await p.waitForTimeout(500);
+ const n0=await p.evaluate(()=>((window.__tes.st().tar)||[]).length); ok(n0===0,'NO guarda si se escribe el número de la tarjeta');
+ await fill({alias:'Oro'}); await p.waitForTimeout(600);
+ await p.click('#tesoreria .tg-wz[data-tx2="tar"]'); await p.waitForTimeout(400);
+ await fill({tit:'Gisele Leticia Martínez Simón',banco:'Continental',marca:'Mastercard',alias:'Clásica',lim:'10.000.000',deuda:'9.500.000',min:'700.000',cierre:'20',dia:'12'}); await p.waitForTimeout(600);
+ const r=await p.evaluate(()=>({n:(window.__tes.st().tar||[]).length, sec:(document.querySelector('#tesoreria [data-tarsec]')||{}).innerText||'', all:document.getElementById('tesoreria').innerText, miss:window.__miss||[]}));
+ const sec=r.sec.replace(/\s+/g,' '); console.log(sec.slice(0,700), r.miss);
+ ok(r.n===2,'2 tarjetas guardadas');
+ ok(/Ramón Barrios Gauto Itaú Visa Oro 20\.000\.000 8\.000\.000 12\.000\.000 40 % 900\.000/.test(sec),'Ramón: límite 20.000.000, deuda 8.000.000, disponible 12.000.000, usado 40 %, mínimo 900.000');
+ ok(/Gisele Leticia Martínez Simón Continental Mastercard Clásica 10\.000\.000 9\.500\.000 500\.000 95 % 700\.000/.test(sec),'Gisele: disponible 500.000, usado 95 %');
+ ok(/TOTAL TARJETAS 30\.000\.000 17\.500\.000 12\.500\.000 58 % 1\.600\.000/.test(sec),'total: límite 30.000.000, deuda 17.500.000, mínimos 1.600.000');
+ ok(/💳 Tarjeta/i.test(r.all)&&/M[íÍ]NIMOS DE TARJETAS/i.test(r.all),'el pago mínimo entra a los compromisos del mes');
+ ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
