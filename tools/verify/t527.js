@@ -3,7 +3,8 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
  await p.evaluate(()=>{ window.__vt.open(); const V=window.__vt.st(); V.open=true; V.movs=[]; V.stock={GS:{50000:2,10000:3,5000:2},BRL:{},USD:{}}; window.__vt.open(); });
  await p.click('#ventas [data-vt="pago"]'); await p.waitForTimeout(300);
- await p.evaluate(()=>{ const i=document.querySelector('.ask-in'); i.value='Agua y limpieza'; document.querySelector('[data-ak="yes"]').click(); }); await p.waitForTimeout(300);
+ const cs=await p.evaluate(()=>[...[...document.querySelectorAll('.vt-ov')].pop().querySelectorAll('[data-cc]')].map(b=>b.textContent)); ok(cs.length>=3,'pagos por concepto: '+cs.join(' | '));
+ await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); ov.querySelector('[data-cn]').value='Agua y limpieza'; ov.querySelector('[data-ca]').click(); }); await p.waitForTimeout(300);
  await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); const i=ov.querySelector('[data-vn="GS:10000"]'); i.value='2'; i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(250);
  await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); ov.querySelector('[data-vc="ok"]').click(); }); await p.waitForTimeout(400);
  const rc=await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); return ov?ov.innerText.replace(/\s+/g,' '):''; });
@@ -12,5 +13,10 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const st=await p.evaluate(()=>window.__vt.st().stock.GS[10000]); ok(st===1,'el stock de la caja bajó a 1 billete de ₲ 10.000');
  await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().querySelector('[data-inv]').click()); await p.waitForTimeout(300);
  const inv=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText.replace(/\s+/g,' ')); ok(/Remesas y pagos \/ egresos del turno \(1\)/.test(inv)&&/Agua y limpieza/.test(inv),'el inventario lista el pago del turno');
+ await p.evaluate(()=>document.querySelectorAll('.ico-ov').forEach(o=>o.remove()));
+ await p.click('#ventas [data-vt="rem"]'); await p.waitForTimeout(300);
+ const rs=await p.evaluate(()=>[...[...document.querySelectorAll('.vt-ov')].pop().querySelectorAll('[data-cc]')].map(b=>b.textContent).join(' | ')); ok(/Remesa administrativa/.test(rs)&&/Depósito al banco Basa/.test(rs),'remesas por concepto: '+rs);
+ await p.evaluate(()=>document.querySelectorAll('.ico-ov').forEach(o=>o.remove())); await p.click('#ventas [data-vt="pago"]'); await p.waitForTimeout(300);
+ const cs2=await p.evaluate(()=>[...[...document.querySelectorAll('.vt-ov')].pop().querySelectorAll('[data-cc]')].map(b=>b.textContent).join(' | ')); ok(/Agua y limpieza/.test(cs2)&&/hoy ₲ 20\.000/.test(cs2),'el concepto nuevo quedó guardado y muestra lo de hoy: '+cs2);
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
