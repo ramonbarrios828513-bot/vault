@@ -1,0 +1,24 @@
+// v1296 · presupuesto: validez (4 h por defecto, programable, ⌛ Vencido y 🔄 reactivar) · delivery: km × ₲ por km (editable) entra como renglón sin descuento, repartidor, «¿con cuánto paga?» y vuelto armado con la caja · sin cliente = Sin datos
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ p.on('dialog',d=>d.dismiss().catch(()=>{}));
+ await p.evaluate(()=>{ window.__vt.open(); const V=window.__vt.st(); V.open=true; V.stock={GS:{10000:3,5000:3,2000:5,1000:5,500:5,100:10},BRL:{},USD:{}}; const t=V.tabs.find(x=>x.k==='p'); t.dlv=true; t.cat='cd'; t.lines=[]; t.cli=''; V.cur=t.id; window.__vt.open(); }); await p.waitForTimeout(400);
+ let st=await p.evaluate(()=>{ const V=window.__vt.st(), t=V.tabs.find(x=>x.id===V.cur); return {dlv:t.dlv,cat:t.cat,v:!!t.vence}; }); ok(!st.dlv&&st.cat==='sd'&&st.v,'presupuesto vacío: sin delivery, Sin datos y con validez '+JSON.stringify(st));
+ const val=await p.evaluate(()=>document.querySelector('#ventas .vt-val').textContent); ok(/Válido hasta/.test(val),'muestra «Válido hasta»: '+val.slice(0,60));
+ await p.selectOption('#ventas [data-vf="val"]','48'); await p.waitForTimeout(300);
+ const v2=await p.evaluate(()=>{ const V=window.__vt.st(), t=V.tabs.find(x=>x.id===V.cur); return Math.round((t.vence-Date.now())/36e5); }); ok(v2===48,'el vendedor programa 2 días: '+v2+' h');
+ await p.evaluate(()=>{ const V=window.__vt.st(), t=V.tabs.find(x=>x.id===V.cur); t.vence=Date.now()-1000; window.__vt.open(); }); await p.waitForTimeout(300);
+ ok(/Vencido/.test(await p.evaluate(()=>document.querySelector('#ventas .vt-val').textContent)),'vencido muestra ⌛ Vencido');
+ await p.click('#ventas [data-vt="reval"]'); await p.waitForTimeout(300); ok(/Válido hasta/.test(await p.evaluate(()=>document.querySelector('#ventas .vt-val').textContent)),'🔄 reactivar');
+ await p.click('#ventas [data-vt="mano"]'); await p.waitForTimeout(250); await p.fill('.ask-in','Producto D'); await p.click('[data-ak="yes"]'); await p.waitForTimeout(250); await p.fill('.ask-in','88000'); await p.click('[data-ak="yes"]'); await p.waitForTimeout(300);
+ await p.check('#ventas [data-vf="dlv"]'); await p.waitForTimeout(300);
+ await p.fill('#ventas [data-vf="km"]','6'); await p.dispatchEvent('#ventas [data-vf="km"]','change'); await p.waitForTimeout(300);
+ const dl=await p.evaluate(()=>document.querySelector('#ventas .vt-dlv').textContent); ok(/₲ 1\.000/.test(dl)&&/₲ 6\.000/.test(dl),'6 km × ₲ 1.000 = ₲ 6.000');
+ await p.click('#ventas [data-vt="dlvadd"]'); await p.waitForTimeout(300);
+ const L=await p.evaluate(()=>{ const V=window.__vt.st(), t=V.tabs.find(x=>x.id===V.cur); return t.lines.find(x=>x.aid==='dlv'); }); ok(L&&L.pvp===6000&&L.nodesc,'entra el renglón «🛵 Delivery 6 km» ₲ 6.000 sin descuento');
+ await p.fill('#ventas [data-vf="rep"]','Juan Repartidor'); await p.dispatchEvent('#ventas [data-vf="rep"]','change'); await p.waitForTimeout(250);
+ await p.fill('#ventas [data-vf="paga"]','100000'); await p.dispatchEvent('#ventas [data-vf="paga"]','change'); await p.waitForTimeout(300);
+ const vu=await p.evaluate(()=>document.querySelector('#ventas .vt-dlv').textContent.replace(/\s+/g,' ')); ok(/lleva vuelto ₲ 6\.000/.test(vu)&&/5\.000/.test(vu),'paga con 100.000 → lleva vuelto ₲ 6.000 armado con la caja: '+vu.slice(-120));
+ ok(await p.evaluate(()=>(window.__vt.st().reps||[]).includes('Juan Repartidor')),'el repartidor queda en la lista');
+ ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
