@@ -8,9 +8,9 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.keyboard.type('0'); await p.keyboard.press('Enter'); await p.keyboard.type('1'); await p.waitForTimeout(150);
  const live=await p.evaluate(()=>document.querySelector('.vt-ov [data-live]').textContent); ok(/50\.000/.test(live)&&/Falta/.test(live),'suma en vivo mientras se escribe: '+live);
  await p.keyboard.press('Enter'); await p.keyboard.type('1'); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
- const st=await p.evaluate(()=>({ rec:window.__vt.st && JSON.stringify(document.querySelector('.vt-ov [data-live]').textContent) }));
- ok(/70\.000/.test(st.rec)&&/Vuelto/.test(st.rec),'1 de 50.000 + 1 de 20.000 = 70.000 → vuelto '+st.rec);
- if(!(await p.$('[data-vok]'))) await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(400);
+ const st=await p.evaluate(()=>{ const V=window.__vt.st(), s=V.sales[V.sales.length-1]; return { rec:s?JSON.stringify(s.pays[0].rec.GS):'', vu:s&&s.vuDado }; });
+ ok(/"50000":1/.test(st.rec)&&/"20000":1/.test(st.rec)&&st.vu===17300,'1 de 50.000 + 1 de 20.000 = 70.000 → Enter ya cobra con vuelto ₲ 17.300 '+JSON.stringify(st));
+ // ya confirmado con Enter
  const s=await p.evaluate(()=>window.__vt.st().stock.GS); ok(s[50000]===1&&s[20000]===6,'los billetes entraron al stock de la caja '+JSON.stringify(s));
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();

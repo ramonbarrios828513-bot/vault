@@ -36,7 +36,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(300);
  const tot=await p.evaluate(()=>+document.querySelector('.vt-ov .vt-big').textContent.replace(/\D/g,''));
  await p.click('.vt-ov [data-vp="rec"]'); await p.waitForTimeout(200); await p.fill('.vt-ov:last-of-type [data-vn="GS:100000"]','1'); await p.dispatchEvent('.vt-ov:last-of-type [data-vn="GS:100000"]','change'); await p.click('.vt-ov:last-of-type [data-vc="ok"]'); await p.waitForTimeout(300);
- const vu=100000-tot; await p.click('.vt-ov [data-vp="vu"]'); await p.waitForTimeout(200); await p.click('.vt-ov:last-of-type [data-vc="sug"]'); await p.waitForTimeout(200); await p.click('.vt-ov:last-of-type [data-vc="ok"]'); await p.waitForTimeout(300);
+ const vu=100000-tot; 
  await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(400);
  const af=await p.evaluate(()=>{ const V=window.__vt.st(); return { sales:V.sales.length, st:V.stock.GS, v:V.sales[0]&&V.sales[0].vuelto, tab0:V.tabs[0].lines.length, tab1:V.tabs[1].lines.length, sold:V.sold }; });
  const sumGs=Object.entries(af.st).reduce((a,[d,n])=>a+d*n,0);

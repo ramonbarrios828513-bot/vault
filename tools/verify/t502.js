@@ -22,7 +22,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  ok(m1.tot===83000&&m1.first==='tc'&&m1.chips===0&&m1.mix,'combinado: total con el 17 % (menor), tarjeta primero, efectivo bloqueado hasta cargar la tarjeta '+JSON.stringify(m1));
  await p.fill('.vt-ov [data-pm="0"]','40000'); await p.dispatchEvent('.vt-ov [data-pm="0"]','change'); await p.waitForTimeout(250);
  await p.click('.vt-ov [data-vp="rq"][data-d="50000"]'); await p.waitForTimeout(250);
- const m2=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov .vt-vr')].map(r=>r.querySelector('.q').textContent+'x'+r.querySelector('b').textContent.replace(/\D/g,'')));
+ const m2=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov [data-vo]')].filter(i=>+i.value>0).sort((a,b)=>+b.dataset.vo-+a.dataset.vo).map(i=>i.value+'x'+i.dataset.vo));
  ok(JSON.stringify(m2)===JSON.stringify(['1x5000','1x2000']),'resto ₲ 43.000 en efectivo con ₲ 50.000 → vuelto 7.000 sugerido '+JSON.stringify(m2));
  await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(400);
  const s=await p.evaluate(()=>{ const V=window.__vt.st(); const x=V.sales[V.sales.length-1]; return x&&{tot:x.total,pays:x.pays.map(q=>q.fp+':'+q.m)}; }); ok(s&&s.tot===83000&&s.pays.join()==='tc:40000,ef:43000','venta combinada guardada '+JSON.stringify(s));
