@@ -3,7 +3,7 @@ module.exports = async function setup(opts={}){ const b = await chromium.launch(
  await p.route('https://cdnjs.cloudflare.com/ajax/libs/xlsx/**', r=>r.fulfill({path:'/tmp/xlsx.full.min.js', contentType:'application/javascript'}));
  await p.route(/fonts\.googleapis|jsdelivr|gstatic|cdnjs\.cloudflare\.com\/ajax\/libs\/(pdf|mammoth)/, r=>r.abort());
  await p.addInitScript(()=>{ /*svAuto*/ new MutationObserver(()=>{ document.querySelectorAll('.sv-ov').forEach(x=>setTimeout(()=>x.remove(),30)); }).observe(document,{childList:true,subtree:true}); });
- await p.addInitScript(()=>{ try { if (!localStorage.getItem('wk-face')) localStorage.setItem('wk-face','fam'); } catch(e){} }); await p.addInitScript(()=>{ window.__plModeOK=true; window.__dblOK=true; });
+ await p.addInitScript(()=>{ try { if (!localStorage.getItem('wk-face')) localStorage.setItem('wk-face','fam'); } catch(e){} }); await p.addInitScript(()=>{ window.__plModeOK=true; window.__dblOK=true; window.__noAutoTk=true; });
  await p.goto('http://localhost:'+(process.env.PORT||8099)+'/work.html'); await p.addStyleTag({content:'.k-party.fh-remind{display:none!important}'}); await p.waitForTimeout(1200);
  await p.click('#heroPass'); await p.keyboard.type('1234'); await p.click('#heroPass2'); await p.keyboard.type('1234'); await p.click('text=Crear y entrar'); await p.waitForTimeout(2500);
  try{await p.click('text=Ahora no',{timeout:1000});}catch(e){}
