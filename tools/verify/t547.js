@@ -11,6 +11,10 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  ok(r.tot===132000,'total combinado = menor de hoy de cada producto: Kitadol 17 % (83.000) + Zetamol 2 % (49.000) = 132.000, aunque pague con efectivo (20 % / 5 %) y crédito Itaú en promo (18 %) → '+r.tot);
  ok(r.tb.some(x=>/Kitadol/.test(x)&&/83\.000/.test(x))&&r.tb.some(x=>/Zetamol/.test(x)&&/49\.000/.test(x)),'la tabla muestra el menor de cada producto');
  ok(/127\.500/.test(r.mix)&&/123\.000/.test(r.mix),'compara con pagar todo en efectivo (127.500) o todo con tarjeta (123.000)');
+ // saldo: cobra ₲ 100.000 con la tarjeta y muestra lo que falta en ₲, R$ y US$
+ await p.evaluate(()=>{ const V=window.__vt.st(); V.rate.BRL=1350; V.rate.USD=7300; const i=[...document.querySelectorAll('.vt-ov [data-pm]')].find(x=>!x.disabled&&x.closest('.vt-pl').querySelector('[data-pf]').value!=='ef'); i.value='100000'; i.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(400);
+ const sd=await p.evaluate(()=>(document.querySelector('.vt-ov .vt-saldo')||{}).innerText||'');
+ ok(/₲ 32\.000/.test(sd)&&/R\$ 23,71/.test(sd)&&/US\$ 4,39/.test(sd),'💬 saldo después de cobrar 100.000 con tarjeta: '+sd);
  await p.evaluate(()=>{ document.querySelectorAll('.vt-ov').forEach(o=>o.remove()); const V=window.__vt.st(); V.pr.promos=['ef','td','tc','qr','tr','tb'].map(f=>({on:true,fp:f,pct:30,dias:[0,1,2,3,4,5,6],todos:true})); window.__vt.open(); });
  await p.waitForTimeout(250); await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(300); await p.click('.vt-ov [data-vp="addp"]'); await p.waitForTimeout(400);
  const r2=await p.evaluate(()=>({tot:document.querySelector('.vt-ov .vt-big').textContent.replace(/\D/g,'')*1, mix:(document.querySelector('.vt-ov .vt-mix')||{}).textContent||''}));
