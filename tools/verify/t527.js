@@ -1,0 +1,16 @@
+// v1288 · 🧾 Pago / egreso: al registrarlo se ve el comprobante (billetes que salieron, había → queda) y queda en el inventario y en la lista de movimientos del turno
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>{ window.__vt.open(); const V=window.__vt.st(); V.open=true; V.movs=[]; V.stock={GS:{50000:2,10000:3,5000:2},BRL:{},USD:{}}; window.__vt.open(); });
+ await p.click('#ventas [data-vt="pago"]'); await p.waitForTimeout(300);
+ await p.evaluate(()=>{ const i=document.querySelector('.ask-in'); i.value='Agua y limpieza'; document.querySelector('[data-ak="yes"]').click(); }); await p.waitForTimeout(300);
+ await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); const i=ov.querySelector('[data-vn="GS:10000"]'); i.value='2'; i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(250);
+ await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); ov.querySelector('[data-vc="ok"]').click(); }); await p.waitForTimeout(400);
+ const rc=await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); return ov?ov.innerText.replace(/\s+/g,' '):''; });
+ ok(/Pago \/ egreso registrado/.test(rc)&&/Agua y limpieza/.test(rc)&&/20\.000/.test(rc),'muestra el comprobante del pago: '+rc.slice(0,120));
+ ok(/₲ 10\.000 −2 3 1/.test(rc),'billete ₲ 10.000: salieron 2, había 3, queda 1');
+ const st=await p.evaluate(()=>window.__vt.st().stock.GS[10000]); ok(st===1,'el stock de la caja bajó a 1 billete de ₲ 10.000');
+ await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().querySelector('[data-inv]').click()); await p.waitForTimeout(300);
+ const inv=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText.replace(/\s+/g,' ')); ok(/Remesas y pagos \/ egresos del turno \(1\)/.test(inv)&&/Agua y limpieza/.test(inv),'el inventario lista el pago del turno');
+ ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
