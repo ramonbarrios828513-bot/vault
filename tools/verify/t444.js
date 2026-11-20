@@ -3,7 +3,7 @@ const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:390,height:844}});
  await p.evaluate(()=>window.__inf.open()); await p.waitForTimeout(600);
- const n=await p.evaluate(()=>document.querySelectorAll('#infAula [data-inft]').length); ok(n===8,'8 lecciones ('+n+')');
+ const n=await p.evaluate(()=>document.querySelectorAll('#infAula [data-inft]').length); ok(n===9,'9 lecciones: las 8 de siempre más «Laravel y Python juntos» ('+n+')');
  const tx=[]; for (const id of ['pc','disk','baul','arch','bios','red','cam','mant']) { await p.evaluate(i=>document.querySelector('#infAula [data-inft="'+i+'"]').click(),id); await p.waitForTimeout(150); tx.push(await p.evaluate(()=>document.querySelector('#infAula .inf-mod h2').innerText)); }
  console.log('   '+tx.join(' | '));
  ok(/BIOS/.test(tx[4]) && /Redes/.test(tx[5]) && /Cámaras/.test(tx[6]),'cada lección se abre');
