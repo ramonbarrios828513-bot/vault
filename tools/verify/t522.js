@@ -8,9 +8,9 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click('.vt-ov [data-pbz="0"]'); await p.waitForTimeout(250);
  const w=await p.evaluate(()=>{ const x=document.querySelector('.vt-ov .vt-brw'); return x?x.textContent:''; });
  ok(/R\$ 1\.000/.test(w)&&/no lo maneja Nissifarma/.test(w)&&/no hay devolución/.test(w),'aviso para leer al cliente con R$ y ₲: '+w.slice(0,160));
- await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(250);
+ await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(250);
  let n=await p.evaluate(()=>window.__vt.st().sales.length); ok(n===0,'sin marcar «aceptó» no deja confirmar');
- await p.click('.vt-ov [data-pac="0"]'); await p.waitForTimeout(250); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400);
+ await p.click('.vt-ov [data-pac="0"]'); await p.waitForTimeout(250); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(400);
  const sv=await p.evaluate(()=>{ const S=window.__vt.st().sales; return S[S.length-1]; }); ok(sv&&sv.pays[0].br===1&&sv.pays[0].acep===1,'la venta queda guardada con «cliente de Brasil aceptó»');
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();

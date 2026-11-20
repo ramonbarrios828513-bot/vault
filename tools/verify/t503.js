@@ -12,7 +12,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click('.vt-ov [data-ok]'); await p.waitForTimeout(400);
  ok(await big()===50000,'ayuda +40 % pero con tope en el depósito 50 % → ₲ 50.000 (nunca baja de la ganancia retenida)');
  const why=await p.evaluate(()=>document.querySelector('#ventas .vt-why').textContent); ok(/ayuda/.test(why)&&/tope/.test(why),'explica la ayuda y el tope: '+why);
- await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(300); await p.click('.vt-ov [data-vp="rq"][data-d="50000"]'); await p.waitForTimeout(250); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400);
+ await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(300); await p.click('.vt-ov [data-vp="rq"][data-d="50000"]'); await p.waitForTimeout(250); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(400);
  const inc=await p.evaluate(()=>{ const x=window.__vt.st().inc[0]; return {est:x.est,n:x.n,sale:x.sale&&x.sale.total,sin:x.sale&&x.sale.sin}; }); ok(inc.est==='pend'&&inc.sale===50000&&inc.sin===80000,'queda 🟡 por verificar con la venta (ayuda ₲ 30.000) '+JSON.stringify(inc));
  await p.click('#ventas [data-vt="ayus"]'); await p.waitForTimeout(300); await p.click('.vt-ov [data-ae$=":llam"]'); await p.waitForTimeout(300); await p.fill('.ask-in','Encargado: llamé y confirmó'); await p.click('.ask-ov [data-ak=yes]'); await p.waitForTimeout(300);
  const st=await p.evaluate(()=>window.__vt.st().inc[0].est); ok(st==='llam','el encargado lo marca 📞 Llamado: confirmó');

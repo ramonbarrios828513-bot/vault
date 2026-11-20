@@ -37,7 +37,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const tot=await p.evaluate(()=>+document.querySelector('.vt-ov .vt-big').textContent.replace(/\D/g,''));
  await p.click('.vt-ov [data-vp="rec"]'); await p.waitForTimeout(200); await p.fill('.vt-ov:last-of-type [data-vn="GS:100000"]','1'); await p.dispatchEvent('.vt-ov:last-of-type [data-vn="GS:100000"]','change'); await p.click('.vt-ov:last-of-type [data-vc="ok"]'); await p.waitForTimeout(300);
  const vu=100000-tot; await p.click('.vt-ov [data-vp="vu"]'); await p.waitForTimeout(200); await p.click('.vt-ov:last-of-type [data-vc="sug"]'); await p.waitForTimeout(200); await p.click('.vt-ov:last-of-type [data-vc="ok"]'); await p.waitForTimeout(300);
- await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400);
+ await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(400);
  const af=await p.evaluate(()=>{ const V=window.__vt.st(); return { sales:V.sales.length, st:V.stock.GS, v:V.sales[0]&&V.sales[0].vuelto, tab0:V.tabs[0].lines.length, tab1:V.tabs[1].lines.length, sold:V.sold }; });
  const sumGs=Object.entries(af.st).reduce((a,[d,n])=>a+d*n,0);
  ok(af.sales===1 && af.v===vu && af.tab0===0 && af.tab1===1,'cobra, da el vuelto ₲ '+vu+' con billetes y la otra venta sigue intacta');
@@ -53,7 +53,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click('.vt-ov [data-vp="addp"]'); await p.waitForTimeout(200);
  const tm=await p.evaluate(()=>+document.querySelector('.vt-ov .vt-big').textContent.replace(/\D/g,''));
  await p.fill('.vt-ov [data-pm="0"]',String(tm-5000)); await p.dispatchEvent('.vt-ov [data-pm="0"]','change'); await p.waitForTimeout(250);
- await p.click('.vt-ov [data-vp="rq"][data-d="5000"]'); await p.waitForTimeout(250); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400);
+ await p.click('.vt-ov [data-vp="rq"][data-d="5000"]'); await p.waitForTimeout(250); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(400);
  const mx=await p.evaluate(()=>{ const V=window.__vt.st(); const s=V.sales[V.sales.length-1]; return { n:V.sales.length, pays:s.pays.map(x=>x.fp+':'+x.m), tot:s.total }; });
  ok(mx.n===2 && mx.pays.length===2 && mx.pays[0]==='tc:'+(mx.tot-5000) && mx.pays[1]==='ef:5000','pago mixto: primero tarjeta, después efectivo '+JSON.stringify(mx));
  // remesa sin pasar el stock

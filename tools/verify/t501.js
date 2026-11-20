@@ -16,7 +16,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  ok(/10\.000/.test(s2.sin) && /10\.000/.test(s2.toast),'avisa que no hay billetes de 10.000 '+s2.sin);
  ok(JSON.stringify(s2.rows)===JSON.stringify(['8x5000','2x2000']),'sin los de 20.000 se rearma con 5.000 y 2.000 '+JSON.stringify(s2.rows));
  await p.screenshot({path:'/tmp/claude-0/t501b.png'});
- await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400);
+ await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(400);
  const st=await p.evaluate(()=>window.__vt.st().stock.GS); ok(st[100000]===1&&st[5000]===2&&st[2000]===3&&st[20000]===5,'al confirmar, entra el de 100.000 y salen los billetes del vuelto '+JSON.stringify(st));
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();

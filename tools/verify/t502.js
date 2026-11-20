@@ -24,7 +24,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click('.vt-ov [data-vp="rq"][data-d="50000"]'); await p.waitForTimeout(250);
  const m2=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov .vt-vr')].map(r=>r.querySelector('.q').textContent+'x'+r.querySelector('b').textContent.replace(/\D/g,'')));
  ok(JSON.stringify(m2)===JSON.stringify(['1x5000','1x2000']),'resto ₲ 43.000 en efectivo con ₲ 50.000 → vuelto 7.000 sugerido '+JSON.stringify(m2));
- await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400);
+ await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(400);
  const s=await p.evaluate(()=>{ const V=window.__vt.st(); const x=V.sales[V.sales.length-1]; return x&&{tot:x.total,pays:x.pays.map(q=>q.fp+':'+q.m)}; }); ok(s&&s.tot===83000&&s.pays.join()==='tc:40000,ef:43000','venta combinada guardada '+JSON.stringify(s));
  // tabla de reglas abre y guarda
  await p.click('#ventas [data-vt="tabla"]'); await p.waitForTimeout(300); const pv=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].some(o=>/Vista previa/.test(o.textContent)&&/Categorías de cliente/.test(o.textContent)&&/Grupos y fechas/.test(o.textContent))); ok(pv,'🏷️ reglas: categorías, fechas de grupos, promos y vista previa'); await p.click('.vt-ov [data-ok]'); await p.waitForTimeout(200);

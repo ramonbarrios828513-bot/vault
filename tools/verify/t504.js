@@ -20,7 +20,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  // pagar con débito Continental Mastercard → se guarda sola
  await p.evaluate(()=>{ const V=window.__vt.st(); V.open=true; V.stock={GS:{},BRL:{},USD:{}}; const t=V.tabs.find(x=>x.id===V.cur); t.fp='td'; t.bk='Continental'; t.lines=[{aid:'m1',n:'Prueba',q:1,pvp:100000,cost:35000,uq:1}]; window.__vt.open(); });
  await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(300);
- await p.selectOption('.vt-ov [data-pmc="0"]','Mastercard'); await p.dispatchEvent('.vt-ov [data-pmc="0"]','change'); await p.click('.vt-ov [data-vp="resto"]'); await p.waitForTimeout(200); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400);
+ await p.selectOption('.vt-ov [data-pmc="0"]','Mastercard'); await p.dispatchEvent('.vt-ov [data-pmc="0"]','change'); await p.click('.vt-ov [data-vp="resto"]'); await p.waitForTimeout(200); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(300); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(400);
  c=await p.evaluate(()=>{ const c=window.__vt.st().clients.find(x=>x.ci==='5551234'); return c.tjs.map(x=>x.tp+' '+x.bk+' '+x.mc+' n'+x.n); }); ok(c.some(x=>/^deb Continental Mastercard n1/.test(x)),'al pagar, guarda solo débito Continental Mastercard en la ficha '+JSON.stringify(c));
  // en el próximo cobro con débito, sugiere su tarjeta
  await p.evaluate(()=>{ const V=window.__vt.st(); const t=V.tabs.find(x=>x.id===V.cur); t.cid=V.clients.find(x=>x.ci==='5551234').id; t.cli='Nuevo Rápido'; t.cat='ce'; t.fp='td'; t.lines=[{aid:'m1',n:'Prueba',q:1,pvp:100000,cost:35000,uq:1}]; window.__vt.open(); });
