@@ -18,7 +18,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const L=await p.evaluate(()=>window.__vt.st().tabs[0].lines.map(l=>(l.uq||1)*l.q)); ok(JSON.stringify(L.sort((a,b)=>a-b))===JSON.stringify([1,10,20]),'el lector reconoce cada barra: unidad 1, tableta 10, caja 20 '+JSON.stringify(L));
  const pv=await p.evaluate(()=>{ const t=window.__vt.st().tabs[0]; const o={}; t.lines.forEach(l=>{ o[l.uq||1]=[l.pvp,l.cost]; }); return o; }); ok(pv[20][0]===100000&&pv[10][0]===50000&&pv[1][0]===7000&&pv[1][1]===1750,'cada presentación vende con su PVP y costo: caja 100.000, tableta 50.000, unidad 7.000 (más alto, permitido) '+JSON.stringify(pv));
  const tags=await p.evaluate(()=>[...document.querySelectorAll('#ventas .vt-pt')].map(x=>x.textContent.trim())); ok(['📦 CAJA · 20 FR','💊 TABLETA · 10 FR','🔹 FRACCIÓN · 1 FR'].every(x=>tags.includes(x)),'cada renglón de la venta dice qué presentación es '+JSON.stringify(tags));
- const ds=await p.evaluate(()=>window.__vt.st().tabs[0].lines.map(l=>l.n)); ok(ds.includes('Kitadol Forte QA · Caja x20')&&ds.includes('Kitadol Forte QA · Tableta x10')&&ds.includes('Kitadol Forte comprimido suelto'),'cada barra trae su propia descripción a la venta '+JSON.stringify(ds));
+ const ds=await p.evaluate(()=>window.__vt.st().tabs[0].lines.map(l=>l.n)); ok(ds.includes('Kitadol Forte QA · Caja x20FR')&&ds.includes('Kitadol Forte QA · Tableta x10FR')&&ds.includes('Kitadol Forte comprimido suelto'),'cada barra trae su propia descripción a la venta '+JSON.stringify(ds));
  await p.screenshot({path:'/tmp/claude-0/ventapres.png'});
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();

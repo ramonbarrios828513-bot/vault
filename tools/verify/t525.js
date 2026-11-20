@@ -1,0 +1,21 @@
+// v1286 · ficha inteligente: nombre del padre + presentación principal, costo y PVP directos por presentación (1 caja x20FR / 1 tableta x10FR / 1 fracción x1FR), descripciones con componente, 🧠 revisión que avisa y ✨ arregla
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>{ window.__fichas.open(); }); await p.waitForTimeout(300); await p.click('#fichasMod [data-an]'); await p.waitForTimeout(300);
+ const F=()=>'.vt-ov:last-of-type ';
+ const set=async(k,v)=>p.evaluate(([k,v])=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); const i=ov.querySelector('[data-ar="'+k+'"]'); i.value=v; i.dispatchEvent(new Event('input',{bubbles:true})); },[k,v]);
+ await set('n','Kitadol T525 400 cj x20FR'); await set('pa','Ibuprofeno 400 mg'); await set('u','20');
+ await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); const c=ov.querySelector('[data-frac]'); c.checked=true; c.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(200);
+ const lb=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().querySelector('.vt-prs').textContent); ok(/1 Caja x 20FR/.test(lb)&&/1 Fracción x 1FR/.test(lb),'filas «1 Caja x 20FR / 1 Tableta / 1 Fracción x 1FR»');
+ await set('tb','10'); await set('pCaja','20.000'); await set('cCaja','7.000'); await set('dT','Kitadol tableta'); await set('pTab','50.000'); await p.waitForTimeout(150);
+ const blk=await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); return {pvp:(ov.querySelector('[data-ar="pvp"]')||{}).value, costo:(ov.querySelector('[data-ar="costo"]')||{}).value, chk:ov.querySelector('.vt-chk').textContent}; });
+ ok(blk.pvp==='20.000'&&blk.costo==='7.000','costo y PVP de la caja escritos en la tabla pasan al bloque de precio');
+ ok(/no dice su componente/.test(blk.chk)&&/proporcional a la caja sería ₲ 10\.000/.test(blk.chk),'🧠 avisa: la tableta no dice su componente y el PVP 50.000 no va con la caja (10.000)');
+ await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().querySelector('[data-afix]').click()); await p.waitForTimeout(250);
+ const chk2=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().querySelector('.vt-chk').textContent); ok(/Ficha coherente/.test(chk2),'✨ arregla todo: '+chk2.slice(0,80));
+ await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().querySelector('[data-ok]').click()); await p.waitForTimeout(300);
+ const r=await p.evaluate(()=>{ const V=window.__vt.st(); const id=Object.keys(V.arts).find(k=>V.arts[k].n==='Kitadol T525 400 cj x20FR'); const P=V.pres[id]||[]; return {cajaPvp:V.arts[id]&&V.arts[id].pvp, tab:P.find(q=>q.t==='tab'), fr:P.find(q=>q.t==='fr'), caja:P.find(q=>q.id==='caja')}; });
+ ok(r.cajaPvp===20000,'caja PVP ₲ 20.000'); ok(r.tab&&r.tab.pvp===10000&&/Ibuprofeno/.test(r.tab.dsc)&&/Tableta x10FR/.test(r.tab.dsc),'tableta: ₲ 10.000 y «'+(r.tab&&r.tab.dsc)+'»');
+ ok(r.fr&&r.fr.pvp===1000&&/Ibuprofeno/.test(r.fr.dsc),'fracción: ₲ 1.000 y «'+(r.fr&&r.fr.dsc)+'»'); ok(/Ibuprofeno/.test(r.caja.dsc)&&/Caja x20FR/.test(r.caja.dsc),'caja: «'+r.caja.dsc+'»');
+ ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
