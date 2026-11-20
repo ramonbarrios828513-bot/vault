@@ -4,7 +4,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.evaluate(()=>window.__vt.open()); await p.waitForTimeout(700);
  const n0=await p.evaluate(()=>window.__vt.st().clients.length); ok(n0>=13,'ya hay clientes de prueba en el buscador ('+n0+')');
  await p.click('#ventas [data-vt="pickcli"]'); await p.waitForTimeout(200); await p.fill('.vt-ov [data-cq]','ande'); await p.waitForTimeout(200);
- const ande=await p.evaluate(()=>document.querySelectorAll('.vt-ov [data-cp]:not([data-cp="sd"])').length); ok(ande===2,'busca por empresa: 2 funcionarios de ANDE');
+ const ande=await p.evaluate(()=>document.querySelectorAll('.vt-ov [data-cp]:not([data-cp="sd"])').length); ok(ande===0&&/No se busca por nombre/.test(await p.evaluate(()=>[...document.querySelectorAll('.vt-ov .vt-list')].pop().innerText)),'v1307: en la venta no se busca por nombre ni empresa, solo por C.I. o RUC');
  await p.click('.vt-ov [data-cqk]'); await p.waitForTimeout(200);
  await p.fill('.vt-ov:last-of-type [data-q="n"]','Nuevo Rápido'); await p.fill('.vt-ov:last-of-type [data-q="doc"]','5551234'); await p.fill('.vt-ov:last-of-type [data-q="tel"]','0991 555 123'); await p.click('.vt-ov:last-of-type [data-ok]'); await p.waitForTimeout(300);
  let t=await p.evaluate(()=>{ const V=window.__vt.st(); return {cli:V.tabs.find(x=>x.id===V.cur).cli, cat:V.tabs.find(x=>x.id===V.cur).cat}; }); ok(t.cli==='Nuevo Rápido'&&t.cat==='cd','⚡ rápido desde el buscador: queda en la venta como registrado '+JSON.stringify(t));

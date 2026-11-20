@@ -10,7 +10,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.evaluate(()=>{ const V=window.__vt.st(), t=V.tabs.find(x=>x.id===V.cur); t.vence=Date.now()-1000; window.__vt.open(); }); await p.waitForTimeout(300);
  ok(/Vencido/.test(await p.evaluate(()=>document.querySelector('#ventas .vt-val').textContent)),'vencido muestra ⌛ Vencido');
  await p.click('#ventas [data-vt="reval"]'); await p.waitForTimeout(300); ok(/Válido hasta/.test(await p.evaluate(()=>document.querySelector('#ventas .vt-val').textContent)),'🔄 reactivar');
- await p.click('#ventas [data-vt="mano"]'); await p.waitForTimeout(250); await p.fill('.ask-in','Producto D'); await p.click('[data-ak="yes"]'); await p.waitForTimeout(250); await p.fill('.ask-in','88000'); await p.click('[data-ak="yes"]'); await p.waitForTimeout(300);
+ await p.evaluate(()=>{ window.__vt.st().pr.mano=true; window.__vt.open(); }); await p.waitForTimeout(1300); await p.click('#ventas [data-vt="mano"]'); await p.waitForTimeout(250); await p.fill('.ask-in','Producto D'); await p.click('[data-ak="yes"]'); await p.waitForTimeout(250); await p.fill('.ask-in','88000'); await p.click('[data-ak="yes"]'); await p.waitForTimeout(300);
  await p.check('#ventas [data-vf="dlv"]'); await p.waitForTimeout(300);
  await p.fill('#ventas [data-vf="km"]','6'); await p.dispatchEvent('#ventas [data-vf="km"]','change'); await p.waitForTimeout(300);
  const dl=await p.evaluate(()=>document.querySelector('#ventas .vt-dlv').textContent); ok(/₲ 1\.000/.test(dl)&&/₲ 6\.000/.test(dl),'6 km × ₲ 1.000 = ₲ 6.000');
