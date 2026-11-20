@@ -1,0 +1,20 @@
+// v1283 · nuevas formas de pago: 🏦 Transferencia directa (alias o cuenta, gratis) y 🇧🇷 Transferencia Brasil (cuenta o QR del banco, gratis, se carga en R$ con la cotización); QR sigue con 2 %
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>{ window.__vt.open(); const V=window.__vt.st(); V.open=true; V.rate.BRL=1150; const t=V.tabs[0]; V.cur=t.id; t.cat='sd'; t.fp='tb'; t.lines=[{aid:'m1',n:'Prueba',q:1,pvp:115000,uq:1}]; window.__vt.open(); });
+ await p.waitForTimeout(300);
+ await p.click('#ventas [data-vt="tabla"]'); await p.waitForTimeout(300);
+ const tb=await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); const g=k=>{ const i=ov.querySelector('[data-cm="'+k+'"]'); return i?i.value:null; }; return {tr:g('tr'),tb:g('tb'),qr:g('qr'),tx:ov.textContent}; });
+ ok(tb.tr==='0'&&tb.tb==='0','en Reglas: Transferencia directa y Transferencia Brasil con comisión 0 % '+JSON.stringify([tb.tr,tb.tb]));
+ ok(tb.qr==='2'&&/QR \(pago con QR\)/.test(tb.tx),'QR (pago con QR) sigue con 2 %');
+ await p.evaluate(()=>document.querySelectorAll('.vt-ov').forEach(o=>o.remove()));
+ await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(300);
+ await p.evaluate(()=>{ const s=document.querySelector('.vt-ov [data-pf="0"]'); s.value='tb'; s.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(250);
+ const has=await p.evaluate(()=>!!document.querySelector('.vt-ov [data-pbr="0"]')); ok(has,'Transferencia Brasil pide el monto en R$');
+ await p.evaluate(()=>{ const i=document.querySelector('.vt-ov [data-pbr="0"]'); i.value='100'; i.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(250);
+ const tx=await p.evaluate(()=>document.querySelector('.vt-ov [data-live]').textContent); ok(/115\.000/.test(tx)&&!/Falta/.test(tx),'100 R$ × 1.150 = ₲ 115.000 cubre el total: '+tx);
+ await p.evaluate(()=>{ const s=document.querySelector('.vt-ov [data-pf="0"]'); s.value='tc'; s.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(250);
+ const tip=await p.evaluate(()=>document.querySelector('.vt-ov').textContent); ok(/Ofrecele/.test(tip)&&/Transferencia Brasil/.test(tip),'con tarjeta avisa que para el cliente de Brasil conviene la transferencia');
+ const opt=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov [data-pf="0"] option')].map(o=>o.value).join(',')); ok(/tr/.test(opt)&&/tb/.test(opt),'las formas nuevas están en el cobro: '+opt);
+ ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
