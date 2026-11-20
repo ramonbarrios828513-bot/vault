@@ -1,0 +1,22 @@
+// v1306 · las 18.000 fichas de Vital entran: van al almacén grande (IndexedDB), la memoria chica guarda solo la caja; al recargar siguen todas
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>{ window.__vt.open(); }); await p.waitForTimeout(300);
+ await p.evaluate(async()=>{ const wb=await (await fetch('/mig.json')).json(); window.__fichas.mig(wb); }); await p.waitForTimeout(1500);
+ await p.evaluate(()=>{ const r=document.querySelector('input[name="impsc"][value="all"]'); r.click(); r.dispatchEvent(new Event('change',{bubbles:true})); }); await p.waitForTimeout(1500);
+ const t0=Date.now(); await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].filter(o=>o.querySelector('[name="impsc"]')).pop().querySelector('[data-impgo]').click());
+ await p.waitForFunction(()=>/Importadas|no las pudo/.test(((document.getElementById('toast')||{}).textContent||'')+document.body.innerText.slice(-3000)),null,{timeout:1200000});
+ const sec=Math.round((Date.now()-t0)/1000);
+ const r=await p.evaluate(()=>({ toast:document.getElementById('toast').textContent.slice(0,140), n:Object.keys(window.__vt.st().arts).length, ls:(localStorage.getItem('vt-caja1')||'').length, cat:window.__vtCat.st() }));
+ console.log(sec+' s', JSON.stringify(r));
+ ok(/Importadas/.test(r.toast)&&r.n>18000,'importó todas: '+r.n+' fichas en '+sec+' s');
+ ok(r.cat.on&&r.ls<1500000,'las fichas están en el almacén grande; memoria chica '+Math.round(r.ls/1024)+' KB');
+ await p.reload(); await p.waitForTimeout(2500);
+ const r2=await p.evaluate(()=>{ window.__vt.open(); const V=window.__vt.st(); const k=Object.values(V.arts).find(x=>String(x.cod)==='1'); return { n:Object.keys(V.arts).length, k:k&&k.bar[0], stk:k&&V.stk[k.id], pend:window.__vtCat.st().pend }; });
+ ok(r2.n>18000&&r2.k==='7840199086491'&&r2.stk===996&&!r2.pend,'al recargar siguen todas, Kitadol con su barra y stock: '+JSON.stringify(r2));
+ await p.evaluate(()=>{ const V=window.__vt.st(); V.sales.push({t:Date.now(),total:1234,pays:[],lines:[]}); const k=Object.values(V.arts).find(x=>String(x.cod)==='1'); k.n=k.n+' *'; window.__vtSave&&window.__vtSave(); });
+ await p.evaluate(()=>window.__vtCat.flush()); await p.reload(); await p.waitForTimeout(2500);
+ const r3=await p.evaluate(()=>{ window.__vt.open(); const V=window.__vt.st(); const k=Object.values(V.arts).find(x=>String(x.cod)==='1'); return { n:Object.keys(V.arts).length, star:/\*$/.test(k.n) }; });
+ ok(r3.n>18000&&r3.star,'un cambio en la ficha se guarda en el almacén grande');
+ ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
