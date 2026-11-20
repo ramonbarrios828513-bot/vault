@@ -1,0 +1,22 @@
+// v1291 · 💸 Gastos: módulo inteligente — ¿Qué querés registrar? (préstamo, alquiler/inmobiliaria, servicio de sucursal, gasto del día, cheque) y 📅 compromisos por día, por cuenta y total por mes
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>{ const u=window.__tes.ui; window.__tes.open(); u.tab='gasto'; u.solo='gasto'; window.__tes.draw(); }); await p.waitForTimeout(500);
+ const cards=await p.evaluate(()=>[...document.querySelectorAll('#tesoreria .tg-wz')].map(x=>x.dataset.tx2)); ok(cards.join()==='deu,fijA,fijS,tgVar,chq','5 opciones: '+cards);
+ const fill=async(vals)=>p.evaluate((vals)=>{ const ov=[...document.querySelectorAll('.ico-ov')].pop(); for(const [k,v] of Object.entries(vals)){ const i=[...ov.querySelectorAll('[data-k="'+k+'"]')].pop(); if(!i) { window.__miss=(window.__miss||[]).concat(k); continue; } i.value=v; i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); } const bs=[...ov.querySelectorAll('button')].filter(x=>/Guardar/.test(x.textContent)); bs[bs.length-1].click(); },vals);
+ await p.click('#tesoreria .tg-wz[data-tx2="deu"]'); await p.waitForTimeout(400);
+ await fill({acr:'Coomecipar T529',tipo:'Cooperativa',saldo:'30.000.000',cuota:'1.500.000',faltan:'20',dia:'15',fini:'2025-12-15',ffin:'2028-07-15'}); await p.waitForTimeout(500);
+ await p.click('#tesoreria .tg-wz[data-tx2="fijA"]'); await p.waitForTimeout(400);
+ const t1=await p.evaluate(()=>[...document.querySelectorAll('.ico-ov')].pop().querySelector('[data-k="tipo"]').value); ok(t1==='Inmobiliaria','alquiler/inmobiliaria viene preelegido: '+t1);
+ await fill({suc:'KM 7',det:'Inmobiliaria Rodan T529',m:'4.000.000',dia:'5'}); await p.waitForTimeout(500);
+ await p.click('#tesoreria .tg-wz[data-tx2="fijS"]'); await p.waitForTimeout(400);
+ const v1=await p.evaluate(()=>[...document.querySelectorAll('.ico-ov')].pop().querySelector('[data-k="var"]').value); ok(/Variable/.test(v1),'servicio (ANDE) viene como variable estimado');
+ await fill({suc:'Franco',det:'ANDE T529',m:'900.000',dia:'20'}); await p.waitForTimeout(600);
+ await p.evaluate(()=>{ const u=window.__tes.ui; u.tab='gasto'; u.solo='gasto'; window.__tes.draw(); }); await p.waitForTimeout(400);
+ const tx=await p.evaluate(()=>document.getElementById('tesoreria').innerText.replace(/\s+/g,' '));
+ ok(/Compromisos registrados/.test(tx)&&/Coomecipar T529/.test(tx)&&/Inmobiliaria Rodan T529/.test(tx)&&/ANDE T529/.test(tx),'la lista de compromisos muestra préstamo, alquiler y ANDE');
+ ok(/TOTAL POR MES/.test(tx)&&/6\.400\.000/.test(tx),'total por mes 1.500.000 + 4.000.000 + ≈900.000 = 6.400.000');
+ const order=await p.evaluate(()=>[...document.querySelectorAll('#tesoreria table.tes-t')][0]&&[...[...document.querySelectorAll('#tesoreria table.tes-t')][0].querySelectorAll('tr td:first-child')].map(x=>x.textContent).join(',')); ok(/^5,15,20/.test(order||''),'ordenado por día del mes: '+order);
+ ok(!(await p.evaluate(()=>window.__miss)),'todos los campos encontrados '+(await p.evaluate(()=>window.__miss)));
+ ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
