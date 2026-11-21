@@ -6,7 +6,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click('#tesoreria [data-tx2="dscE"]'); await p.waitForTimeout(300); await fill({n:'Financiera A',tasa:'3',gf:'50.000',gp:'0'}); await p.waitForTimeout(500);
  await p.click('#tesoreria .tes-bar [data-tx2="dscE"]'); await p.waitForTimeout(300); await fill({n:'Cooperativa B',tasa:'2,5',gf:'0',gp:'0,5',iva:'No cobra IVA'}); await p.waitForTimeout(500);
  const n=await p.evaluate(()=>window.__tes.st().cfg.dscE.length); ok(n===2,'2 entidades guardadas');
- const d30=new Date(Date.now()+30*864e5); const f=d30.toISOString().slice(0,10);
+ const f=await p.evaluate(()=>{ const d=new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()+30); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }); // fecha local (de noche, la fecha UTC ya es mañana y daba 31 días)
  await p.fill('#dscM','10000000'); await p.waitForTimeout(800); await p.fill('#dscF',f); await p.waitForTimeout(500);
  const tx=await p.evaluate(()=>document.getElementById('dscCalc').innerText.replace(/\s+/g,' '));
  // A: interés 3%×30/30 = 300.000 + IVA 30.000 + 50.000 = 380.000 · B: 2,5% = 250.000 + 0 + 50.000 = 300.000 → B más barata
