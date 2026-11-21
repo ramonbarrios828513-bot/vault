@@ -8,6 +8,6 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.evaluate((hoy)=>{ const $=id=>document.getElementById(id); $('tesNP').value='Parma Internacional S.A.'; $('tesNM').value='11.325.147'; $('tesNF').value=hoy; if($('tesNE')) $('tesNE').value=hoy; $('tesNN').value='998877'; const t=$('tesNT'); t.value=[...t.options].find(o=>/Compra/.test(o.text)).value||'Compra para la venta (mercadería)'; document.querySelector('[data-tes="simSave"]').click(); },hoy); await p.waitForTimeout(800);
  const r=await p.evaluate(()=>{ const T=window.__tes.st(); const c=T.chq.find(x=>x.prov==='Parma Internacional S.A.'); return { c:!!c, tipo:c&&c.tipo, html:window.__txChqHoy(), prov:Object.keys((T.cfg||{}).provN||{}) }; });
  ok(r.c&&/Compra/.test(r.tipo),'el cheque se guardó con tipo «Compra…»');
- ok(/Parma Internacional/.test(r.html)&&/11\.325\.147/.test(r.html),'aparece en «Cheques a cubrir» y suma al total');
+ const finde=[0,6].includes(new Date().getDay()); /* sábado y domingo el cheque de hoy se debita el lunes: recién ese día entra en «a cubrir» (así está hecho) */ if(finde) ok(!/Parma Internacional/.test(r.html),'fin de semana: el cheque de hoy se debita el lunes y todavía no figura en «Cheques a cubrir»'); else ok(/Parma Internacional/.test(r.html)&&/11\.325\.147/.test(r.html),'aparece en «Cheques a cubrir» y suma al total');
  ok(r.prov.indexOf('Parma Internacional S.A.')>=0,'el proveedor escrito a mano quedó registrado');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | ')); await b.close(); process.exit(fail?1:0); })();
