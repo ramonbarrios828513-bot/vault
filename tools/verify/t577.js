@@ -11,7 +11,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  ok(/Dentro de su horario \(de 15:00 a 23:00\): 08:00 h de salario base — de esas, 03:00 h llevan diferencia nocturna \(de 20:00 a 23:00/.test(st.s5),'de 15 a 23: 8 h de salario base, 3 h con diferencia nocturna (20 a 23)');
  ok(/Se quedó 01:00 h después de su horario \(de 23:00 a 00:00\): son 01:00 h de hora nocturna/.test(st.s5),'de 23 a 00: 1 h de hora nocturna');
  ok(/Le tocaban 0[78]:00 h/.test(st.s5)&&/trabajó 10:00 h: 0[23]:00 h de más/.test(st.s5),'cierra: lo que le tocaba, lo que trabajó y cuánto de más (igual que el cartel de siempre)');
- ok(/Llegó 00:20 h tarde/.test(st.s6)&&/Salió 00:30 h antes/.test(st.s6)&&/Descanso que no se cuenta: 01:00 h/.test(st.s6)&&/le faltaron 00:50 h/.test(st.s6)&&st.col==='rgb(15, 23, 42)','martes 6: llegó tarde, salió antes, descanso 1 h y «le faltaron»');
+ ok(/Llegó 00:20 h tarde/.test(st.s6)&&/Salió 00:30 h antes/.test(st.s6)&&/Descanso que no se cuenta: 01:00 h/.test(st.s6)&&/le faltaron 01:50 h/.test(st.s6)&&st.col==='rgb(15, 23, 42)','martes 6: llegó tarde, salió antes, descanso 1 h y «le faltaron»');
  ok(!st.s7,'un día sin marcas no muestra el cuadro');
  ok(st.prt>=28&&st.nb>=28,'cada fecha tiene 🖨️ Imprimir y 📝 Incidencia ('+st.prt+' / '+st.nb+')');
  // imprimir solo ese día
