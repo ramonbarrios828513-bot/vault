@@ -15,7 +15,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(Math.abs(r.h4.plus-4*H)<2 && r.h4.falta>r.h8.falta && Math.abs(r.h8.plus-7*H)<2,'trabajó 4 h: cobra 4 h de feriado y del salario se descuentan las horas que faltó (8 h con 1 h de almuerzo = 7 h)');
  ok(Math.abs(r.h4p.plus-4*H)<2 && r.h4p.falta<r.h4.falta,'trabajó 4 h con permiso: cobra 4 h y no se descuentan las otras 4');
  ok(r.fab.plus===0 && r.fab.falta===r.fd.falta,'abandonó sin aviso: no cobra nada y se descuenta el día');
- ok(Math.abs(r.h10n.plus-(8*H+1*H*1.3))<3 && /Horas extra nocturnas/.test(r.h10n.det) && /no suma nocturnas/.test(r.h10n.all),'feriado de noche con 9 h: 8 h de feriado + 1 h extra nocturna (+30 %), sin nocturnas del día ('+r.h10n.plus+')');
+ ok(Math.abs(r.h10n.plus-(8*H+2*H*1.3))<3 && /Horas extra nocturnas/.test(r.h10n.det) && /no suma nocturnas/.test(r.h10n.all),'feriado de noche 18:00 a 04:00 = 10 h (entró de tarde: desde la v1319 NO se le descuenta descanso por defecto): 8 h de feriado + 2 h extra nocturnas (+30 %), sin nocturnas del día ('+r.h10n.plus+')');
  ok(r.h10n.exD===r.h8.exD,'las horas extra del feriado no se pagan dos veces');
  ok(r.h4.keep.indexOf('"fsel":"fp"')>=0 && r.h4.con===0,'los datos guardados no se cambian al calcular');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
