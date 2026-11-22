@@ -1,0 +1,21 @@
+// v1320 · 🎁 Planilla: el descanso que se descuenta es dinámico por fecha — la empresa regala todo el corte, una parte (1 de 2 horas) o nada; también la hora por defecto; y «No descontar: Nissifarma regala esa hora» en el desplegable. Nada con candado: lo decide el dueño en la fila.
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1600,height:900}});
+ await p.evaluate(()=>{ document.querySelectorAll('.big-ov').forEach(x=>x.hidden=true); window.__pla.open(); }); await p.waitForTimeout(800);
+ await p.evaluate(()=>{ const P=window.__pla.st(); const sch={}; for(let i=1;i<7;i++) sch[i]={e:'06:30',s:'15:30'}; sch[0]={e:'',s:'',off:true}; const E={id:'t582',n:'PRUEBA REGALO',sal:3044000,tipo:'fijo',sch:sch,days:{'2026-06':{18:{e:'06:30',sd:'12:00',vd:'14:00',s:'15:30'},19:{e:'06:30',s:'23:00'}}}}; P.emps.push(E); P.cur=Object.assign(P.cur||{},{mon:'2026-06',emp:'t582'}); window.__pla.open(); }); await p.waitForTimeout(2800);
+ const R=d=>'.pl-tb > .pl-r[data-d="'+d+'"] ';
+ const row=d=>p.evaluate(d=>{ const P=window.__pla.st(),E=P.emps.find(x=>x.id==='t582'),r=document.querySelector('.pl-tb > .pl-r[data-d="'+d+'"]'),c=r.querySelector('select[data-k="ct"]'),g=r.querySelector('.v20-reg'),st=r.querySelector(':scope > .v15-st'); return {sp:[...r.querySelectorAll(':scope > span:not(.pl-dd)')].map(x=>x.textContent),ct:c.value,opts:[...c.options].map(o=>o.textContent),chip:((r.querySelector('.v19-cut')||{}).innerText||'').replace(/\s+/g,' '),reg:g?g.innerText.replace(/\s+/g,' '):'',inp:g?g.querySelector('input').value:null,story:st?st.innerText:'',x:E.days['2026-06'][d]||{},neto:Math.round(window.__pla.calc(E,'2026-06',P.cfg).neto)}; },d);
+ const set=async(d,v)=>{ await p.fill(R(d)+'[data-v20reg]',v); await p.keyboard.press('Tab'); await p.waitForTimeout(1600); };
+ let a=await row(18); const n0=a.neto; ok(a.sp.join('·')==='07:00·00:00·02:00'&&/2:00 h/.test(a.chip)&&/corte real/.test(a.chip)&&a.inp==='','corte real de 2 h cargado: descuenta las 2 h y ofrece la casilla «🎁 Nissifarma regala»');
+ ok(a.opts.length===3&&/Nissifarma regala esa hora/.test(a.opts[2]),'el desplegable trae también «No descontar: Nissifarma regala esa hora»');
+ await set(18,'1:00'); a=await row(18); const n1=a.neto; ok(a.sp.join('·')==='08:00·00:00·01:00'&&a.x.regH===60&&/se descuenta 1:00 h/.test(a.reg)&&/Nissifarma regala 01:00 h/.test(a.story)&&n1>n0,'regala 1 de las 2 horas: se descuenta solo 1 h, queda anotado en «El día, paso a paso» y sube lo que cobra ('+n0+' → '+n1+')');
+ await set(18,'2'); a=await row(18); ok(a.sp.join('·')==='09:00·00:00·00:00'&&a.x.regH===120&&a.neto>n1,'regala las 2 horas: no se descuenta nada ('+a.sp.join(' · ')+')');
+ await set(18,'0:30'); a=await row(18); ok(a.sp[2]==='01:30'&&a.x.regH===30,'cualquier valor sirve (0:30 → se descuenta 1:30): es editable, no estándar');
+ await set(18,''); a=await row(18); ok(a.sp.join('·')==='07:00·00:00·02:00'&&!('regH' in a.x)&&a.neto===n0,'vaciando la casilla vuelve a descontar las 2 h, todo como estaba');
+ // la hora por defecto (entró a la mañana, no cargó corte) también se puede regalar, entera o en parte
+ let c=await row(19); ok(c.sp[2]==='01:00'&&/por defecto/.test(c.chip)&&c.inp==='','06:30 a 23:00 sin corte cargado: descuenta 1 h por defecto y lo dice');
+ await set(19,'0:30'); c=await row(19); ok(c.sp[2]==='00:30'&&c.x.regH===30,'la hora por defecto se puede regalar en parte (queda 0:30)');
+ await p.selectOption(R(19)+'select[data-k="ct"]','g0'); await p.waitForTimeout(1700); c=await row(19); ok(c.sp[2]==='00:00'&&c.x.regalo===1&&c.x.ct==='0'&&c.ct==='g0'&&/Nissifarma regala esa hora/.test(c.chip)&&/Nissifarma regala la hora de descanso/.test(c.story),'«No descontar: Nissifarma regala esa hora»: no descuenta y queda escrito en la fecha');
+ await p.selectOption(R(19)+'select[data-k="ct"]',''); await p.waitForTimeout(1700); c=await row(19); ok(c.sp[2]==='01:00'&&!c.x.regalo,'volviendo a «Aplicar el corte real» descuenta otra vez la hora: nada queda con candado');
+ ok(!errs.length,'sin errores de consola'+(errs.length?': '+errs.slice(0,2).join(' | '):''));
+ await b.close(); console.log(fail?'fallas '+fail:'OK t582'); process.exit(fail?1:0); })();
