@@ -21,5 +21,16 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  // reabrir: sigue todo y se puede quitar el blíster
  await p.evaluate(()=>{ const b=[...document.querySelectorAll('#fichasMod [data-ae]')].pop(); b.click(); }); await p.waitForTimeout(600);
  s=await g(); ok(s.px.length===2&&/COSTO FINAL ₲ 20\.000/.test(s.ngr),'al reabrir: presentación y negociación siguen');
+ // el ejemplo del dueño: blíster principal de 300 FR a ₲ 300.000 (costo 150.000), tiras de 10 → tira 10.000 / 5.000 y fracción 1.000 / 500
+ await p.evaluate(()=>{ const f0=[...document.querySelectorAll('.vt-ov')].pop(); if(f0&&f0.querySelector('[data-ar]')) f0.querySelector('[data-x]').click(); document.querySelector('#fichasMod [data-an]').click(); }); await p.waitForTimeout(600);
+ await F('[data-ar="n"]','Dipirona 500'); await F('[data-ar="pa"]','Dipirona 500 mg'); await p.selectOption('.ico-ov [data-ar="pm"]','Blíster'); await p.waitForTimeout(400);
+ await F('[data-ar="u"]','300'); await F('[data-ar="tb"]','10'); await F('[data-ar="pvp"]','300000'); await F('[data-ar="costo"]','150000');
+ const ej=await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov')].pop(); const v=k=>o.querySelector('[data-ar="'+k+'"]').value; return [v('pTab'),v('cTab'),v('pFr'),v('cFr'),o.querySelector('.vt-prs').innerText.includes('Blíster x 300FR')].join(' / '); });
+ ok(ej==='10.000 / 5.000 / 1.000 / 500 / true','blíster 300 FR a 300.000 (costo 150.000): tira 10.000 / 5.000 · fracción 1.000 / 500 → '+ej);
+ // blíster que trae cajas: el precio escrito en el blíster se desglosa a la caja
+ await p.evaluate(()=>{ const f0=[...document.querySelectorAll('.vt-ov')].pop(); if(f0&&f0.querySelector('[data-ar]')) f0.querySelector('[data-x]').click(); document.querySelector('#fichasMod [data-an]').click(); }); await p.waitForTimeout(600);
+ await F('[data-ar="n"]','Paracetamol 750'); await F('[data-ar="pa"]','Paracetamol 750 mg'); await F('[data-ar="u"]','10'); await F('[data-px="0"][data-pk="cant"]','25'); await F('[data-px="0"][data-pk="pvp"]','250000'); await F('[data-px="0"][data-pk="cost"]','125000');
+ const dz=await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov')].pop(); const v=k=>o.querySelector('[data-ar="'+k+'"]').value; return [v('pCaja'),v('cCaja'),v('pFr'),v('cFr'),o.querySelector('[data-px="0"][data-pk="pvp"]').value].join(' / '); });
+ ok(dz==='10.000 / 5.000 / 1.000 / 500 / 250.000','precio cargado en el blíster de 25 cajas se desglosa: caja 10.000 / 5.000 · fracción 1.000 / 500 → '+dz);
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
