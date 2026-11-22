@@ -1,4 +1,4 @@
-// v1315–v1316 · 📱 Planilla en el teléfono: la fila fecha entra en la pantalla (las 4 horas se ven, nada se corre a la derecha) y el cartel del nombre es bajo
+// v1315–v1317 · 📱 Planilla en el teléfono: la fila fecha entra en la pantalla (las 4 horas se ven, nada se corre a la derecha) y el cartel del nombre es bajo
 const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:390,height:844}});
  await p.evaluate(()=>{ document.querySelectorAll('.big-ov').forEach(x=>x.hidden=true); window.__pla.open(); }); await p.waitForTimeout(800);
@@ -9,6 +9,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  ok(r.inp.length===4&&r.inp.every(w=>w>=60),'las 4 horas se ven enteras (anchos '+r.inp.join(', ')+')');
  ok(r.wb>0&&r.wb<=80,'el cartel del nombre ocupa poco ('+r.wb+' px)');
  const sw=await p.evaluate(()=>{ const a=document.getElementById('planilla'); return [a.scrollWidth,a.clientWidth]; }); ok(sw[0]<=sw[1]+1,'la planilla entera no se corre de costado: ni el cuadro «Ver» ni los conceptos (Multa, monto) se salen ('+sw.join(' / ')+')');
+ const tb=await p.evaluate(()=>{ const t=document.querySelector('#planilla table.pl-rt'); if(!t) return null; const c=t.querySelector('td[data-th]'); return {w:Math.round(t.getBoundingClientRect().right),n:t.querySelectorAll('td[data-th]').length,d:getComputedStyle(t.querySelector('tbody tr')).display,th:c?c.dataset.th:''}; }); ok(tb&&tb.w<=391&&tb.n>3&&tb.d==='block'&&!!tb.th,'las tablas grandes pasan a tarjetas en el teléfono, con el título de cada dato al lado ('+(tb?tb.n+' datos, ej. «'+tb.th+'»':'sin tabla')+')');
  ok(r.prt&&r.st,'la fila trae 🖨️ Imprimir y «El día, paso a paso»');
  ok(!errs.length,'sin errores de consola');
  await b.close(); console.log(fail?'fallas '+fail:'OK t578'); process.exit(fail?1:0); })();
