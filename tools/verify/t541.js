@@ -1,4 +1,4 @@
-// v1301 · importar la migración de Vital (hojas MIG): Kitadol código 1 con barra del fabricante en la caja y barras internas para tableta y fracción; solo con stock; borra las fichas de prueba; combinaciones caja+tableta / caja+fracción / unidad
+// v1301 · importar la migración de Vital (hojas MIG): Kitadol código 1 con barra del fabricante en la caja y barras internas para tira y fracción; solo con stock; borra las fichas de prueba; combinaciones caja+tira / caja+fracción / unidad
 const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
  await p.evaluate(()=>{ window.__vt.open(); const V=window.__vt.st(); document.querySelector('#ventas [data-vt="tdemo"]')&&document.querySelector('#ventas [data-vt="tdemo"]').click(); V.arts.vaX={id:'vaX',va:1,n:'kitadol forte 400 caja x20 (mía de prueba)',u:20,bar:['1112223334445'],pvp:20000,costo:7000,cod:'99999999',frac:false,neg:'pvp'}; });
@@ -14,9 +14,9 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const r=await p.evaluate(()=>{ const V=window.__vt.st(); const f=c=>Object.values(V.arts).find(x=>String(x.cod)===c); const k=f('1'), b3=f('3'); return { toast:document.getElementById('toast').textContent, n:Object.keys(V.arts).length, demo:Object.values(V.arts).filter(x=>x.demo||x.id==='vaX').length, k:k&&{n:k.n,bar:k.bar[0],u:k.u,pvp:k.pvp,mig:k.mig,pres:(V.pres[k.id]||[]).map(q=>(q.t||'caja')+':'+(q.bar||'')+':'+(q.pvp||'')), stk:V.stk[k.id]}, b3:b3&&(V.pres[b3.id]||[]).map(q=>q.t||'caja').join('+'), size:JSON.stringify(V).length }; });
  console.log(JSON.stringify(r).slice(0,900));
  ok(r.k&&r.k.bar==='7840199086491'&&r.k.u===20&&r.k.pvp===19600,'Kitadol código 1: barra del fabricante en la caja x20, PVP 19.600');
- ok(r.k&&r.k.pres.some(x=>/^tab:2000000120003:9800/.test(x))&&r.k.pres.some(x=>/^fr:2000000130002:1050/.test(x)),'tableta x10 ₲ 9.800 y fracción ₲ 1.050 con barras internas: '+(r.k&&r.k.pres.join(' | ')));
+ ok(r.k&&r.k.pres.some(x=>/^tab:2000000120003:9800/.test(x))&&r.k.pres.some(x=>/^fr:2000000130002:1050/.test(x)),'tira x10 ₲ 9.800 y fracción ₲ 1.050 con barras internas: '+(r.k&&r.k.pres.join(' | ')));
  ok(r.k&&r.k.stk===996,'stock 996 FR'); ok(await p.evaluate(()=>{ window.__fichas.open(); return /996 FR \(comp\.\) = 49 CJ \+ 16 FR/.test(document.getElementById('fichasMod').textContent); }),'se muestra «996 FR (comp.) = 49 CJ + 16 FR»');
- ok(r.b3==='caja+tab','Blotenol (código 3): caja + tableta, sin fracción');
+ ok(r.b3==='caja+tab','Blotenol (código 3): caja + tira, sin fracción');
  ok(r.demo===0,'las fichas de prueba se borraron'); ok(r.n===3072,'3072 fichas, ninguna pisada: '+r.n);
  ok(/Importadas/.test(r.toast),'importación terminada: '+r.toast.slice(0,160)+' · tamaño '+Math.round(r.size/1024)+' KB');
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
