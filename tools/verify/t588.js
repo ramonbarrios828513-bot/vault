@@ -25,6 +25,8 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  ok(/El TICKET dice: saldo a rendir/.test(s.est),'el resumen de abajo también muestra el saldo del ticket');
  await p.fill('#cierre [data-czk="srTk"]','124050'); await p.waitForTimeout(900); s=await st();
  ok(s.inp==='124.050'&&/FALTA plata: ₲ 17\.550/.test(s.box)&&/cuenta del funcionario/.test(s.box),'al corregir el campo a mano se actualiza solo: saldo mayor que lo justificado → FALTA ₲ 17.550, a la cuenta del funcionario');
+ await p.fill('#cierre [data-czk="adTk"]','50000'); await p.waitForTimeout(900); s=await st();
+ ok(/Total adelantos de salario: ₲ 50\.000/.test(s.box)&&/falta registrar ₲ 50\.000 con su pagaré/.test(s.box)&&/Egresos \+ adelantos: ₲ 110\.000/.test(s.box),'campo editable del total de adelantos de salario: va aparte de los egresos y se suman al final (₲ 110.000)');
  ok(s.re,'queda el botón «🔁 Ajustar la foto y volver a leer»');
  await p.evaluate(()=>document.querySelector('#cierre [data-czre]').click()); await p.waitForSelector('.ds-rv',{timeout:8000}).catch(()=>{}); await p.waitForTimeout(400);
  ok(!!(await p.$('.ds-rv')),'volver a leer abre otra vez la revisión de la misma foto');
