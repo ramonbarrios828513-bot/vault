@@ -21,6 +21,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  ok(/Saldo a rendir \(el del ticket\): ₲ 64\.050/.test(s.box)&&/solo tarjeta, QR y transferencia: ₲ 106\.500/.test(s.box),'⑧ El sobre muestra el saldo a rendir del ticket y lo que lo justifica (tarjeta + QR + transferencia)');
  ok(/SOBRA plata en caja: ₲ 42\.450/.test(s.box),'saldo a rendir menor que lo justificado → SOBRA ₲ 42.450');
  ok(/el ticket dice ₲ 64\.050 \(diferencia ₲ 60\.000\)/.test(s.box)&&/egreso de ₲ 60\.000/.test(s.box),'avisa que al sistema le falta cargar el egreso de ₲ 60.000 del ticket');
+ ok(/Total egresos: ₲ 60\.000/.test(s.box)&&/falta registrar ₲ 60\.000 con su factura/.test(s.box)&&/Total adelantos de salario: ₲ 0/.test(s.box),'el bloque muestra el total de egresos (del ticket, editable) y el total de adelantos de salario');
  ok(/El TICKET dice: saldo a rendir/.test(s.est),'el resumen de abajo también muestra el saldo del ticket');
  await p.fill('#cierre [data-czk="srTk"]','124050'); await p.waitForTimeout(900); s=await st();
  ok(s.inp==='124.050'&&/FALTA plata: ₲ 17\.550/.test(s.box)&&/cuenta del funcionario/.test(s.box),'al corregir el campo a mano se actualiza solo: saldo mayor que lo justificado → FALTA ₲ 17.550, a la cuenta del funcionario');
