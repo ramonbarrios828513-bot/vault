@@ -7,8 +7,17 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  let c=await cards(3); console.log(c.join(' || '));
  ok(/Noche-madrugada 23:00 a 06:30/.test(c[0])&&/Mañana-tarde 06:30 a 15:30/.test(c[1])&&/Tarde-noche 15:00 a 23:00/.test(c[2]),'de fábrica: 🌙 23:00–06:30 · ☀️ 06:30–15:30 · 🌆 15:00–23:00, en ese orden');
  ok(/Le tocaba: 15:00 a 23:00/.test(c[2])&&!/Le tocaba/.test(c[1]),'«le tocaba» está dentro del bloque tarde-noche');
- ok(/15:00 – 23:00/.test(c[2])&&/8:00 h/.test(c[2])&&/sin horas/.test(c[1]),'entró 15:00: las 8 h van enteras a tarde-noche (aunque 15:00–15:30 se pisa con mañana-tarde)');
+ ok(/15:00 – 23:00/.test(c[2])&&/8:00 h/.test(c[2])&&/0:00 h/.test(c[1]),'entró 15:00: las 8 h van enteras a tarde-noche (aunque 15:00–15:30 se pisa con mañana-tarde)');
  c=await cards(2); ok(/08:30 – 15:00/.test(c[1])&&/16:00 – 23:00/.test(c[2]),'08:30 a 23:00 con corte 15–16: mañana-tarde 08:30–15:00 y tarde-noche 16:00–23:00');
+ // el detalle blanco del día va en tres bloques
+ const det=await p.evaluate(()=>{ const r=document.querySelector('.pl-tb > .pl-r[data-d="2"]'); const g=r.querySelector('.v24-g3'); return g?{cols:[...g.querySelectorAll('.v24-c')].map(c=>c.innerText.replace(/\s+/g,' ')),pie:r.querySelector('.v24-gf').innerText.replace(/\s+/g,' '),w:[...g.querySelectorAll('.v24-c')].map(c=>Math.round(c.getBoundingClientRect().left))}:null; });
+ console.log(JSON.stringify(det));
+ ok(det&&det.cols.length===3&&/^🌙 Noche-madrugada 23:00 a 06:30$/.test(det.cols[0].trim()),'detalle del día en 3 bloques, en orden noche · mañana · tarde; el bloque sin datos queda visible y vacío');
+ ok(det&&/08:30–15:00 → 6:30 h ☀️ diurna/.test(det.cols[1])&&!/Le tocaba/.test(det.cols[1]),'bloque mañana-tarde: 08:30–15:00 = 6:30 diurna');
+ ok(det&&/Le tocaba: 15:00 a 23:00/.test(det.cols[2])&&/15:00–16:00 → 🍽️ descanso/.test(det.cols[2])&&/16:00–20:00 → 4:00 h ☀️ diurna/.test(det.cols[2])&&/20:00–23:00 → 3:00 h 🌙 nocturna/.test(det.cols[2]),'bloque tarde-noche: le tocaba + descanso + 4:00 diurna + 3:00 nocturna');
+ ok(det&&/Trabajó: 08:30 a 23:00/.test(det.pie)&&/Total:/.test(det.pie)&&/más que su horario/.test(det.pie),'abajo queda el resumen: trabajó, total y la diferencia con su horario');
+ ok(det&&det.w[0]<det.w[1]&&det.w[1]<det.w[2],'los tres bloques van lado a lado');
+ await p.evaluate(()=>document.querySelector('.pl-tb > .pl-r[data-d="2"]').scrollIntoView({block:'center'})); await p.waitForTimeout(300); await p.screenshot({path:'/tmp/claude-0/-home-claude/35b1ce44-d35c-5596-924f-bd3f45a2f74d/scratchpad/blq24.png'});
  // bloques propios para B586: 07–16 · 16–24 · 00–07
  await p.evaluate(()=>{ const P=window.__pla.st(); P.cur.emp='B586'; window.__pla.open(); }); await p.waitForTimeout(2500);
  await p.evaluate(()=>window.__v14.cfg()); await p.waitForTimeout(400);
