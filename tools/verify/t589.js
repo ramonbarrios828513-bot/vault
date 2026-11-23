@@ -14,5 +14,10 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  ok(R.A&&R.A.conf>=0.6&&near(R.A.x0,200,25)&&near(R.A.x1,700,25)&&near(R.A.y0,150,25)&&near(R.A.y1,1150,25),'hoja blanca sobre mesa oscura: sale entera, como antes');
  ok(R.B&&R.B.conf>=0.6&&near(R.B.x0,120,25)&&near(R.B.x1,380,30)&&near(R.B.y0,90,30)&&near(R.B.y1,1190,30),'ticket blanco sobre tela CLARA: recorta solo el ticket (x '+(R.B&&R.B.x0)+'–'+(R.B&&R.B.x1)+' de 900), no el ticket con la tela');
  ok(R.C&&R.C.conf>=0.6&&near(R.C.x0,150,25)&&near(R.C.x1,750,25)&&near(R.C.y0,150,25)&&near(R.C.y1,1150,25),'hoja con la mitad en sombra suave: sale entera, no se corta por la sombra');
+ // 🎯 enderezar: una hoja con los renglones inclinados 4° se detecta y queda derecha
+ const S=await p.evaluate(()=>{ const mk=(deg)=>{ const c=document.createElement('canvas'); c.width=500; c.height=1100; const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,500,1100); x.translate(250,550); x.rotate(deg*Math.PI/180); x.fillStyle='#111'; for(let y=-480;y<480;y+=30) x.fillRect(-190,y,380*(0.55+((y*7+700)%10)/22),7); return c; }; const c4=mk(4), cm=mk(-3), c0=mk(0); const a4=window.__dsSkew(c4), am=window.__dsSkew(cm), a0=window.__dsSkew(c0); const fix=window.__dsRotFine(c4,-a4); return {a4:a4,am:am,a0:a0,after:window.__dsSkew(fix),same:fix.width===500&&fix.height===1100}; });
+ console.log(JSON.stringify(S));
+ ok(Math.abs(S.a4-4)<=0.75&&Math.abs(S.am+3)<=0.75&&Math.abs(S.a0)<=0.5,'mide la inclinación de los renglones: 4° → '+S.a4+' · −3° → '+S.am+' · derecha → '+S.a0);
+ ok(Math.abs(S.after)<=0.5&&S.same,'después de enderezar, la hoja queda derecha ('+S.after+'°) y del mismo tamaño');
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
