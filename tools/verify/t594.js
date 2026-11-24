@@ -1,0 +1,26 @@
+// v1332/v1333 · migración: TODO se importa (lo que trae error entra marcado y agrupado), barra repetida queda en el vigente, N.º de orden corrido y búsqueda de barra sin importar los ceros de adelante
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>{ window.__vt.open(); }); await p.waitForTimeout(300);
+ await p.evaluate(()=>{ const V=window.__vt.st(); V.arts.vaT={id:'vaT',va:1,cod:'99999999',n:'Otra crema con la barra de la Nivea',bar:['42207573'],pvp:1000,costo:500,u:1,neg:'pvp',grp:'General',iva:'10',rx:'libre'}; });
+ await p.evaluate(async()=>{ const wb=await (await fetch('/mig.json')).json(); window.__fichas.mig(wb); }); await p.waitForTimeout(1500);
+ const pv=await p.evaluate(()=>{ const o=[...document.querySelectorAll('.vt-ov')].pop(); return {t:o.querySelector('.vt-tot').innerText.replace(/\s+/g,' '),chk:!!(o.querySelector('[data-imperr]')||{}).checked,go:o.querySelector('[data-impgo]').innerText,sticky:getComputedStyle(o.querySelector('.ico-acts')).position}; });
+ ok(/1 con error: entran igual, marcadas para corregir/.test(pv.t)&&pv.chk&&/Importar 3076 ficha/.test(pv.go),'la vista previa avisa que la que tiene error entra igual y cuenta las 3076 ('+pv.t.slice(-70)+')');
+ ok(pv.sticky==='sticky','el botón «✅ Importar» queda fijo a la vista');
+ await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().querySelector('[data-impgo]').click());
+ await p.waitForFunction(()=>/Importadas|demasiadas/.test((document.getElementById('toast')||{}).textContent||'')||!!document.querySelector('[data-ak]'),null,{timeout:600000});
+ const r=await p.evaluate(()=>{ const V=window.__vt.st(); const A=Object.values(V.arts), f=c=>A.find(x=>String(x.cod)===c), nv=f('13910'), k=f('1'); const ords=A.map(x=>+x.ord).sort((a,b)=>a-b); const byCod=A.slice().sort((a,b)=>parseInt(a.cod,10)-parseInt(b.cod,10)); return {toast:document.getElementById('toast').textContent, n:A.length, pend:(V.impErr||[]).length, nv:nv&&{bar:nv.bar[0],impE:nv.impE,stk:V.stk[nv.id]}, k1:k&&k.ord, ordOk:ords[0]===1&&ords[ords.length-1]===A.length&&new Set(ords).size===A.length, mono:byCod.every((x,i)=>+x.ord===i+1), seed:!!V.arts.vaT}; });
+ ok(r.n===3076&&r.pend===0&&/Importadas 3076/.test(r.toast)&&/1 entraron con error/.test(r.toast),'entraron las 3076, sin dejar pendientes ('+r.toast.slice(0,110)+')');
+ ok(r.nv&&/^2\d{12}$/.test(r.nv.bar)&&r.nv.impE&&/barra 42207573/.test(r.nv.impE.join(' '))&&r.nv.stk===3,'la Nivea 13910 entró como ficha con barra interna, su stock y el error anotado ('+JSON.stringify(r.nv).slice(0,150)+')');
+ ok(r.ordOk&&r.mono&&r.k1===1,'N.º de orden corrido del 1 al 3076, sin saltos, siguiendo el Código Nissi');
+ await p.evaluate(()=>{ window.__fichas.open(); }); await p.waitForTimeout(900);
+ const L=await p.evaluate(async()=>{ const W=ms=>new Promise(r=>setTimeout(r,ms)); const M=document.querySelector('#fichasMod'); const o={rows:M.querySelectorAll('.vt-li').length,hint:[...M.querySelectorAll('.vt-hint')].map(x=>x.innerText).join(' | '),head:(M.querySelector('.v33-head')||{}).innerText||'',row1:M.querySelector('.vt-li').innerText.replace(/\s+/g,' ').slice(0,120),grupos:[...M.querySelector('[data-fgrp]').options].map(x=>x.textContent.trim())}; const g=M.querySelector('[data-fgrp]'); g.value='Barra repetida'; g.dispatchEvent(new Event('change',{bubbles:true})); await W(500); o.err=[...M.querySelectorAll('.vt-li')].map(x=>x.innerText.replace(/\s+/g,' ').slice(0,200)); return o; });
+ ok(L.rows===150&&/primeras 150 de 3076/.test(L.hint),'la lista muestra de a 150 y avisa que el resto se busca');
+ ok(/N\.º/.test(L.head)&&/Código Nissi/.test(L.head)&&/Barra principal/.test(L.head)&&/^1 Código Nissi 1 /.test(L.row1),'columnas alineadas con título: N.º · Código Nissi · Barra principal… ('+L.row1.slice(0,70)+')');
+ ok(L.grupos.some(x=>/entraron con error \(1\)/.test(x))&&L.grupos.some(x=>/Barra repetida \(1\)/.test(x))&&L.err.length===1&&/Código Nissi 13910/.test(L.err[0])&&/Entró con error/.test(L.err[0]),'«⚠️ Mostrar» agrupa las fichas por tipo de error ('+L.grupos.join(' / ')+')');
+ // ceros de adelante
+ const z=await p.evaluate(()=>{ const V=window.__vt.st(); const x=Object.values(V.arts).find(a=>/^\d{11}$/.test((a.bar||[])[0]||'')); const b=x.bar[0]; return {cod:String(x.cod),b,a:window.__fichas.find('0'+b),c:window.__fichas.find('00'+b),d:window.__fichas.find(b),k:window.__fichas.find('7840199086491'),k0:window.__fichas.find('840199086491'),no:window.__fichas.find('9999999999994')}; });
+ ok(z.a===z.cod&&z.c===z.cod&&z.d===z.cod,'una barra guardada con 11 dígitos se encuentra aunque el lector la mande con uno o dos ceros adelante ('+z.b+' → código '+z.cod+')');
+ ok(z.k==='1'&&z.k0===''&&z.no==='','la barra exacta sigue funcionando y una barra incompleta o desconocida no encuentra nada');
+ ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
+ await b.close(); process.exit(fail?1:0); })();
