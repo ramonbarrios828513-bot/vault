@@ -29,6 +29,11 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  ok(s.n===1&&s.suc==='Local 1 KM7'&&s.caj==='ANA GOMEZ','el ticket de otra persona y otra sucursal NO cambia lo que se eligió ('+s.suc+' · '+s.caj+')');
  ok(/cajero\/a «MARTA RUIZ» y vos elegiste «ANA GOMEZ»/.test(s.av),'avisa en rojo que el ticket dice otro cajero');
  ok(/parece Local 2 KM8\) y vos elegiste Local 1 KM7/.test(s.av),'avisa en rojo que el encabezado es de otra sucursal');
+ ok(/Según el personal, MARTA RUIZ es de Local 2 KM8, no de Local 1 KM7/.test(s.av),'el aviso dice de qué sucursal es esa persona según el personal');
+ const z=await p.evaluate(()=>JSON.stringify(window.__cz.fotoApply({n:389,caja:2,cajero:'PAOLA DUARTE',local:'Nisi FARMA 8 Santa Ana',ef:1000}).avis));
+ ok(/parece Local 3 Sta Ana\) y vos elegiste Local 1 KM7/.test(z)&&/cajero\/a «PAOLA DUARTE»/.test(z),'un cierre con encabezado «Nisi FARMA 8 Santa Ana» cargado en KM7 avisa que parece de Santa Ana');
+ const z2=await p.evaluate(()=>{ const S=window.__cz.st(); S.cfg=S.cfg||{}; S.cfg.cajas=S.cfg.cajas||{}; S.cfg.cajas['Local 1 KM7']=['Caja 1']; return JSON.stringify(window.__cz.fotoApply({n:390,caja:2,cajero:'ANA GOMEZ',ef:1000}).avis); });
+ ok(/Caja 2 y Local 1 KM7 no tiene esa caja cargada/.test(z2),'si el ticket es de una caja que esa sucursal no tiene, avisa ('+z2.slice(0,90)+')');
  // mismo cajero y misma sucursal: sin avisos
  const r=await p.evaluate(()=>{ const f=window.__cz.fotoApply&&window.__cz.fotoApply({n:62,cajero:'Ana Gomes',local:'Nissifarma Km7',ef:1000}); return f?JSON.stringify(f.avis):'nohook'; });
  ok(r==='[]','si el ticket dice la misma persona y la misma sucursal no hay avisos ('+r+')');
