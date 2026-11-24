@@ -1,0 +1,24 @@
+// v1335 · 🎁 bonificación por regla: «10+7» se convierte sola según la cantidad pedida (20→14, 200→140, 1+1 con 100→100); un número solo sigue siendo regalo fijo; cuando no da justo, se elige cómo redondea
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>window.__ar.open()); await p.waitForTimeout(800); await p.click('#articulos [data-ar="demo1"]'); await p.waitForTimeout(1500);
+ await p.click('#articulos .cp-b.g'); await p.waitForTimeout(300); await p.fill('#plQ','distrimed'); await p.press('#plQ','Enter'); await p.waitForTimeout(1200); await p.click('#articulos [data-ng="view"][data-v="tab2"]').catch(()=>{}); await p.waitForTimeout(500);
+ const id=await p.evaluate(()=>document.querySelector('#articulos .ng-p2').dataset.ngrowid), r=`#articulos [data-ngrowid="${id}"]`;
+ const C=()=>p.evaluate(id=>{ const N=window.__ar.ngCur?window.__ar.ngCur():null; const x=document.querySelector(`#articulos [data-ngrowid="${id}"]`); return {brx:(x.querySelector('[data-ngcv$="|brx"]')||{}).textContent||'', sel:!(x.querySelector('select[data-k="brm"]')||{hidden:true}).hidden, val:x.querySelector('[data-k="br"]').value, bp:(x.querySelector('[data-ngcv$="|bp"]')||{}).textContent||''}; },id);
+ const set=async(q,br)=>{ await p.fill(r+' [data-k="q"]',String(q)); await p.waitForTimeout(150); if(br!=null){ await p.fill(r+' [data-k="br"]',br); await p.waitForTimeout(200); } return C(); };
+ await p.fill(r+' [data-k="pvp"]','10000'); await p.fill(r+' [data-k="d1"]','30'); await p.waitForTimeout(150);
+ let c=await set(20,'10+7'); ok(/= 14 de regalo/.test(c.brx)&&!c.sel&&c.val==='10+7','regla 10+7 con 20 cajas → 14 de regalo ('+JSON.stringify(c)+')');
+ c=await set(200); ok(/= 140 de regalo/.test(c.brx)&&!c.sel,'cambio la cantidad a 200 → la bonificación pasa sola a 140 ('+c.brx+')');
+ ok(/41,1|41,2/.test(c.bp),'el descuento por bonificación sale de 140 sobre 340 ('+c.bp+')');
+ c=await set(100,'1+1'); ok(/= 100 de regalo/.test(c.brx),'regla 1+1 con 100 → 100 de regalo, llegan 200 ('+c.brx+')');
+ c=await set(200); ok(/= 200 de regalo/.test(c.brx),'regla 1+1 con 200 → 200 de regalo ('+c.brx+')');
+ c=await set(25,'10/7'); ok(/= 14 de regalo/.test(c.brx)&&/no da justo/.test(c.brx)&&c.sel,'25 con 10/7 no da justo: avisa y pide elegir cómo redondea ('+c.brx+')');
+ await p.selectOption(r+' select[data-k="brm"]','p'); await p.waitForTimeout(300); c=await C(); ok(/= 17 de regalo/.test(c.brx)&&!/no da justo/.test(c.brx),'elijo «proporcional» → 17 ('+c.brx+')');
+ await p.selectOption(r+' select[data-k="brm"]','g'); await p.waitForTimeout(300); c=await C(); ok(/= 14 de regalo/.test(c.brx)&&!/no da justo/.test(c.brx),'elijo «solo grupos completos» → 14 ('+c.brx+')');
+ c=await set(10,'1+0,5'); ok(/= 5 de regalo/.test(c.brx)&&!c.sel,'regla con decimales 1+0,5 con 10 → 5 ('+c.brx+')'); c=await set(100); ok(/= 50 de regalo/.test(c.brx),'1+0,5 con 100 → 50 ('+c.brx+')');
+ c=await set(200,'70'); ok(c.brx===''&&!c.sel&&/25,9/.test(c.bp),'un número solo (70) sigue siendo regalo fijo, como antes ('+JSON.stringify(c)+')');
+ const k=await p.evaluate(()=>{ const f=window.__ar.ngCalc; const a=f({q:200,pvp:10000},{d1:'30',br:'10+7'},{}), z=f({q:200,pvp:10000},{d1:'30',br:'140'},{}); return {a:Math.round(a.fac),z:Math.round(z.fac),bon:a.bon,rec:a.rec}; });
+ ok(k.a===k.z&&k.bon===140&&k.rec===340,'el costo con la regla 10+7 es idéntico al de cargar 200+140 a mano ('+JSON.stringify(k)+')');
+ ok(!errs.length,'sin errores de consola '+errs.slice(0,2).join(' | '));
+ await b.close(); console.log(fail?'✘ t596 con fallas':'✔ t596 OK'); process.exit(fail?1:0); })();
