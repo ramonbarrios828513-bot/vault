@@ -37,5 +37,14 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  // mismo cajero y misma sucursal: sin avisos
  const r=await p.evaluate(()=>{ const f=window.__cz.fotoApply&&window.__cz.fotoApply({n:62,cajero:'Ana Gomes',local:'Nissifarma Km7',ef:1000}); return f?JSON.stringify(f.avis):'nohook'; });
  ok(r==='[]','si el ticket dice la misma persona y la misma sucursal no hay avisos ('+r+')');
+ // v1331 · cada sucursal recuerda cómo figura en el ticket
+ const k1=await p.evaluate(()=>{ const C=window.__cz.st().cfg; C.tkNom={'Local 3 Sta Ana':'Nisi FARMA 8 Santa Ana'}; return JSON.stringify(window.__cz.fotoApply({n:391,caja:1,cajero:'ANA GOMEZ',local:'Nisi FARMA 8 Santa Ana',ef:1000}).avis); });
+ ok(/que es el de Local 3 Sta Ana, y vos elegiste Local 1 KM7/.test(k1),'con el encabezado guardado, reconoce que «Nisi FARMA 8 Santa Ana» es Santa Ana (no KM8) y avisa');
+ await p.evaluate(()=>{ window.__cz.st().cfg.tkNom={}; window.__cz.fotoApply({n:392,caja:1,cajero:'ANA GOMEZ',local:'Nisi FARMA 1 Central',ef:1000}); window.__cz.open(); }); await p.waitForTimeout(700);
+ let bt=await p.evaluate(()=>{ const x=document.querySelector('#cierre [data-cz31="tknom"]'); return x?x.textContent:''; });
+ ok(/Recordar que «Nisi FARMA 1 Central» es el ticket de Local 1 KM7/.test(bt),'ofrece guardar el encabezado leído como el de la sucursal elegida ('+bt+')');
+ await p.evaluate(()=>document.querySelector('#cierre [data-cz31="tknom"]').click()); await p.waitForTimeout(500);
+ const k2=await p.evaluate(()=>({g:(window.__cz.st().cfg.tkNom||{})['Local 1 KM7'],lab:!!document.querySelector('#cierre [data-cz31="tkdel"]'),av:JSON.stringify(window.__cz.fotoApply({n:393,caja:1,cajero:'ANA GOMEZ',local:'NISI FARMA 1 CENTRAL',ef:1000}).avis)}));
+ ok(k2.g==='Nisi FARMA 1 Central'&&k2.lab&&k2.av==='[]','al tocarlo queda guardado, se puede cambiar, y el mismo encabezado ya no da aviso ('+k2.av+')');
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
