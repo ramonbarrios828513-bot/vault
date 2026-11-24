@@ -8,7 +8,10 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
   const B=mk(900,1300,x=>{ x.fillStyle='#262626'; x.fillRect(0,0,900,1300); tela(x,60,60,780,1180); x.fillStyle='#fbfbfb'; x.fillRect(120,90,260,1100); txt(x,120,90,260,1100); });
   const C=mk(900,1300,x=>{ x.fillStyle='#1c1c1c'; x.fillRect(0,0,900,1300); x.fillStyle='#f4f4f4'; x.fillRect(150,150,600,1000); x.fillStyle='#e2e2e2'; x.fillRect(150,650,600,500); txt(x,150,150,600,1000); });
   const D=(c)=>{ const d=window.__ds.detect(c,c.width,c.height); if(!d) return null; const xs=d.q.map(q=>q[0]*c.width), ys=d.q.map(q=>q[1]*c.height); return {conf:+d.conf.toFixed(2),x0:Math.round(Math.min(...xs)),x1:Math.round(Math.max(...xs)),y0:Math.round(Math.min(...ys)),y1:Math.round(Math.max(...ys))}; };
-  return {A:D(A),B:D(B),C:D(C)}; });
+  /* v1334 · ticket BLANCO sobre mesa BLANCA con un posnet y una lapicera al lado: por brillo no se distingue; se encuentra por el bloque de letra */
+  const E=mk(900,1300,x=>{ x.fillStyle='#f3f3f1'; x.fillRect(0,0,900,1300); x.fillStyle='#161616'; x.fillRect(20,30,250,330); x.fillStyle='#222'; x.fillRect(760,420,40,330); x.fillStyle='#fbfbfb'; x.fillRect(330,20,250,1260); x.fillStyle='#111'; for(let y=60;y<1240;y+=22){ if(y%220<30) continue; for(let X=350;X<560;X+=14) if(((X*7+y*3)%5)!==0) x.fillRect(X,y,9,9); } });
+  const dE=window.__ds.detect(E,900,1300), DE=D(E); if(DE) DE.text=!!(dE&&dE.text);
+  return {A:D(A),B:D(B),C:D(C),E:DE}; });
  console.log(JSON.stringify(R));
  const near=(v,t,d)=>Math.abs(v-t)<=d;
  ok(R.A&&R.A.conf>=0.6&&near(R.A.x0,200,25)&&near(R.A.x1,700,25)&&near(R.A.y0,150,25)&&near(R.A.y1,1150,25),'hoja blanca sobre mesa oscura: sale entera, como antes');
@@ -19,5 +22,6 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  console.log(JSON.stringify(S));
  ok(Math.abs(S.a4-4)<=0.75&&Math.abs(S.am+3)<=0.75&&Math.abs(S.a0)<=0.5,'mide la inclinación de los renglones: 4° → '+S.a4+' · −3° → '+S.am+' · derecha → '+S.a0);
  ok(Math.abs(S.after)<=0.5&&S.same,'después de enderezar, la hoja queda derecha ('+S.after+'°) y del mismo tamaño');
+ ok(R.E&&R.E.text&&R.E.conf>=0.5&&R.E.x0>=280&&R.E.x0<=345&&R.E.x1>=560&&R.E.x1<=640&&R.E.y1-R.E.y0>1000,'ticket blanco sobre mesa BLANCA con posnet y lapicera: se recorta solo el ticket, por su letra (x '+(R.E&&R.E.x0)+'–'+(R.E&&R.E.x1)+' de 900)');
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
