@@ -10,10 +10,10 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const row=await p.evaluate(()=>{ const r=document.querySelector('#articulos [data-ngrowid]'); return r?r.dataset.ngrowid:null; });
  ok(!!row,'se armó la orden ('+row+')');
  const sel=k=>'#articulos [data-ngrowid="'+row+'"] [data-k="'+k+'"]';
- const lab=await p.evaluate(r=>{ const R=[...document.querySelectorAll('#articulos [data-ngrowid="'+r+'"] .ng-bn small')].map(x=>x.textContent); return R.join(' | '); },row);
+ const lab=await p.evaluate(r=>[...document.querySelectorAll('#articulos th, #articulos [data-nglab]')].map(x=>x.textContent).join(' | '),row);
  ok(/Regla bonif/.test(lab)&&/Bonificado/.test(lab)&&/Llega total/.test(lab),'el panel tiene 🎁 Regla bonif., 🎁 Bonificado y 📦 Llega total ('+lab.slice(0,200)+')');
  const vis=()=>p.evaluate(r=>{ const q=document.querySelector('#articulos [data-ngbrq="'+r+'"]'); return q?!q.hidden:null; },row);
- const val=k=>p.evaluate(([r,k])=>{ const x=document.querySelector('#articulos [data-ngrowid="'+r+'"] [data-ngcv="'+r+'|'+k+'"]'); return x?x.textContent.trim():null; },[row,k]);
+ const val=k=>p.evaluate(([r,k])=>{ const x=document.querySelector('#articulos [data-ngcv="'+r+'|'+k+'"]'); return x?x.textContent.trim():null; },[row,k]);
  await p.fill(sel('q'),'10'); await p.dispatchEvent(sel('q'),'input'); await p.waitForTimeout(400);
  ok(await vis(),'con cantidad y sin regla pregunta «🎁 ¿Viene bonificado?»');
  await p.fill(sel('br'),'1+0,5'); await p.dispatchEvent(sel('br'),'input'); await p.waitForTimeout(400);
@@ -29,5 +29,6 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click('#articulos [data-ngbrq="'+row+'"] [data-ngbrqa="no"]'); await p.waitForTimeout(300);
  const no=await p.evaluate(r=>{ const AR=window.__ar.st(); const N=Object.values(AR.negs).sort((a,b)=>(b.t||0)-(a.t||0))[0]; return N.v[r]&&N.v[r].brNo; },row);
  ok(!(await vis())&&no===1,'«No» la esconde y queda guardado (brNo='+no+')');
+ for(const vw of ['tab2','tab3']){ const t=await p.evaluate(async([r,vw])=>{ const AR=window.__ar.st(); const N=Object.values(AR.negs).sort((a,b)=>(b.t||0)-(a.t||0))[0]; N.view=vw; document.querySelectorAll('.ico-ov').forEach(o=>o.remove()); window.__ar.open(); await new Promise(z=>setTimeout(z,1500)); const l=[...document.querySelectorAll('#articulos [data-nglab^="'+r+'|"]')].map(x=>x.textContent).join(' | '); return l; },[row,vw]); ok(/Regla bonif/.test(t)&&/Bonificado/.test(t)&&/Llega total/.test(t),'vista '+vw+': se ven Regla, Bonificado y Llega total'); }
  ok(!errs.length,'sin errores de consola '+errs.slice(0,2).join(' | '));
  await b.close(); console.log(fail?'✘ t600 con fallas':'✔ t600 OK'); process.exit(fail?1:0); })();
