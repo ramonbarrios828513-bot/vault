@@ -15,7 +15,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  // tercera forma
  await p.click('.vt-ov [data-vp="sepadd"]'); await p.waitForTimeout(300);
  const r3=await p.evaluate(()=>({n:document.querySelectorAll('.vt-ov [data-pf]').length, more:!!document.querySelector('.vt-ov [data-vp="sepadd"]'), tot:document.querySelector('.vt-ov .vt-big').textContent.replace(/\D/g,'')*1}));
- ok(r3.n===3&&!r3.more&&r3.tot===121000,'acepta hasta 3 formas de pago (la tercera, QR, hoy no le gana a ninguna): '+JSON.stringify(r3));
+ ok(r3.n===3&&r3.more&&r3.tot===121000,'v1339: acepta 3 y sigue ofreciendo ➕ Otra forma de pago (sin límite) (la tercera, QR, hoy no le gana a ninguna): '+JSON.stringify(r3));
  // cobrar: efectivo 100.000 → vuelto 20.000
  await p.click('.vt-ov [data-vp="rq"][data-d="50000"]'); await p.waitForTimeout(150); await p.click('.vt-ov [data-vp="rq"][data-d="50000"]'); await p.waitForTimeout(300);
  await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(500);
