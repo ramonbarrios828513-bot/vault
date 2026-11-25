@@ -1,0 +1,23 @@
+// v1340 · CORTE DE RAÍZ DEL EXCEL: rankings, punto de equilibrio y radar leen SOLO lo cargado en el sistema (💵 Cierre de caja), nunca la copia del Excel · sin botones para traer datos del Excel de cheques y gastos · la planilla no importa Excel
+const setup=require('./rvlib.js'); const fs=require('fs');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ const buf=fs.readFileSync('/tmp/claude-0/chq/cg.xlsx');
+ await p.evaluate(async (arr)=>{ window.__nis.open(); await window.__nis.impX(new Uint8Array(arr).buffer, 'C.xlsx'); },[...buf]); await p.waitForTimeout(2500);
+ const xv=await p.evaluate(()=>{ const T=window.__nis.st().tabs.TablaCajas; const ci=T.cols.findIndex(c=>/^VENDEDOR \/ CAJERO/.test(c.h||'')); return [...new Set(T.rows.map(r=>String(r.v[ci]||'').trim()).filter(x=>x&&!/^—/.test(x)))]; });
+ console.log('   vendedores que solo están en el Excel: '+xv.slice(0,5).join(', '));
+ await p.evaluate(()=>{ document.querySelectorAll('.ico-ov').forEach(x=>x.remove()); const h=new Date(), f=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0'); const S=window.__cz.st(); S.t.push({id:'k605',n:9605,f:f,suc:'Local 1 KM7',caja:'Caja 1',tur:'Mañana',caj:'TECLADO PRUEBA',ini:0,v:{ef:1500000,deb:500000},dl:[{nom:'DELIVERISTA TECLADO',tk:'55',tt:110000,dc:10000,m:10000}]}); });
+ await p.evaluate(()=>{ window.__tes.ui.tab='rk'; window.__tes.ui.solo=''; window.__tes.open(); }); await p.waitForTimeout(900);
+ const rk=await p.evaluate(()=>document.getElementById('tesoreria').innerText);
+ ok(/TECLADO PRUEBA/.test(rk),'🏆 Rankings muestra al vendedor cargado a mano en 💵 Cierre de caja');
+ ok(/DELIVERISTA TECLADO/.test(rk),'🏆 Rankings muestra al deliverista cargado en el cierre');
+ ok(!xv.some(v=>v.length>3&&rk.indexOf(v)>=0),'🏆 Rankings ya NO muestra vendedores que solo están en el Excel viejo');
+ await p.evaluate(()=>{ window.__tes.ui.tab='rad'; window.__tes.open(); }); await p.waitForTimeout(700);
+ const rad=await p.evaluate(()=>document.getElementById('tesoreria').innerText); ok(!xv.some(v=>v.length>3&&rad.indexOf(v)>=0),'📡 Radar ya no usa datos del Excel viejo');
+ await p.evaluate(()=>{ window.__tes.ui.tab='imp'; window.__tes.open(); }); await p.waitForTimeout(600);
+ ok(await p.evaluate(()=>{ const f=document.getElementById('tesFile'); return !f || !f.closest('.tes-sec').offsetParent; }),'⬆️ Importar el Excel CHEQUES Y GASTOS ya no aparece (⚙️ Ajustes sigue)');
+ ok(await p.evaluate(()=>/Ajustes/.test(document.getElementById('tesoreria').innerText)),'⚙️ Ajustes sigue visible');
+ await p.evaluate(()=>{ document.getElementById('tesoreria').hidden=true; window.__nis.ui.v=''; window.__nis.open(); }); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>![...document.querySelectorAll('[data-nispack],#nissi [data-nis="imp"]')].some(x=>x.offsetParent)),'Sistema Nissi: sin «⬆️ Excel» ni «📥 Cargar mis datos»');
+ ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
+ await b.close(); console.log(fail?'✘ t605 con fallas':'✔ t605 OK'); process.exit(fail?1:0); })();
