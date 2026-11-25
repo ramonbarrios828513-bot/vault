@@ -1,0 +1,27 @@
+// v1335 · con las fichas IMPORTADAS de Vital: la venta por presentación funciona (barra de caja, tira y fracción, cada una con su precio, y el stock del padre baja lo que corresponde) + 👁 ojitos chicos con explicación en la ficha + 📖 guía
+const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>{ window.__vt.open(); }); await p.waitForTimeout(300);
+ await p.evaluate(async()=>{ const wb=await (await fetch('/mig.json')).json(); window.__fichas.mig(wb); }); await p.waitForTimeout(1500);
+ await p.evaluate(()=>{ const g=document.querySelector('[data-impgo]'); g&&g.click(); }); await p.waitForTimeout(20000);
+ const x=await p.evaluate(()=>{ const V=window.__vt.st(); const a=Object.values(V.arts).find(a=>String(a.cod)==='1'); const P=(V.pres[a.id]||[]); return {id:a.id,n:a.n,caja:a.bar[0],tira:(P.find(q=>q.t==='tab')||{}).bar,fr:(P.find(q=>q.t==='fr')||{}).bar,stk:V.stk[a.id],u:+a.u,tb:+(P.find(q=>q.t==='tab')||{}).q}; });
+ ok(x.caja&&x.tira&&x.fr&&x.stk>0,'la ficha importada del Código Nissi 1 tiene barra de caja, tira y fracción y stock ('+JSON.stringify(x)+')');
+ await p.evaluate(()=>{ document.querySelectorAll('.ico-ov').forEach(o=>o.remove()); const V=window.__vt.st(); V.open=true; const t=V.tabs[0]; V.cur=t.id; t.lines=[]; window.__vt.open(); }); await p.waitForTimeout(400);
+ for (const bar of [x.tira,x.caja,x.fr]) { await p.fill('#vtQ',bar); await p.keyboard.press('Enter'); await p.waitForTimeout(300); }
+ const L=await p.evaluate(()=>window.__vt.st().tabs[0].lines.map(l=>({u:(l.uq||1)*l.q,pvp:l.pvp,n:l.n})));
+ ok(JSON.stringify(L.map(l=>l.u).sort((a,b)=>a-b))===JSON.stringify([1,x.tb,x.u]),'el lector reconoce las tres barras importadas: fracción 1, tira '+x.tb+', caja '+x.u+' ('+JSON.stringify(L.map(l=>l.u))+')');
+ const by={}; L.forEach(l=>by[l.u]=l); ok(by[x.u].pvp>by[x.tb].pvp&&by[x.tb].pvp>by[1].pvp&&by[1].pvp>0,'cada presentación vende con su propio precio: caja '+by[x.u].pvp+', tira '+by[x.tb].pvp+', fracción '+by[1].pvp);
+ const tags=await p.evaluate(()=>[...document.querySelectorAll('#ventas .vt-pt')].map(q=>q.textContent.trim())); ok(tags.some(t=>/CAJA/.test(t))&&tags.some(t=>/TIRA/.test(t))&&tags.some(t=>/FRACCI/.test(t)),'cada renglón dice qué presentación es '+JSON.stringify(tags));
+ await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(400); for(let i=0;i<3;i++){ await p.click('.vt-ov [data-vp="rq"][data-d="100000"]').catch(()=>{}); } await p.waitForTimeout(200); await p.click('.vt-ov [data-vp="ok"]').catch(()=>{}); await p.waitForTimeout(400); await p.evaluate(()=>{ const v=document.querySelector('[data-vok]'); if(v) v.click(); }); await p.waitForTimeout(700);
+ const s2=await p.evaluate(id=>window.__vt.st().stk[id],x.id); ok(s2===x.stk-(x.u+x.tb+1),'al cobrar, el stock del padre baja caja+tira+fracción: de '+x.stk+' a '+s2+' (−'+(x.u+x.tb+1)+' FR)');
+ await p.evaluate(()=>{ document.querySelectorAll('.ico-ov').forEach(o=>o.remove()); window.__fichas.open(); }); await p.waitForTimeout(900); await p.evaluate(()=>{ document.querySelector('#fichasMod [data-ae]').click(); }); await p.waitForTimeout(1200);
+ const E=await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov.vt-ov')].pop(); const Y=[...o.querySelectorAll('.v35-eye')], r=Y[0].getBoundingClientRect(); const f=o.querySelector('[data-frac]'), c0=f.checked; f.closest('label').querySelector('.v35-eye').click(); const pop=document.querySelector('.v35-pop'); const t=pop?pop.innerText:''; pop&&pop.querySelector('[data-x]').click(); return {n:Y.length,w:r.width,h:r.height,bg:getComputedStyle(Y[0]).backgroundColor,t:t.slice(0,90),same:f.checked===c0,guia:!!o.querySelector('[data-guia35]')}; });
+ ok(E.n>=35&&E.w===20&&E.h===20&&/253, 224, 71/.test(E.bg),'la ficha tiene '+E.n+' ojitos chicos (20×20) en amarillo bien visible');
+ ok(/Fraccionar producto/.test(E.t)&&E.same,'tocar el ojito abre la explicación del campo y NO cambia el tilde ('+E.t.replace(/\s+/g,' ')+')');
+ await p.evaluate(()=>{ [...document.querySelectorAll('.ico-ov.vt-ov')].pop().querySelector('[data-guia35]').click(); }); await p.waitForTimeout(300);
+ const G=await p.evaluate(()=>{ const q=document.querySelector('.v35-pop'); const t=q?q.innerText:''; q&&q.querySelector('[data-x]').click(); return t; });
+ ok(/Crear un artículo nuevo/.test(G)&&/Vender por presentación/.test(G)&&/De dónde salen los descuentos/.test(G)&&/por enlace/.test(G)&&/Traer esta negociación a la ficha/.test(G),'«📖 Guía» explica crear artículo, vender por presentación y de dónde salen los descuentos');
+ const sz=await p.evaluate(()=>{ const d=document.createElement('div'); d.innerHTML='<button class="pl-eye">👁</button><button class="cz-eye">👁</button><span class="inf-eye">👁</span>'; document.body.appendChild(d); const r=[...d.children].map(e=>Math.round(e.getBoundingClientRect().width)+'x'+Math.round(e.getBoundingClientRect().height)); d.remove(); return r; });
+ ok(sz.every(v=>v==='20x20'),'los ojitos de los otros módulos (planilla, cierre, info) quedan del mismo tamaño chico: '+sz.join(' · '));
+ ok(!errs.length,'sin errores de consola '+errs.slice(0,2).join(' | '));
+ await b.close(); console.log(fail?'✘ t597 con fallas':'✔ t597 OK'); process.exit(fail?1:0); })();
