@@ -15,7 +15,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.fill('.ask-ov .ask-in','Promo 3+1'); await p.click('.ask-ov [data-ak=yes]'); await p.waitForTimeout(400);
  const set=async(k,v,isSel)=>{ await p.evaluate(([q,v,isSel])=>{ const o=[...document.querySelectorAll('.ico-ov.vt-ov')].pop(); const e=o.querySelector(q); e.value=v; if(!isSel) e.dispatchEvent(new Event('input',{bubbles:true})); e.dispatchEvent(new Event('change',{bubbles:true})); },[sel(k),v,!!isSel]); await p.waitForTimeout(350); };
  await set('de','caja',true); await set('cant','4'); 
- const auto=await p.evaluate(q=>{ const o=[...document.querySelectorAll('.ico-ov.vt-ov')].pop(); const e=o.querySelector(q); return {v:e.value,row:e.closest('tr').innerText.replace(/\s+/g,' ').slice(0,160),cn:e.closest('tr').querySelector('[data-pk="cn"]').value}; },sel('pvp'));
+ const auto=await p.evaluate(q=>{ const o=[...document.querySelectorAll('.ico-ov.vt-ov')].pop(); const e=o.querySelector(q); return {v:e.value,row:e.closest('tr').innerText.replace(/\s+/g,' ').slice(0,400),cn:e.closest('tr').querySelector('[data-pk="cn"]').value}; },sel('pvp'));
  ok(auto.cn==='Promo 3+1'&&/= 80 FR del padre/.test(auto.row)&&auto.v.replace(/\D/g,'')==='78400','se llama «Promo 3+1», trae 4 cajas = 80 FR del padre y el sistema propone el precio de 4 cajas (₲ 78.400): '+JSON.stringify(auto));
  await p.evaluate(q=>{ [...document.querySelectorAll('.ico-ov.vt-ov')].pop().querySelector(q).click(); },`[data-pxgen="${i}"]`); await p.waitForTimeout(400);
  const bar=await p.evaluate(q=>[...document.querySelectorAll('.ico-ov.vt-ov')].pop().querySelector(q).value,sel('bar'));
