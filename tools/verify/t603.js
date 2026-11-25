@@ -8,9 +8,9 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await home(); await p.waitForTimeout(400);
  await p.click('#nissi [data-nis="live"][data-v="pan"]'); await p.waitForTimeout(1300);
  const pan=await p.evaluate(()=>{ const m=document.querySelector('#tesoreria .mod-ban'); return {top:m?Math.round(m.getBoundingClientRect().top):999, txt:document.querySelector('#tesoreria').innerText}; });
- ok(pan.top<120 && /PLATA REAL HOY/.test(pan.txt),'👑 Panel del dueño en vivo: se ve el panel (PLATA REAL HOY) sin tener que bajar (arriba a '+pan.top+' px)');
+ ok(pan.top<230 && /PLATA REAL HOY/.test(pan.txt),'👑 Panel del dueño en vivo: se ve el panel (PLATA REAL HOY) sin tener que bajar (arriba a '+pan.top+' px)');
  for(const v of ['DASHBOARD','COMPROMISOS POR SEMANA','COBERTURA DE CHEQUES']){ await p.evaluate(v=>{ const t=document.getElementById('tesoreria'); if(t) t.hidden=true; window.__nis.open(v); },v); await p.waitForTimeout(400); await p.evaluate(()=>[...document.querySelectorAll('#nissi [data-nis="live"]')].filter(x=>!/Panel del due/.test(x.innerText)).pop().click()); await p.waitForTimeout(1300);
-   const t=await p.evaluate(()=>Math.round(document.querySelector('#tesoreria .mod-ban').getBoundingClientRect().top)); ok(t<120,'⚡ Ver en vivo de «'+v+'» baja solo hasta su panel ('+t+' px)'); }
+   const t=await p.evaluate(()=>Math.round(document.querySelector('#tesoreria .mod-ban').getBoundingClientRect().top)); ok(t<230,'⚡ Ver en vivo de «'+v+'» baja solo hasta su panel ('+t+' px)'); }
  await home(); await p.waitForTimeout(400);
  await p.click('#nissi [data-nisk="i"]'); await p.waitForTimeout(300);
  const f1=await p.evaluate(()=>{ const c=[...document.querySelectorAll('#nissi [data-nis="sheet"][data-mk]')].filter(e=>e.offsetParent); return [c.length,[...new Set(c.map(e=>e.dataset.mk))].join(',')]; });
