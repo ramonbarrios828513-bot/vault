@@ -17,6 +17,11 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(/176, 16, 16|120, 6, 6/.test(r.bg),'el día con pagos se pinta de rojo vivo según el monto');
  ok(/linear-gradient/.test(r.pbg)&&parseFloat(r.pfs)>=13,'la etiqueta del cheque es sólida y con letra grande ('+r.pfs+')');
  ok(/rgba\(0, 0, 0, 0.85\) 0px 9px/.test(r.wsh),'el total de la semana también con relieve');
+ const chips=await p.evaluate(()=>[...document.querySelectorAll('#tesoreria [data-pcf]')].map(b=>b.dataset.pcf+':'+b.textContent.trim()).join('|')); console.log('   '+chips);
+ ok(/vis:👁️ Solo cheques a la vista/.test(chips)&&/ag:🏠 Solo gastos generales/.test(chips)&&/chq:/.test(chips),'filtros: cheques diferidos, cheques a la vista y gastos generales');
+ await p.click('#tesoreria [data-pcf="vis"]'); await p.waitForTimeout(600);
+ const nv=await p.evaluate(()=>document.querySelectorAll('#tesoreria .cl-p.c').length); ok(nv===0,'«solo a la vista» oculta los cheques diferidos ('+nv+')');
+ await p.click('#tesoreria [data-pcf="all"]'); await p.waitForTimeout(600);
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); console.log(fail?'❌ '+fail+' falla(s)':'✅ todo bien'); process.exit(fail?1:0);
 })();
