@@ -13,10 +13,10 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  console.log('   '+JSON.stringify(r).slice(0,400));
  await p.screenshot({path:'/tmp/claude-0/t610.png'});
  ok(r.n>=28&&r.pay,'el calendario muestra los días y el cheque cargado');
- ok(/3, 20, 10|rgb\(3, 20, 10\)/.test(r.sh)&&r.op==='1','cada día tiene relieve 3D (sombra sólida abajo) y no está apagado');
+ ok(/rgba\(0, 0, 0, 0.82\) 0px 9px/.test(r.sh)&&r.op==='1','cada día tiene relieve 3D (sombra sólida abajo) y no está apagado');
  ok(/176, 16, 16|120, 6, 6/.test(r.bg),'el día con pagos se pinta de rojo vivo según el monto');
  ok(/linear-gradient/.test(r.pbg)&&parseFloat(r.pfs)>=13,'la etiqueta del cheque es sólida y con letra grande ('+r.pfs+')');
- ok(/rgb\(28, 18, 2\)/.test(r.wsh),'el total de la semana también con relieve');
+ ok(/rgba\(0, 0, 0, 0.85\) 0px 9px/.test(r.wsh),'el total de la semana también con relieve');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); console.log(fail?'❌ '+fail+' falla(s)':'✅ todo bien'); process.exit(fail?1:0);
 })();
