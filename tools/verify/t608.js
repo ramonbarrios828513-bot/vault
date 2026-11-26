@@ -91,6 +91,8 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.screenshot({path:'/tmp/claude-0/t608d.png'});
  ok(c1==='pvf'&&c2==='d1'&&c3[0]&&c3[0]!=='BODY','➡ ⬅ ⬇ de la cruz mueven el cursor (d1→'+c1+'→'+c2+'→'+c3[0]+')');
  const t0=Date.now(); await p.click(sel('pvp')); await p.keyboard.type('12345'); const tt=Date.now()-t0;
+ const pvv=await p.evaluate(s=>document.querySelector(s).value, sel('pvp')); ok(/^\d{1,3}(\.\d{3})+$/.test(pvv),'mientras escribís aparecen los puntos de miles (PVP «'+pvv+'»)');
+ await p.click(sel('q'),{clickCount:3}); await p.keyboard.type('1000000'); await p.waitForTimeout(200); const qv=await p.evaluate(s=>document.querySelector(s).value, sel('q')); ok(qv==='1.000.000','cantidad 1000000 se ve 1.000.000 ('+qv+')');
  ok(tt<900,'escribir es rápido ('+tt+' ms para 5 teclas; antes ~1.900)');
  const cen=await p.evaluate(r=>{ const c=document.querySelector(r+' .ng-sc.cen'), su=[...document.querySelectorAll(r+' .ng-sc.suc')]; return {dep:!!(c&&c.querySelector('[data-ngdep]')), lk:su.length>0&&su.every(x=>/🔒 depósito/.test(x.querySelector('b').textContent)&&!x.querySelector('[data-ngdep]'))}; },R);
  ok(cen.dep,'la central (⭐ KM 7) tiene el campo chico 🏬 Refuerzo (depósito virtual) que se suma al total');

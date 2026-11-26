@@ -78,6 +78,11 @@
 .ng-trf input{padding:7px 9px;border-radius:8px;border:1px solid #a16207;font:600 14px system-ui}
 .ng-trf button,.ng-trb{padding:9px 12px;border:0;border-radius:10px;background:#facc15;color:#1c1917;font:900 14px system-ui;cursor:pointer;box-shadow:0 3px 0 #a16207}
 .ng-trb.off{background:#fecaca;box-shadow:0 3px 0 #991b1b}
+
+/* v1343 · calculadora de compras: las listas desplegables muestran todo su texto */
+#articulos label > select,.qc-w label > select,.qc-w select{min-width:max-content!important;padding-right:26px!important;width:auto}
+.ng-g > label:has(> select){grid-column:span 2;min-width:0}
+.ng-g > label > select{max-width:100%}
 </style><style>.tx-num{background:linear-gradient(135deg,#ecfdf5,#eff6ff);border:2px solid #10b981;border-radius:14px;padding:10px;margin:8px 0;display:grid;gap:8px}.tx-num .tx-n{color:#065f46}.tx-nin{display:grid;gap:6px}.tx-nin[hidden]{display:none}#txNc{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:2px solid #15803d;font:800 26px system-ui;letter-spacing:4px;text-align:center}.tx-ns{font-size:15px;color:#0f172a}.tx-ns:empty{display:none}.tx-code{display:block;font:900 40px system-ui;letter-spacing:6px;text-align:center;margin:8px 0;color:#0f172a}</style></head><body>
 <!DOCTYPE html>
 <html lang="es">
@@ -36634,6 +36639,25 @@ button:not(.iconbtn):not(.mic):not(.small):not([class*="cl-d"]):not(.pc-c):not(.
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-vtopen]'); if (!b) return; e.preventDefault(); e.stopPropagation(); open(); try { var v = document.getElementById('ventas'); if (v) { v.hidden = false; v.scrollTop = 0; } } catch (er) {} });
   try { (window.__toolreg || []).push(['📇', 'Fichas de artículos', 'ficha fichas articulo artículos producto codigo nissi barra presentacion caja tira fraccion historial', function () { window.__fichas.open(); }]); } catch (e) {}
   try { (window.__toolreg || []).push(['🧾', 'Caja inteligente (ventas)', 'ventas venta caja pos salon cobrar vuelto billetes presupuesto delivery cliente stock de billetes remesa', function () { open(); }]); } catch (e) {}
+})();
+</script>
+<script>
+/* v1343 · 🔢 PUNTOS DE MILES EN TODOS LOS MÓDULOS: mientras escribís un monto o una cantidad, aparecen los puntos (1.000 · 10.000 · 1.000.000).
+   Solo cambia cómo SE VE: el sistema sigue leyendo el número sin puntos, igual que antes (no cambia ningún cálculo ni dato guardado).
+   No toca RUC, C.I., teléfonos, códigos, números de cheque/cuenta/factura, claves ni años. */
+(function () {
+  var D = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value'); if (!D || !D.get || !D.set) return;
+  var NO = /\bruc\b|c\.\s?i\b|\bci\b|c[eé]dula|tel[eé]f|celular|whats|c[oó]d(igo)?\b|barra|\bnro\b|n[º°]|n[uú]mero|cuenta|\bpin\b|clave|contrase|\baño\b|\byear\b|serie|timbrado|factura|documento|cheque n|\bcta\b|token|c[oó]digo de/i;
+  var GRP = /^-?\d{1,3}(\.\d{3})+(,\d*)?$/, RAW = /^-?\d+(,\d*)?$/;
+  function fmt(v) { if (typeof v !== 'string' || v === '') return v; var src = v; if (GRP.test(v)) v = v.replace(/\./g, ''); if (!RAW.test(v)) return src; var neg = v[0] === '-', p = (neg ? v.slice(1) : v).split(','), ip = p[0].replace(/^0+(?=\d)/, ''); return (neg ? '-' : '') + ip.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (p.length > 1 ? ',' + p[1] : ''); }
+  function hint(t) { var l = t.closest && t.closest('label'), x = [t.placeholder, t.name, t.id, t.title, t.getAttribute('aria-label'), t.dataset && t.dataset.k, l ? (l.textContent || '').slice(0, 80) : ''].join(' '); return x; }
+  function ok(t) { if (!t || t.tagName !== 'INPUT' || t.__milNo) return false; if (t.__milOk) return true; var ty = (t.getAttribute('type') || 'text').toLowerCase(); if (ty !== 'text' && ty !== 'tel' && ty !== 'search') { t.__milNo = 1; return false; } var im = (t.getAttribute('inputmode') || '').toLowerCase(), d = t.dataset || {}; if (!(im === 'numeric' || im === 'decimal' || d.ngqs || d.ngdep)) { t.__milNo = 1; return false; } if (t.autocomplete === 'one-time-code' || (t.maxLength > 0 && t.maxLength <= 6) || d.nomil != null || NO.test(hint(t))) { t.__milNo = 1; return false; } t.__milOk = 1; return true; }
+  function arm(t) { if (t.__milArm) return; t.__milArm = 1; try { Object.defineProperty(t, 'value', { configurable: true, get: function () { var v = D.get.call(this); return GRP.test(v) ? v.replace(/\./g, '') : v; }, set: function (x) { D.set.call(this, fmt(x == null ? '' : String(x))); } }); } catch (e) {} var v0 = D.get.call(t), f0 = fmt(v0); if (f0 !== v0) D.set.call(t, f0); }
+  window.__milArm = function (t) { if (ok(t)) arm(t); };
+  window.addEventListener('focusin', function (e) { var t = e.target; if (ok(t)) arm(t); }, true);
+  window.addEventListener('input', function (e) { var t = e.target; if (!ok(t)) return; arm(t); if (e.data === '.' || e.data === ',') return; var v = D.get.call(t); if (v === '') return; var pos = t.selectionStart == null ? v.length : t.selectionStart, dig = v.slice(0, pos).replace(/[^\d,]/g, '').length, f = /^-?[\d.]+(,\d*)?$/.test(v) ? fmt(v.replace(/\./g, '')) : v; /* al escribir, los puntos son siempre de miles (en Paraguay la coma es el decimal) */ if (f === v) return; D.set.call(t, f); var n = 0, np = 0; if (dig > 0) { np = f.length; for (var i = 0; i < f.length; i++) { if (/[\d,]/.test(f[i])) n++; if (n >= dig) { np = i + 1; break; } } } try { t.setSelectionRange(np, np); } catch (er) {} }, true);
+  var Q = [], sch = false; function flush() { sch = false; var L = Q; Q = []; L.forEach(function (root) { if (!root.isConnected) return; var I = root.tagName === 'INPUT' ? [root] : root.querySelectorAll ? root.querySelectorAll('input[inputmode="numeric"],input[inputmode="decimal"],input[data-ngqs],input[data-ngdep]') : []; for (var i = 0; i < I.length; i++) { var t = I[i]; if (t !== document.activeElement && ok(t)) arm(t); } }); }
+  try { new MutationObserver(function (M) { for (var i = 0; i < M.length; i++) { var a = M[i].addedNodes; for (var j = 0; j < a.length; j++) if (a[j].nodeType === 1) Q.push(a[j]); } if (Q.length && !sch) { sch = true; (window.requestIdleCallback || setTimeout)(flush, { timeout: 400 }); } }).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
 })();
 </script>
 <script>
