@@ -133,7 +133,7 @@
     function scr(el) { for (var e = el && el.parentElement; e && e !== document.body; e = e.parentElement) { var cs = getComputedStyle(e); if (/(auto|scroll)/.test(cs.overflowY) && e.scrollHeight > e.clientHeight + 2) return e; } return null; }
     function keep(old, top, sel, txt, box, boxSel) { if (old.isConnected) return; var c = null; try { if (sel) { var L = document.querySelectorAll(sel); if (L.length === 1) c = L[0]; } if (!c && txt) { var B = [].filter.call(document.querySelectorAll('button'), function (x) { return x.innerText.trim() === txt && x.offsetParent; }); if (B.length === 1) c = B[0]; } } catch (e) {} if (!c || !c.offsetParent) return; var d = c.getBoundingClientRect().top - top; if (Math.abs(d) < 4) return; var sc = scr(c); if (sc) sc.scrollTop += d; else window.scrollBy(0, d); }
     window.addEventListener('click', function (ev) { try { var b = ev.target.closest && ev.target.closest('button, [data-tab], [role=button]'); if (!b || b.closest('.dbl-ov')) return; var sel = sig(b), txt = (b.innerText || '').trim().slice(0, 80), top = b.getBoundingClientRect().top; if (!sel && !txt) return; setTimeout(function () { keep(b, top, sel, txt); }, 0); setTimeout(function () { keep(b, top, sel, txt); }, 120); } catch (e) {} }, true); })();
-  window.__APPB = 1343; /* versión de la app: la central no deja guardar a versiones viejas */
+  window.__APPB = 1344; /* versión de la app: la central no deja guardar a versiones viejas */
   if (window.claude && typeof window.claude.use === 'function') { window.__nubeNative = true; return; }
   var code = null; try { code = localStorage.getItem('nube-code'); } catch (e) {}
   window.__nube = { on: !!code, st: 'off' };
@@ -9796,7 +9796,7 @@
     if (k === 'next' || k === 'prev') { (synth&&synth.cancel()); var d = k === 'next' ? 1 : -1, j = mf.i + d; while (items[j] && items[j].kind !== 'para') j += d; if (items[j]) mf.i = j; mf.paused = false; mfStep(); return; }
     if (k === 'cfg') { mf.paused = true; (synth&&synth.cancel()); mfDraw(); mfOpen(); } }, true);
   // número de versión visible, para saber si el celular cargó lo último
-  var LECTOR_VER = 'v1343 · 26 nov'; try { window.__VER = LECTOR_VER; } catch (e) {}
+  var LECTOR_VER = 'v1344 · 26 nov'; try { window.__VER = LECTOR_VER; } catch (e) {}
   try { document.title = 'Baúl Nissi — ' + LECTOR_VER; } catch (e) {}
   var VAULT_CH = 'familia';
   setTimeout(function () { if (VAULT_CH !== 'pruebas') return; var tb = $('topBar'); if (tb && !document.querySelector('.ch-badge')) { var b = document.createElement('span'); b.className = 'ch-badge'; b.textContent = '🧪 PRUEBAS'; b.title = 'Esta es la versión de pruebas: los cambios nuevos llegan acá primero. La familia usa la versión normal.'; tb.insertBefore(b, tb.firstChild); } }, 800);
@@ -17519,7 +17519,7 @@
     for (var wk = st0; wk <= last; wk = tesAdd(wk, 7)) { var wt = 0, wn = 0;
       for (var j = 0; j < 7; j++) { var d = tesAdd(wk, j), z = D[d], we = j >= 5, s = pcSt(d, z, C), fer = T.fer.indexOf(d) >= 0, a = z ? (0.10 + 0.35 * z.t / mx) : 0; if (z && d.slice(0, 7) === m) { wt += z.t; wn += z.n; }
         var c = 0, g = 0, f = 0; if (z) z.L.forEach(function (x) { if (x.k === 'chq') c += x.m; else if (x.k === 'fij') f += x.m; else g += x.m; });
-        h += '<button data-tes="day" data-v="' + d + '" class="cl-d' + (we ? ' we' : '') + (d.slice(0, 7) !== m ? ' out' : '') + (TES_UI.day === d ? ' sel' : '') + (d === hoy ? ' hoy' : '') + (s.c ? ' ' + s.c : '') + '"' + (z ? ' style="background:linear-gradient(180deg,rgba(239,68,68,' + a.toFixed(2) + '),#111c30 85%)"' : '') + ' title="' + (s.t || (we ? 'Fin de semana: lo que vence hoy se paga el lunes' : '')) + '"><span class="cl-n">' + (+d.slice(8)) + '</span>' + (s.c ? '<span class="cl-st">' + (s.c === 'r' ? '🔴' : '🟠') + '</span>' : '') + (fer ? '<span class="cl-fer">🎌 feriado</span>' : '')
+        h += '<button data-tes="day" data-v="' + d + '" class="cl-d' + (we ? ' we' : '') + (d.slice(0, 7) !== m ? ' out' : '') + (TES_UI.day === d ? ' sel' : '') + (d === hoy ? ' hoy' : '') + (s.c ? ' ' + s.c : '') + '"' + (z ? ' style="background:linear-gradient(180deg,rgba(239,68,68,' + a.toFixed(2) + '),#111c30 85%);--a:' + Math.min(1, a * 1.9).toFixed(2) + '"' : '') + ' title="' + (s.t || (we ? 'Fin de semana: lo que vence hoy se paga el lunes' : '')) + '"><span class="cl-n">' + (+d.slice(8)) + '</span>' + (s.c ? '<span class="cl-st">' + (s.c === 'r' ? '🔴' : '🟠') + '</span>' : '') + (fer ? '<span class="cl-fer">🎌 feriado</span>' : '')
           + (c ? '<span class="cl-p c"><span>🧾</span>' + tesM(c) + '</span>' : '') + (g ? '<span class="cl-p g"><span>🗓️</span>' + tesM(g) + '</span>' : '') + (f ? '<span class="cl-p f"><span>🏠</span>' + tesM(f) + '</span>' : '') + (z && z.n > 1 ? '<span class="cl-t">' + z.n + ' pagos</span>' : '') + '</button>'; }
       h += '<div class="cl-w wk"><small>semana</small>' + (wt ? tesM(wt) : '—') + (wn ? '<small>' + wn + ' pago(s)</small>' : '') + '</div>'; }
     h += '</div><div class="cl-ley"><span><i style="background:#ef4444"></i>🧾 cheques</span><span><i style="background:#8b5cf6"></i>🗓️ agenda y cuotas</span><span><i style="background:#14b8a6"></i>🏠 gastos fijos</span><span>🔴 falta plata</span><span>🟠 pasa tu tope</span><span>Sábado, domingo y feriado se pagan el día hábil siguiente.</span></div></div>';
@@ -19860,7 +19860,7 @@
     var sun = new T.DirectionalLight(0xfff4e0, 1.25); sun.position.set(16000, 24000, -11000); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); var sc = sun.shadow.camera; sc.left = -26000; sc.right = 26000; sc.top = 26000; sc.bottom = -26000; sc.near = 100; sc.far = 80000; sun.shadow.bias = -0.0005; sun.target.position.set(12000, 0, 15000); A3.S.add(sun); A3.S.add(sun.target); A3.sun = sun; };
   var _a3Build10 = a3Build; a3Build = function () { _a3Build10(); A3.world.traverse(function (o) { if (o.isMesh && !(o.material && o.material.map && o.material.transparent)) { o.castShadow = true; o.receiveShadow = true; } }); if (A3.terrG) A3.terrG.traverse(function (o) { if (o.isMesh) o.receiveShadow = true; }); };
   // ================= 🔄 ACTUALIZACIÓN PARA TODOS: al publicar una versión nueva, cada aparato guarda y se cierra solo =================
-  var VBUILD = 1343;
+  var VBUILD = 1344;
   (async function () { try { if (!window.claude || typeof window.claude.use !== 'function') return; var d = await window.claude.use('db'); if (!d) return; var shown = false;
     d.doc('meta/version').onSnapshot(function (snap) { var v = snap && snap.exists && snap.data() && +snap.data().build; if (true || !v || v <= VBUILD || shown) return; var tried = +(sessionStorage.getItem('iv-upd') || 0); shown = true;
       var ov = document.createElement('div'); ov.className = 'upd-ov'; ov.innerHTML = tried >= v ? '<div class="upd-c"><b>🔄 Hay una versión nueva</b><p>Este aparato todavía muestra la anterior. Cerrá esta pestaña del navegador y abrí el Vault de nuevo.</p><button data-upd="x">Entendido</button></div>' : '<div class="upd-c"><b>🔄 Llegó una actualización del Vault</b><p>Guardo todo y cierro. En unos segundos volvés a entrar con tu clave, ya con lo nuevo.</p><div class="upd-n" id="updN">8</div><button data-upd="now">Cerrar ahora</button></div>'; document.body.appendChild(ov);
@@ -36662,8 +36662,44 @@ button:not(.iconbtn):not(.mic):not(.small):not([class*="cl-d"]):not(.pc-c):not(.
   try { new MutationObserver(function (M) { for (var i = 0; i < M.length; i++) { var a = M[i].addedNodes; for (var j = 0; j < a.length; j++) if (a[j].nodeType === 1) Q.push(a[j]); } if (Q.length && !sch) { sch = true; (window.requestIdleCallback || setTimeout)(flush, { timeout: 400 }); } }).observe(document.documentElement, { childList: true, subtree: true }); } catch (e) {}
 })();
 </script>
+<style id="cal3d">
+/* 📅 v1344 · CALENDARIO DEL MES EN 3D: colores sólidos y vivos, relieve, sombras y texto nítido (solo aspecto: no cambia datos ni cálculos) */
+#tesoreria .cl-g{gap:9px!important;perspective:1200px}
+#tesoreria .cl-g .h{color:#e0f2fe!important;font:900 13.5px system-ui!important;letter-spacing:.6px;text-shadow:0 1px 0 #000,0 0 8px rgba(56,189,248,.45)}
+#tesoreria .cl-g .h.we{color:#bae6fd!important}
+#tesoreria .cl-d{opacity:1!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-radius:15px!important;
+  background:linear-gradient(180deg,#2546a8 0%,#18306f 38%,#0e1d48 100%)!important;
+  border:1.5px solid #4f7cf0!important;border-top-color:#8fb0ff!important;border-bottom-color:#081233!important;
+  box-shadow:0 6px 0 #050b22,0 12px 20px rgba(0,0,0,.6),inset 0 2px 0 rgba(255,255,255,.28),inset 0 -6px 12px rgba(0,0,0,.35)!important;
+  transition:transform .1s ease,box-shadow .1s ease!important;transform:translateZ(0)}
+#tesoreria .cl-d[style*="--a"]{background:linear-gradient(180deg,rgba(248,113,113,calc(.55 + var(--a) * .45)) 0%,rgba(220,38,38,calc(.45 + var(--a) * .5)) 38%,#3a1f5c 74%,#16204f 100%)!important;border-color:#fb7185!important;border-top-color:#fecdd3!important;border-bottom-color:#3b0a14!important}
+#tesoreria .cl-d.we{background:linear-gradient(180deg,#1f3a8f 0%,#142a63 40%,#0b1840 100%)!important}
+#tesoreria .cl-d.out{opacity:.5!important;filter:saturate(.55)!important}
+#tesoreria .cl-d:hover{transform:translateY(-3px)!important;box-shadow:0 9px 0 #050b22,0 16px 26px rgba(0,0,0,.65),inset 0 2px 0 rgba(255,255,255,.34),inset 0 -6px 12px rgba(0,0,0,.3)!important}
+#tesoreria .cl-d:active{transform:translateY(4px)!important;box-shadow:0 2px 0 #050b22,0 4px 8px rgba(0,0,0,.5),inset 0 3px 8px rgba(0,0,0,.45)!important}
+#tesoreria .cl-d.sel{border:2.5px solid #facc15!important;box-shadow:0 6px 0 #713f12,0 0 0 3px rgba(250,204,21,.35),0 12px 22px rgba(0,0,0,.6),inset 0 2px 0 rgba(255,255,255,.3)!important}
+#tesoreria .cl-d.hoy{outline:3px solid #38bdf8;outline-offset:2px}
+#tesoreria .cl-n{color:#fff!important;font:900 17px system-ui!important;text-shadow:0 2px 0 #000,0 0 6px rgba(0,0,0,.6)}
+#tesoreria .cl-fer{color:#fecdd3!important;font:900 11.5px system-ui!important;text-shadow:0 1px 0 #000}
+#tesoreria .cl-p{border-radius:9px!important;padding:3px 8px!important;font:900 13.5px system-ui!important;color:#fff!important;text-shadow:0 1px 0 rgba(0,0,0,.65);letter-spacing:.2px;border:1px solid rgba(255,255,255,.45)}
+#tesoreria .cl-p.c{background:linear-gradient(180deg,#fb7185 0%,#ef4444 50%,#b91c1c 100%)!important;box-shadow:0 3px 0 #7f1d1d,0 5px 9px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.5)}
+#tesoreria .cl-p.g{background:linear-gradient(180deg,#a78bfa 0%,#8b5cf6 50%,#6d28d9 100%)!important;box-shadow:0 3px 0 #4c1d95,0 5px 9px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.5)}
+#tesoreria .cl-p.f{background:linear-gradient(180deg,#5eead4 0%,#14b8a6 50%,#0f766e 100%)!important;box-shadow:0 3px 0 #134e4a,0 5px 9px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.5)}
+#tesoreria .cl-t{color:#f8fafc!important;font:900 15px system-ui!important;text-shadow:0 1px 0 #000}
+#tesoreria .cl-w{opacity:1!important;border-radius:15px!important;background:linear-gradient(180deg,#3a2a06 0%,#1f1704 55%,#120d02 100%)!important;border:2px solid #f59e0b!important;border-top-color:#fde68a!important;
+  box-shadow:0 6px 0 #1c1202,0 12px 20px rgba(0,0,0,.6),inset 0 2px 0 rgba(255,255,255,.22)!important;color:#fde047!important;font:900 18px system-ui!important;text-shadow:0 2px 0 #000}
+#tesoreria .cl-w small{color:#fef3c7!important;font:800 11.5px system-ui!important;text-shadow:0 1px 0 #000}
+#tesoreria .pc-k div{background:linear-gradient(180deg,#1e3a8a 0%,#132a66 50%,#0b1a45 100%)!important;border:1.5px solid #60a5fa!important;border-top-color:#bfdbfe!important;border-radius:14px!important;
+  box-shadow:0 5px 0 #050b22,0 10px 18px rgba(0,0,0,.55),inset 0 2px 0 rgba(255,255,255,.25)!important}
+#tesoreria .pc-k small{color:#bae6fd!important;text-shadow:0 1px 0 #000}
+#tesoreria .pc-k b{color:#fff!important;text-shadow:0 2px 0 #000}
+#tesoreria .pc-k i{color:#e2e8f0!important;font-style:normal}
+#tesoreria .cl-ley{color:#f1f5f9!important;font:800 13px system-ui!important;text-shadow:0 1px 0 #000}
+#tesoreria .cl-ley i{box-shadow:0 2px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.5)}
+@media(max-width:760px){#tesoreria .cl-g{gap:5px!important}#tesoreria .cl-n{font-size:13px!important}#tesoreria .cl-p{font-size:10.5px!important;padding:1px 4px!important}#tesoreria .cl-d{border-radius:11px!important;box-shadow:0 4px 0 #050b22,0 7px 12px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.25)!important}}
+</style>
 <script>
-(function () { if (window.claude) return; window.__WEB_BUILD = 1343;
+(function () { if (window.claude) return; window.__WEB_BUILD = 1344;
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js'); } catch (e) {}
   function check() { fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (v) { if (v && v.build > window.__WEB_BUILD && !document.getElementById('webUpd')) { var d = document.createElement('div'); d.id = 'webUpd'; d.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;background:#7c3aed;color:#fff;padding:10px 16px;border-radius:14px;font:700 14px system-ui;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer'; if (window.__vaultOpen && window.__vaultOpen()) { /* v880: con el Baúl abierto NO se recarga solo (antes te sacaba y había que volver a entrar) */ d.textContent = '⬆️ Hay una versión nueva (v' + v.build + '). Se instala la próxima vez que entres · tocá acá para actualizar ahora'; d.onclick = function () { try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 400); }; document.body.appendChild(d); setTimeout(function () { d.style.display = 'none'; }, 12000); return; } var n = 8; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; document.body.appendChild(d); var t = setInterval(function () { n--; d.textContent = '⬆️ Versión nueva v' + v.build + ' — se actualiza en ' + n + ' s'; if (n <= 0) { clearInterval(t); try { if (typeof window.__arqSaveNow === 'function') window.__arqSaveNow(); } catch (e) {} setTimeout(function () { location.reload(); }, 600); } }, 1000); } }).catch(function () {}); }
   var dip = null; window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dip = e; show(); });

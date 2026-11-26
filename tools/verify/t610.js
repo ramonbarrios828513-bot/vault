@@ -1,0 +1,22 @@
+// v1344 · 📅 calendario del mes en 3D: días con relieve (sombra abajo), colores sólidos, montos nítidos
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:768}});
+ await p.evaluate(()=>{ window.__tes.open(); }); await p.waitForTimeout(500);
+ const save=async(np,nn,nm,f)=>{ await p.evaluate(([np,nn,nm,f])=>{ const v=(id,x)=>{ const e=document.getElementById(id); e.value=x; e.dispatchEvent(new Event('input',{bubbles:true})); }; v('tesNP',np); v('tesNN',nn); v('tesNM',nm); v('tesNF',f); v('tesNE','2026-11-11'); document.querySelector('[data-tes="simSave"]').click(); },[np,nn,nm,f]); await p.waitForTimeout(900); };
+ await p.evaluate(()=>[...document.querySelectorAll('#tesoreria button')].find(x=>/Cargar cheques nuevos/.test(x.textContent)).click()); await p.waitForTimeout(600);
+ const m=await p.evaluate(()=>{ const d=new Date(); d.setMonth(d.getMonth()+1); return d.toISOString().slice(0,7); });
+ await save('PROV AAA','880001','30500000',m+'-10'); await save('PROV BBB','880002','60000000',m+'-17');
+ await p.evaluate(m=>{ const b=document.createElement('button'); b.dataset.tes='tab'; b.dataset.v='cal'; document.querySelector('#tesoreria').appendChild(b); b.click(); },m); await p.waitForTimeout(500);
+ await p.evaluate(m=>{ const b=document.createElement('button'); b.dataset.tes='cal'; b.dataset.v=m; document.querySelector('#tesoreria').appendChild(b); b.click(); },m); await p.waitForTimeout(700);
+ const r=await p.evaluate(()=>{ const ds=[...document.querySelectorAll('#tesoreria .cl-d')], pay=ds.find(x=>x.querySelector('.cl-p.c')), cs=pay&&getComputedStyle(pay), ps=pay&&getComputedStyle(pay.querySelector('.cl-p.c')), w=document.querySelector('#tesoreria .cl-w'); return {n:ds.length, pay:!!pay, sh:cs&&cs.boxShadow, op:cs&&cs.opacity, bg:cs&&cs.backgroundImage, pbg:ps&&ps.backgroundImage, pfs:ps&&ps.fontSize, wsh:w&&getComputedStyle(w).boxShadow}; });
+ console.log('   '+JSON.stringify(r).slice(0,400));
+ await p.screenshot({path:'/tmp/claude-0/t610.png'});
+ ok(r.n>=28&&r.pay,'el calendario muestra los días y el cheque cargado');
+ ok(/5, 11, 34|rgb\(5, 11, 34\)/.test(r.sh)&&r.op==='1','cada día tiene relieve 3D (sombra sólida abajo) y no está apagado');
+ ok(/248, 113, 113|239, 68, 68/.test(r.bg),'el día con pagos se pinta de rojo vivo según el monto');
+ ok(/linear-gradient/.test(r.pbg)&&parseFloat(r.pfs)>=13,'la etiqueta del cheque es sólida y con letra grande ('+r.pfs+')');
+ ok(/rgb\(28, 18, 2\)/.test(r.wsh),'el total de la semana también con relieve');
+ ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
+ await b.close(); console.log(fail?'❌ '+fail+' falla(s)':'✅ todo bien'); process.exit(fail?1:0);
+})();
