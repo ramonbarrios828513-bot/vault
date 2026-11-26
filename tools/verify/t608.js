@@ -22,7 +22,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const setv=async(k,v)=>{ await p.fill(sel(k),v); await p.dispatchEvent(sel(k),'input'); await p.dispatchEvent(sel(k),'change'); await p.waitForTimeout(450); };
  await setv('q','10'); await setv('d1','20');
  const tot0=await FAC();
- await p.click(R+' [data-ngesp]'); await p.waitForTimeout(700);
+ await p.click(R+' [data-ngesp]'); await p.waitForTimeout(700); await p.evaluate(()=>{ const x=document.querySelector('.ng-espop [data-epx]'); x&&x.click(); }); await p.waitForTimeout(600);
  const e1=await p.evaluate(r=>[document.querySelector(r+' [data-k="d1"]').value,!!document.querySelector(r+' .ng-espp'),document.querySelector(r).classList.contains('ng-isesp'),(document.activeElement.dataset||{}).k],R);
  ok(e1[0]===''&&!e1[1]&&e1[2],'al tocar ☆ especial se vacían los descuentos ahí mismo, sin bloque aparte (Desc.1="'+e1[0]+'")');
  ok(e1[3]==='min','el cursor va a «cant. pide» ('+e1[3]+')');
@@ -68,11 +68,11 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const H2=await p.evaluate(r=>Math.round(document.querySelector(r).getBoundingClientRect().height),R);
  ok(H2<=165,'con ⭐ especial la fila no se agranda ('+H2+' px)');
  await p.evaluate(r=>{ document.querySelector(r).scrollIntoView({block:'start'}); const t=document.querySelector('#articulos .ng-bands'); t.scrollLeft=t.scrollWidth; },R); await p.waitForTimeout(300); await p.screenshot({path:'/tmp/claude-0/t608a.png'});
- await p.click(R+' [data-ngesp]'); await p.waitForTimeout(700);
+ await p.click(R+' [data-ngesp]'); await p.waitForTimeout(700); await p.evaluate(()=>{ const x=document.querySelector('.ng-espop [data-epx]'); x&&x.click(); }); await p.waitForTimeout(600);
  ok((await p.evaluate(r=>document.querySelector(r+' [data-k="d1"]').value,R))==='25','sacando ⭐ vuelve lo de antes, con el cambio hecho en «si no llega» (Desc.1 = 25)');
- await p.click(R+' [data-ngesp]'); await p.waitForTimeout(700);
+ await p.click(R+' [data-ngesp]'); await p.waitForTimeout(700); await p.evaluate(()=>{ const x=document.querySelector('.ng-espop [data-epx]'); x&&x.click(); }); await p.waitForTimeout(600);
  ok((await p.evaluate(r=>document.querySelector(r+' [data-k="d1"]').value,R))==='40','volviendo a ⭐ vuelve el trato que habías cargado (Desc.1 = 40)');
- await p.click(R+' [data-ngesp]'); await p.waitForTimeout(700);
+ await p.click(R+' [data-ngesp]'); await p.waitForTimeout(700); await p.evaluate(()=>{ const x=document.querySelector('.ng-espop [data-epx]'); x&&x.click(); }); await p.waitForTimeout(600);
  await p.click(sel('q')); await p.waitForTimeout(200);
  const oc=await p.evaluate(r=>getComputedStyle(document.querySelector(r)).outlineStyle,R);
  ok(oc==='solid','la fila donde estás trabajando se marca con un borde que late ('+oc+')');
