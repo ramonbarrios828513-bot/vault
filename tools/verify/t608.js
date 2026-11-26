@@ -45,9 +45,26 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const facDeal=e3[1];
  await p.click(R+' [data-ngespf]'); await p.waitForTimeout(700);
  ok((await FAC())===facSin2,'↩ vuelve a la regla: sin la cantidad va con «si no llega»');
+ const sq=R+' .ng-sc.suc [data-ngqs]'; await p.fill(sq,'7'); await p.dispatchEvent(sq,'input'); await p.dispatchEvent(sq,'change'); await p.waitForTimeout(600);
  await p.click(R+' [data-ngespup]'); await p.waitForTimeout(900);
  const e4=await p.evaluate(r=>[document.querySelector(r+' [data-k="q"]').value,document.querySelector(r+' .ng-gx').innerText,document.querySelector(r+' [data-ngcv$="|fac"]').textContent],R);
- ok(e4[0]==='33'&&/llega/.test(e4[1])&&e4[2]===facDeal,'⬆️ sube a 33: ✅ llega y se aplica el trato ('+e4[2]+')');
+ ok(e4[0]==='33'&&/✅ 33/.test(e4[1])&&e4[2]===facDeal,'✅ aceptar el pedido del vendedor: se compran 33 (NO suma los 7 de la sucursal) y se aplica el trato ('+e4[0]+' · '+e4[2]+')');
+ const sv7=await p.evaluate(r=>document.querySelector(r+' .ng-sc.suc [data-ngqs]').value,R);
+ ok(sv7==='7','lo que pidió la sucursal (7) queda para transferir, no se borra');
+ await p.click(R+' [data-ngqm]'); await p.waitForTimeout(700);
+ const qs1=await p.evaluate(r=>document.querySelector(r+' [data-k="q"]').value,R);
+ await p.click(R+' [data-ngqm]'); await p.waitForTimeout(700);
+ const qs2=await p.evaluate(r=>document.querySelector(r+' [data-k="q"]').value,R);
+ ok(qs1==='40'&&qs2==='33','criterio ➕ suma las sucursales (40) y 🚚 no las suma (33)');
+ await p.click(R+' [data-ngtr]'); await p.waitForTimeout(500);
+ const vt=await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov')].pop(); return o?o.innerText.replace(/\s+/g,' '):''; });
+ ok(/Vitrina del trato/.test(vt)&&/Si comprás 33/.test(vt)&&/40 %/.test(vt)&&/Si no llega → 25 %/.test(vt),'📜 la vitrina muestra el trato cargado: 33 → 40 % · si no llega → 25 %');
+ await p.fill('.ico-ov [data-trv]','Juan (vendedor)'); await p.click('.ico-ov [data-trgo]'); await p.waitForTimeout(700);
+ const tr=await p.evaluate(()=>{ const L=(window.__ar&&window.__ar.st&&0)||null; return document.querySelector('#articulos').innerHTML.includes('data-ngtr')?1:0; });
+ await p.click(R+' [data-ngtr]'); await p.waitForTimeout(500);
+ const vt2=await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov')].pop(); const t=o?o.innerText.replace(/\s+/g,' '):''; o&&o.remove(); return t; });
+ ok(/Trato vigente/.test(vt2)&&/Juan/.test(vt2),'📜 Registrar trato: queda vigente con fecha, quién y vendedor');
+
  const H2=await p.evaluate(r=>Math.round(document.querySelector(r).getBoundingClientRect().height),R);
  ok(H2<=165,'con ⭐ especial la fila no se agranda ('+H2+' px)');
  await p.evaluate(r=>{ document.querySelector(r).scrollIntoView({block:'start'}); const t=document.querySelector('#articulos .ng-bands'); t.scrollLeft=t.scrollWidth; },R); await p.waitForTimeout(300); await p.screenshot({path:'/tmp/claude-0/t608a.png'});
@@ -82,7 +99,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.fill(pq,'10'); await p.dispatchEvent(pq,'input'); await p.dispatchEvent(pq,'change'); await p.waitForTimeout(500);
  await p.fill(dq,'20'); await p.dispatchEvent(dq,'input'); await p.dispatchEvent(dq,'change'); await p.waitForTimeout(700);
  const tq=await p.evaluate(r=>[document.querySelector(r+' [data-ngl][data-k="q"]').value,(document.querySelector(r+' [data-ngi$="|i:gq"]')||{}).textContent],R);
- ok(tq[0]==='30'&&/30/.test(tq[1]),'PIDE 10 + depósito 20 → al proveedor 30 (cantidad '+tq[0]+', PROVEEDOR '+tq[1]+')');
+ ok(tq[0]==='37'&&/37/.test(tq[1]),'central PIDE 10 + sucursal 7 + refuerzo 20 → al proveedor 37 (cantidad '+tq[0]+', PROVEEDOR '+tq[1]+')');
  await p.screenshot({path:'/tmp/claude-0/t608c.png'});
  ok(!errs.length,'sin errores '+errs.join(' | ').slice(0,300));
  await b.close(); console.log(fail?'fallas '+fail:'✔ t608 ok'); process.exit(fail?1:0); })();
