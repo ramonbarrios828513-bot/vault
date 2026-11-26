@@ -11,7 +11,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const row=await p.evaluate(()=>document.querySelector('#articulos .ng-band[data-ngrowid]').dataset.ngrowid);
  const R='#articulos [data-ngrowid="'+row+'"]', sel=k=>R+' [data-k="'+k+'"]';
  const H=await p.evaluate(r=>Math.round(document.querySelector(r).getBoundingClientRect().height),R);
- ok(H<=175,'la franja de cada producto es más baja ('+H+' px; antes 222)');
+ ok(H<=160,'la franja de cada producto es más baja: la negociación entra en 2 renglones ('+H+' px; antes 222)'); const nr=await p.evaluate(r=>getComputedStyle(document.querySelector(r+' .ng-bnc')).gridTemplateRows.split(' ').length,R); ok(nr===2,'el bloque de negociación tiene 2 renglones ('+nr+')');
  const pg=await p.evaluate(r=>{ const s=document.querySelector(r+' select[data-k="pago"]'), c=s.closest('.ng-gc'); return [Math.round(s.getBoundingClientRect().width),Math.round(c.getBoundingClientRect().width),s.scrollWidth<=s.clientWidth+2]; },R);
  ok(pg[0]>=pg[1]-24&&pg[2],'el campo Pago ocupa todo su lugar hacia la derecha ('+pg[0]+' de '+pg[1]+' px)');
  await p.click(R+' [data-ngojo="esp"]'); await p.waitForTimeout(300);
