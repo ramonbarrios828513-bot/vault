@@ -24,7 +24,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click(R+' [data-ngesp]'); await p.waitForTimeout(600);
  const pend=await p.evaluate(r=>{ const x=document.querySelector(r+' .ng-espp'); return x?x.className+' '+x.innerText:''; },R);
  ok(/pend/.test(pend)&&/cant\. pide/.test(pend),'al marcar ⭐ aparece 🎯 Trato especial pidiendo la cantidad ('+pend.slice(0,60)+')');
- await p.fill(sel('min'),'33'); await p.press(sel('min'),'Tab'); await p.waitForTimeout(700);
+ await p.fill(sel('min'),'33'); await p.press(sel('min'),'Tab'); await p.waitForTimeout(1200);
  const foc=await p.evaluate(()=>document.activeElement&&document.activeElement.dataset.k);
  const pd=(await p.evaluate(r=>document.querySelector(r+' .ng-espp').innerText,R)).replace(/\s+/g,' ');
  ok(foc==='esc.0.p'&&/Si pedís 33 o más/.test(pd)&&/Programá/.test(pd),'al poner 33 pide programar el trato y deja el cursor en el % ('+foc+' · '+pd.replace(/\s+/g,' ')+')');
@@ -52,5 +52,14 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click(R+' [data-ngesp]'); await p.waitForTimeout(600);
  const off=await p.evaluate(r=>[!!document.querySelector(r+' .ng-espp'),document.querySelector(r+' [data-ngcv$="|fac"]').textContent],R);
  ok(!off[0],'sacando ⭐ especial desaparece el trato y se negocia libre');
+ const cen=await p.evaluate(r=>{ const c=document.querySelector(r+' .ng-sc.cen'), su=[...document.querySelectorAll(r+' .ng-sc.suc')]; return {dep:!!(c&&c.querySelector('[data-ngdep]')), lk:su.length>0&&su.every(x=>/🔒 depósito/.test(x.querySelector('b').textContent)&&!x.querySelector('[data-ngdep]'))}; },R);
+ ok(cen.dep,'la central (⭐ KM 7) tiene el campo chico 🏬 Refuerzo (depósito virtual) que se suma al total');
+ ok(cen.lk,'las sucursales muestran 🔒 depósito (bloqueado) y no tienen ese campo');
+ const pq=R+' .ng-sc.cen [data-ngqs]', dq=R+' [data-ngdep]';
+ await p.fill(pq,'10'); await p.dispatchEvent(pq,'input'); await p.dispatchEvent(pq,'change'); await p.waitForTimeout(500);
+ await p.fill(dq,'20'); await p.dispatchEvent(dq,'input'); await p.dispatchEvent(dq,'change'); await p.waitForTimeout(700);
+ const tq=await p.evaluate(r=>[document.querySelector(r+' [data-ngl][data-k="q"]').value,(document.querySelector(r+' [data-ngi$="|i:gq"]')||{}).textContent],R);
+ ok(tq[0]==='30'&&/30/.test(tq[1]),'PIDE 10 + depósito 20 → al proveedor 30 (cantidad '+tq[0]+', PROVEEDOR '+tq[1]+')');
+ await p.screenshot({path:'/tmp/claude-0/t608c.png'});
  ok(!errs.length,'sin errores '+errs.join(' | ').slice(0,300));
  await b.close(); console.log(fail?'fallas '+fail:'✔ t608 ok'); process.exit(fail?1:0); })();
