@@ -17,8 +17,8 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  await p.selectOption(r+' select[data-k="brm"]','p'); await p.waitForTimeout(300); c=await C(); ok(/= 17 de regalo/.test(c.brx)&&!/no da justo/.test(c.brx),'elijo «proporcional» → 17 ('+c.brx+')');
  await p.selectOption(r+' select[data-k="brm"]','g'); await p.waitForTimeout(300); c=await C(); ok(/= 14 de regalo/.test(c.brx)&&!/no da justo/.test(c.brx),'elijo «solo grupos completos» → 14 ('+c.brx+')');
  c=await set(10,'1+0,5'); ok(/= 5 de regalo/.test(c.brx)&&!c.sel,'regla con decimales 1+0,5 con 10 → 5 ('+c.brx+')'); c=await set(100); ok(/= 50 de regalo/.test(c.brx),'1+0,5 con 100 → 50 ('+c.brx+')');
- c=await set(200,'70'); ok(c.brx===''&&!c.sel&&/25,9/.test(c.bp),'un número solo (70) sigue siendo regalo fijo, como antes ('+JSON.stringify(c)+')');
- const k=await p.evaluate(()=>{ const f=window.__ar.ngCalc; const a=f({q:200,pvp:10000},{d1:'30',br:'10+7'},{}), z=f({q:200,pvp:10000},{d1:'30',br:'140'},{}); return {a:Math.round(a.fac),z:Math.round(z.fac),bon:a.bon,rec:a.rec}; });
+ c=await set(200,'70 cj'); ok(c.brx===''&&!c.sel&&/25,9/.test(c.bp),'v1347: las cajas fijas se escriben «70 cj» (un número solo ya no cuenta) ('+JSON.stringify(c)+')');
+ const k=await p.evaluate(()=>{ const f=window.__ar.ngCalc; const a=f({q:200,pvp:10000},{d1:'30',br:'10+7'},{}), z=f({q:200,pvp:10000},{d1:'30',br:'140 cj'},{}); return {a:Math.round(a.fac),z:Math.round(z.fac),bon:a.bon,rec:a.rec}; });
  ok(k.a===k.z&&k.bon===140&&k.rec===340,'el costo con la regla 10+7 es idéntico al de cargar 200+140 a mano ('+JSON.stringify(k)+')');
  ok(!errs.length,'sin errores de consola '+errs.slice(0,2).join(' | '));
  await b.close(); console.log(fail?'✘ t596 con fallas':'✔ t596 OK'); process.exit(fail?1:0); })();

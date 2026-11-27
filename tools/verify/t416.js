@@ -11,7 +11,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  const nc=await p.evaluate(r=>document.querySelector(r+' [data-ngcv$="|st:nc"]').innerText,r); ok(/−7[,.]1\s?%/.test(nc),'NC de Gs 500 muestra al lado su porcentaje ('+nc+')');
  await p.fill(r+' [data-k="pvf"]','6500'); await p.waitForTimeout(300);
  const fac=await p.evaluate(r=>document.querySelector(r+' [data-ngcv$="|fac"]').innerText,r); ok(fac==='6.000','si el proveedor da el PVF directo (6.500) manda ese: 6.500 − NC 500 = 6.000 ('+fac+')');
- await p.fill(r+' [data-k="pvf"]',''); await p.fill(r+' [data-k="nc"]',''); await p.fill(r+' [data-k="q"]','10'); await p.waitForTimeout(200); await p.fill(r+' [data-k="br"]','10'); await p.waitForTimeout(300);
+ await p.fill(r+' [data-k="pvf"]',''); await p.fill(r+' [data-k="nc"]',''); await p.fill(r+' [data-k="q"]','10'); await p.waitForTimeout(200); await p.fill(r+' [data-k="br"]','10 cj'); await p.waitForTimeout(300);
  const bq=await p.evaluate(r=>[document.querySelector(r+' [data-k="q"]').value+'|'+((document.querySelector(r+' [data-ngcv$="|bon"]')||{}).textContent||'').trim(), document.querySelector(r+' [data-ngcv$="|st:br"]').innerText, document.querySelector(r+' [data-ngcv$="|fac"]').innerText, document.querySelector(r+' [data-ngcv$="|dr"]').innerText],r); console.log('   bonif: '+bq.join(' · '));
  ok(/^10\|10$/.test(bq[0]) && /−50%/.test(bq[1]) && bq[2]==='3.500' && /65/.test(bq[3]),'bonificación: muestra cantidad pedida (10) + regalo (10) = −50 %, y baja el costo a 3.500 (desc. real 65 %)');
  await p.fill(r+' [data-k="br"]',''); await p.fill(r+' [data-k="d2"]','10'); await p.fill(r+' [data-k="d3"]','5'); await p.waitForTimeout(300);

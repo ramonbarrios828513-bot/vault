@@ -16,7 +16,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  const t1=Date.now(); await p.click('#articulos [data-ng="pol"][data-m="vac"]'); await p.waitForTimeout(300); await p.waitForSelector('#articulos .ng-tab tr[data-ngrowid="mx300"]'); const ms2=Date.now()-t1;
  ok(await p.evaluate(()=>[...document.querySelectorAll('#articulos .ng-tab [data-k="d1"]')].every(i=>i.value==='30')),'política aplicada a los 300 de una vez ('+ms2+' ms)');
  const row=id=>`#articulos .ng-tab tr[data-ngrowid="${id}"]`;
- await p.fill(row('mx5')+' [data-k="q"]','20'); await p.fill(row('mx5')+' [data-k="br"]','2'); await p.fill(row('mx5')+' [data-k="cd"]','5'); await p.fill(row('mx5')+' [data-k="ret"]','3'); await p.waitForTimeout(150);
+ await p.fill(row('mx5')+' [data-k="q"]','20'); await p.fill(row('mx5')+' [data-k="br"]','2 cj'); await p.fill(row('mx5')+' [data-k="cd"]','5'); await p.fill(row('mx5')+' [data-k="ret"]','3'); await p.waitForTimeout(150);
  await p.selectOption(row('mx5')+' [data-k="pago"]','contado'); await p.waitForTimeout(400);
  await p.check('#articulos [data-ngcol="c:ce"]'); await p.waitForTimeout(500);
  const c5=await p.evaluate(r=>{ const g=k=>document.querySelector(r+` [data-ngcv$="|${k}"]`); return [g('fac'),g('dr'),g('ce')].map(x=>x?x.innerText:'?').join(' / '); },row('mx5')); console.log('   mx5: '+c5);
