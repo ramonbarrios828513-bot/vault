@@ -16,6 +16,11 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const r=await p.evaluate(()=>{ const V=window.__vt.st(), s=V.sales[V.sales.length-1]; return {n:V.sales.length, fav:s.fav, sin:s.sinCli, by:s.autBy, lst:(V.sinId||[]).slice(-1)[0], open:!!document.querySelector('.vt-ov [data-vub]')}; });
  console.log('   '+JSON.stringify(r));
  ok(r.n===n0+1&&r.fav===850&&r.sin===1&&/Ana Vendedora/.test(r.by)&&r.lst&&r.lst.fav===850&&!r.open,'con el PIN correcto: venta procesada y ₲ 850 «a favor sin identificar», con quién autorizó');
+ // 1b) 🍬 ofrecer algo chico en vez de dejarlo a favor
+ await prep(false,18150); await p.evaluate(()=>{ const V=window.__vt.st(); V.arts['dul1']={id:'dul1',n:'CARAMELO MENTA',pvp:500,u:1}; V.stk['dul1']=50; }); await p.click('.vt-ov [data-rqn="100000"]'); await p.keyboard.type('1'); await p.waitForTimeout(500);
+ const dq=await p.evaluate(()=>{ const o=[...document.querySelectorAll('.vt-ov')].pop(); return {t0:(o.textContent.match(/Preguntale[^]{0,120}/)||[''])[0], txt:/Billetera Nissifarma, o prefiere llevar algo/.test(o.textContent), btn:!!o.querySelector('[data-vp="dul"][data-aid="dul1"]')}; }); console.log('   '+JSON.stringify(dq)); ok(dq.txt&&dq.btn,'pregunta: ¿a su billetera o lleva algo chico? y ofrece el caramelo');
+ await p.click('.vt-ov [data-vp="dul"][data-aid="dul1"]'); await p.waitForTimeout(500); const dl=await p.evaluate(()=>{ const V=window.__vt.st(), t=V.tabs.find(x=>x.id===V.cur); return t.lines.some(l=>l.aid==='dul1'); }); ok(dl,'un toque agrega el caramelo a la venta');
+ await p.evaluate(()=>document.querySelectorAll('.vt-ov,.vt-aut').forEach(x=>x.remove()));
  // 2) con cliente
  await p.evaluate(()=>{ window.__noAutoTk=false; window.__tkH=''; window.__nubeSP=()=>Promise.resolve('a'.repeat(64)); window.__nubeOp=async()=>true; window.__bil.warm(); const cT=window.__vt.st().clients.find(x=>x.id==='cT1'); if(cT) cT.tel='0981123456'; window.open=function(){ return { document:{ open(){}, write(h){ window.__tkH+=h; }, close(){} }, focus(){}, print(){} }; }; });
  await prep(true,18150); await p.click('.vt-ov [data-rqn="100000"]'); await p.keyboard.type('1'); await p.waitForTimeout(400);
@@ -31,6 +36,10 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400); await p.fill('.vt-aut [data-au="pin"]','4321'); await p.keyboard.press('Enter'); await p.waitForTimeout(800);
  const r3=await p.evaluate(()=>{ const V=window.__vt.st(), s=V.sales[V.sales.length-1]; return {n:V.sales.length, deu:s.deu, sin:s.sinCli}; });
  console.log('   '+JSON.stringify(r3));
+ // 4) el vendedor pone lo que falta
+ await prep(false,51000); await p.click('.vt-ov [data-rqn="50000"]'); await p.keyboard.type('1'); await p.waitForTimeout(400); const n4=await n();
+ await p.click('.vt-ov [data-vp="vpo"]'); await p.waitForTimeout(400); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(800);
+ const r4=await p.evaluate(()=>{ const V=window.__vt.st(), s=V.sales[V.sales.length-1]; return {n:V.sales.length, vpo:s.vpo, by:s.vpoBy, deu:s.deu, aut:!!document.querySelector('.vt-aut')}; }); console.log('   '+JSON.stringify(r4)); ok(r4.n===n4+1&&r4.vpo===1000&&/Ana/.test(r4.by)&&!r4.deu,'el vendedor pone los ₲ 1.000: venta cobrada completa y anotado quién puso');
  ok(r3.n===n3+1&&r3.deu===1000&&r3.sin===1,'falta ₲ 1.000 y no hay cliente: con el PIN se procesa como deuda sin identificar');
  ok(!errs.length,'sin errores '+errs.join(' | '));
  console.log('fallas '+fail); await b.close(); process.exit(fail?1:0); })();
