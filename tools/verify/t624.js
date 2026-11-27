@@ -33,11 +33,14 @@ const SS='/tmp/claude-0/-home-claude/35b1ce44-d35c-5596-924f-bd3f45a2f74d/scratc
  await p.screenshot({path:SS+'turno5-cuadre.png'}); await p.click('.vt-ov [data-ivok]'); await p.waitForTimeout(600);
  const s4=await p.evaluate(()=>{ const V=window.__vt.st(), h=V.hist.slice(-1)[0]; return {open:V.open, deja:V.lastDeja&&V.lastDeja.GS, h:V.hist.length, sales:V.sales.length, rem:h.movs.filter(m=>m.k==='rem').reduce((a,m)=>a+m.g,0), difB:h.difB}; }); console.log('   cierre',JSON.stringify(s4));
  ok(!s4.open&&s4.sales===0&&s4.rem===50000+100000&&+s4.deja[20000]===3&&s4.difB.GS[100000]===-1&&s4.difB.GS[20000]===1,'turno cerrado: remesa de cierre registrada, diferencias guardadas en el historial, el próximo turno queda con lo cargado');
- // 5) INICIO del próximo turno: ya trae cargado lo que se dejó
+ // 5) INICIO del próximo turno: casilleros vacíos, el cajero cuenta y se cuadra con lo que dejó el anterior (cuenta 1 de 500 menos a propósito)
  await p.click('#ventas [data-vt="ini"]'); await p.waitForTimeout(500);
- const pre=await p.evaluate(()=>{ const o={}; document.querySelectorAll('.vt-cnt [data-vn^="GS:"]').forEach(i=>{ if(i.value) o[i.dataset.vn.slice(3)]=+i.value; }); return o; }); console.log('   pre',JSON.stringify(pre));
- await p.screenshot({path:SS+'turno6-proximo.png'});
- ok(pre[20000]===3&&pre[500]===6&&pre[1000]===10,'el próximo inicio de turno ya trae los billetes que se dejaron (el cajero confirma contando)');
- await p.click('.vt-cnt [data-vc="ok"]'); await p.waitForTimeout(500); ok(await p.evaluate(()=>window.__vt.st().open),'el próximo turno queda abierto');
+ const pre=await p.evaluate(()=>[...document.querySelectorAll('.vt-cnt [data-vn^="GS:"]')].filter(i=>i.value).length); ok(pre===0,'el inicio del próximo turno viene VACÍO: el cajero cuenta y carga por teclado');
+ const C2=Object.assign({},s4.deja); C2[500]=(+C2[500])-1; await fillCnt(C2); await p.click('.vt-cnt [data-vc="ok"]'); await p.waitForTimeout(600);
+ const ci=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText); console.log('   '+ci.split('\n').filter(l=>/500|Dejó|anterior/.test(l)).slice(0,3).join(' | '));
+ ok(/Dejó el turno anterior/.test(ci)&&/₲ 500\t6\t5\t⛔ faltante 1/.test(ci),'cuadra con lo que dejó el turno anterior: dejó 6 de 500, contó 5 → FALTANTE 1');
+ await p.screenshot({path:SS+'turno6-inicio-cuadre.png'}); await p.click('.vt-ov [data-iiok]'); await p.waitForTimeout(500);
+ const s5=await p.evaluate(()=>{ const V=window.__vt.st(), m=V.movs.find(x=>x.k==='ini'); return {open:V.open, st500:V.stock.GS[500], dif:m&&m.difIni}; }); console.log('   '+JSON.stringify(s5));
+ ok(s5.open&&s5.st500===5&&s5.dif&&s5.dif.GS[500]===-1,'abre con lo contado de verdad y la diferencia queda anotada en el inicio del turno');
  ok(!errs.length,'sin errores '+errs.join(' | ').slice(0,300));
  console.log('fallas',fail); await b.close(); process.exit(fail?1:0); })();
