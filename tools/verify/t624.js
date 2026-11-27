@@ -31,6 +31,8 @@ const SS='/tmp/claude-0/-home-claude/35b1ce44-d35c-5596-924f-bd3f45a2f74d/scratc
  const deja={10000:3,5000:4,2000:5,1000:10,500:5}; await fillCnt(deja); await p.screenshot({path:SS+'turno5-deja.png'}); await p.click('.vt-cnt [data-vc="ok"]'); await p.waitForTimeout(700);
  const s4=await p.evaluate(()=>{ const V=window.__vt.st(); return {open:V.open, deja:V.lastDeja&&V.lastDeja.GS, h:V.hist.length, sales:V.sales.length}; }); console.log('   cierre',JSON.stringify(s4));
  ok(!s4.open&&s4.h>=1&&s4.sales===0&&+s4.deja[500]===5,'turno cerrado, guardado en el historial; quedan los billetes elegidos para el próximo turno');
+ const rc=await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov')].pop(); const t=o?o.innerText:''; const h=window.__vt.st().hist.slice(-1)[0]; return {t:/Remesa de cierre/.test(t), g:h.movs.filter(m=>m.k==='rem').reduce((a,m)=>a+m.g,0)}; }); console.log('   remesa cierre',JSON.stringify(rc)); ok(rc.t&&rc.g>0,'lo que no queda para el próximo turno sale como REMESA DE CIERRE billete por billete (con comprobante)');
+ await p.evaluate(()=>document.querySelectorAll('.ico-ov').forEach(o=>{ if(/Remesa/.test(o.innerText)) o.remove(); }));
  // 5) INICIO del próximo turno: ya trae cargado lo que se dejó
  await p.click('#ventas [data-vt="ini"]'); await p.waitForTimeout(500);
  const pre=await p.evaluate(()=>{ const o={}; document.querySelectorAll('.vt-cnt [data-vn^="GS:"]').forEach(i=>{ if(i.value) o[i.dataset.vn.slice(3)]=+i.value; }); return o; }); console.log('   pre',JSON.stringify(pre));
