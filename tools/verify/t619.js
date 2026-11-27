@@ -6,6 +6,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  console.log('   '+JSON.stringify(r));
  ok(true,'el mes: 500 M en total, 400 M pagados (80 % en verde) y 100 M que faltan (rojo)');
  const t2=await p.evaluate(()=>document.querySelector('#tesoreria').innerText.replace(/\s+/g,' ')); ok(/Cheques diferidos Total ₲ 550\.000\.000/.test(t2)&&/Cheques a la vista Total ₲ 20\.000\.000/.test(t2),'muestra el total de diferidos y de a la vista, con % pagado y % que falta'); ok(/hasta \d\d\/\d\d/.test(t2)&&await p.evaluate(()=>[...document.querySelectorAll('#tesoreria svg [data-tbg^="w|"], #tesoreria svg g[data-tbg^="w|"]')].length>=14),'las semanas llegan hasta el último cheque cargado (3 meses adelante)'); ok(/\d+%✔/.test(t2)||await p.evaluate(()=>[...document.querySelectorAll('#tesoreria svg text')].some(x=>/%✔/.test(x.textContent))),'cada barra muestra el % ya pagado');
+ const g=await p.evaluate(()=>{ const t=document.querySelector('#tesoreria').innerText; return {gg:/Gastos generales de .* prioridad normal/.test(t), sw:/Gastos generales semana por semana/.test(t), alta:/ALTA PRIORIDAD/.test(t)}; }); ok(g.gg&&g.sw&&g.alta,'gastos generales aparte (prioridad normal, en ámbar) y cheques como ALTA PRIORIDAD');
  ok(r.sem&&r.dia&&r.mes,'gráficos semana por semana, día por día y mes a mes, con pagado y falta');
  await p.evaluate(()=>document.querySelector('#tesoreria .tb-tots').scrollIntoView()); await p.screenshot({path:'/tmp/claude-0/t619.png'});
  ok(!errs.length,'sin errores '+errs.join(' | ').slice(0,300));
