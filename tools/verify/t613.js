@@ -1,0 +1,36 @@
+const setup=require("./rvlib.js");
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:768}});
+ await p.evaluate(()=>{ window.__vt.open(); }); await p.waitForTimeout(300);
+ await p.evaluate(async()=>{ const wb=await (await fetch('/mig.json')).json(); window.__fichas.mig(wb); }); await p.waitForTimeout(1500);
+ await p.evaluate(()=>{ const g=document.querySelector('[data-impgo]'); g&&g.click(); }); await p.waitForTimeout(20000);
+ await p.evaluate(()=>{ document.querySelectorAll('.ico-ov').forEach(o=>o.remove()); const v=document.getElementById('ventas'); if(v) v.hidden=true; window.__ar.open(); }); await p.waitForTimeout(2500);
+ await p.evaluate(async()=>{ const b=[...document.querySelectorAll('#articulos .cp-b')].find(x=>/PREPARAR ORDEN/.test(x.textContent)); b.click(); await new Promise(r=>setTimeout(r,900)); const q=document.getElementById('plQ'); q.value='policlinica sa sr'; q.dispatchEvent(new Event('input')); await new Promise(r=>setTimeout(r,300)); document.querySelector('#plL [data-plp]').click(); });
+ await p.waitForTimeout(5000);
+ await p.evaluate(()=>{ const b=document.querySelector('#articulos [data-ng="view"][data-v="tab3"]'); b&&b.click(); }); await p.waitForTimeout(1500);
+ const rows=await p.evaluate(()=>[...document.querySelectorAll('#articulos .ng-band[data-ngrowid]')].map(x=>x.dataset.ngrowid));
+ // v1346 · ✅ Confirmar por producto: Enter no sale de la fila; Ctrl+Enter o ☑️ Confirmar pasa al siguiente; filas intercaladas con colores distintos; la fila activa resalta
+ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+ const B=i=>'#articulos .ng-band[data-ngrowid="'+rows[i]+'"]';
+ const z=await p.evaluate(()=>{ const b=[...document.querySelectorAll('#articulos .ng-bands .ng-band')]; return [b[0].classList.contains('ng-z1'),b[1].classList.contains('ng-z1'),getComputedStyle(b[0].lastElementChild).backgroundImage.slice(0,60),getComputedStyle(b[1].lastElementChild).backgroundImage.slice(0,60),!!b[0].querySelector('[data-nglisto]')]; });
+ console.log('   '+JSON.stringify(z));
+ ok(!z[0]&&z[1]&&z[2]!==z[3],'filas intercaladas con colores bien distintos (violeta / verde)');
+ ok(z[4],'cada producto tiene su botón ☑️ Confirmar');
+ await p.click(B(1)+' [data-k="pvp"]'); await p.waitForTimeout(200);
+ const y0=await p.evaluate(s=>Math.round(document.querySelector(s).getBoundingClientRect().top),B(1));
+ let out=0, seq=[]; for(let i=0;i<45;i++){ await p.keyboard.press('Enter'); await p.waitForTimeout(400); const r=await p.evaluate(()=>{ const a=document.activeElement, b=a.closest&&a.closest('.ng-band[data-ngrowid]'); return [b&&b.dataset.ngrowid,(a.dataset||{}).k]; }); seq.push(r[1]); if(r[0]!==rows[1]) out++; }
+ ok(out===0,'45 Enter seguidos: el cursor nunca sale del producto ('+seq.join('→')+'…)');
+ ok(seq.includes('pvp')&&seq.indexOf('pvp')>seq.indexOf('env:Local 5 KM11'),'al llegar al último cuadro vuelve al primero del mismo producto');
+ const y1=await p.evaluate(s=>Math.round(document.querySelector(s).getBoundingClientRect().top),B(1));
+ ok(Math.abs(y1-y0)<=4,'la fila no salta mientras recorrés con Enter ('+y0+' → '+y1+')');
+ const fw=await p.evaluate(s=>getComputedStyle(document.querySelector(s)).outlineWidth,B(1)); ok(parseFloat(fw)>=4,'la fila donde estás tiene borde amarillo grueso ('+fw+')');
+ await p.keyboard.down('Control'); await p.keyboard.press('Enter'); await p.keyboard.up('Control'); await p.waitForTimeout(1000);
+ const r2=await p.evaluate(()=>{ const a=document.activeElement, b=a.closest&&a.closest('.ng-band[data-ngrowid]'); return b&&b.dataset.ngrowid; });
+ const okd=await p.evaluate(s=>[document.querySelector(s).classList.contains('ng-okd'),(document.querySelector(s+' [data-nglisto]')||{}).textContent],B(1));
+ console.log('   ctrl',r2,rows[2],JSON.stringify(okd)); ok(r2===rows[2]&&okd[0]&&/Listo/.test(okd[1]),'Ctrl+Enter confirma (✅ Listo) y pasa al producto siguiente');
+ await p.click(B(2)+' [data-nglisto]'); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>{ const a=document.activeElement, b=a.closest&&a.closest('.ng-band[data-ngrowid]'); return b&&b.dataset.ngrowid; })===rows[3],'☑️ Confirmar con el mouse también pasa al siguiente');
+ await p.click(B(1)+' [data-nglisto]'); await p.waitForTimeout(400);
+ ok(await p.evaluate(s=>!document.querySelector(s).classList.contains('ng-okd'),B(1)),'tocando ✅ Listo otra vez se vuelve a editar');
+ await p.screenshot({path:'/tmp/claude-0/t613.png'});
+ ok(!errs.length,'sin errores '+errs.join(' | ').slice(0,300));
+ await b.close(); console.log(fail?'fallas '+fail:'✔ t613 ok'); process.exit(fail?1:0); })();
