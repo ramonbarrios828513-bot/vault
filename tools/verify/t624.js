@@ -20,24 +20,24 @@ const SS='/tmp/claude-0/-home-claude/35b1ce44-d35c-5596-924f-bd3f45a2f74d/scratc
  const s2=await p.evaluate(()=>{ const V=window.__vt.st(), s=V.sales[V.sales.length-1]; return {n:V.sales.length, vu:s&&s.vuelto, st:V.stock.GS}; }); console.log('   venta',JSON.stringify(s2));
  const tot=g=>Object.entries(g||{}).reduce((a,[d,n])=>a+d*n,0);
  ok(s2.n===1&&s2.vu===82000&&tot(s2.st)===tot(s1.st)+18000&&+s2.st[100000]===2,'venta: entra el billete de 100.000 y el vuelto (₲ 82.000) sale del stock; la caja sube ₲ 18.000');
- // 3) CIERRE: cuento lo real (falta una moneda de 500 a propósito)
- const real=Object.assign({},s2.st); real[500]=(+real[500]||0)-1;
- await p.click('#ventas [data-vt="cierre"]'); await p.waitForTimeout(500); await fillCnt(real); await p.screenshot({path:SS+'turno3-cierre.png'}); await p.click('.vt-cnt [data-vc="ok"]'); await p.waitForTimeout(600);
- const dif=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText); console.log('   '+dif.split('\n').slice(0,3).join(' | '));
- ok(/₲ 100\.000\t1\t1\t+2\t/.test(dif)&&/₲ 50\.000\t2\t+−1\t+1\t/.test(dif),'el inventario muestra el INICIO real (no cambia con las ventas): 100.000 → 1 + 1 = 2');
- ok(/FALTAN ₲ 500/.test(dif),'cierre: compara contado vs sistema y muestra la diferencia billete por billete (faltan ₲ 500)');
- await p.screenshot({path:SS+'turno4-diferencia.png'}); await p.click('.vt-ov [data-ivok]'); await p.waitForTimeout(500);
- // 4) PRÓXIMO TURNO: se dejan billetes chicos para el cambio, el resto se remesa
- const deja={10000:3,5000:4,2000:5,1000:10,500:5}; await fillCnt(deja); await p.screenshot({path:SS+'turno5-deja.png'}); await p.click('.vt-cnt [data-vc="ok"]'); await p.waitForTimeout(700);
- const s4=await p.evaluate(()=>{ const V=window.__vt.st(); return {open:V.open, deja:V.lastDeja&&V.lastDeja.GS, h:V.hist.length, sales:V.sales.length}; }); console.log('   cierre',JSON.stringify(s4));
- ok(!s4.open&&s4.h>=1&&s4.sales===0&&+s4.deja[500]===5,'turno cerrado, guardado en el historial; quedan los billetes elegidos para el próximo turno');
- const rc=await p.evaluate(()=>{ const o=[...document.querySelectorAll('.ico-ov')].pop(); const t=o?o.innerText:''; const h=window.__vt.st().hist.slice(-1)[0]; return {t:/Remesa de cierre/.test(t), g:h.movs.filter(m=>m.k==='rem').reduce((a,m)=>a+m.g,0)}; }); console.log('   remesa cierre',JSON.stringify(rc)); ok(rc.t&&rc.g>0,'lo que no queda para el próximo turno sale como REMESA DE CIERRE billete por billete (con comprobante)');
- await p.evaluate(()=>document.querySelectorAll('.ico-ov').forEach(o=>{ if(/Remesa/.test(o.innerText)) o.remove(); }));
+ // 3) CIERRE por teclado: ① remesa de cierre (los grandes) ② lo que queda para el próximo turno (el sencillo). Falta 1 de 100.000 y sobra 1 de 20.000 a propósito
+ const st=s2.st, R={}, D={}; Object.entries(st).forEach(([d,n])=>{ if(+d>=50000) R[d]=n; else D[d]=n; }); R[100000]=(+R[100000])-1; D[20000]=(+D[20000]||0)+1;
+ await p.click('#ventas [data-vt="cierre"]'); await p.waitForTimeout(500);
+ const t1=await p.evaluate(()=>document.querySelector('.vt-cnt').innerText); ok(/REMESA DE CIERRE/.test(t1)&&!/hay \d/.test(t1),'cierre ①: pide la remesa de cierre por teclado (sin mostrar lo que dice el sistema)');
+ await fillCnt(R); await p.screenshot({path:SS+'turno3-remesa.png'}); await p.click('.vt-cnt [data-vc="ok"]'); await p.waitForTimeout(500);
+ const t2=await p.evaluate(()=>document.querySelector('.vt-cnt').innerText); ok(/PRÓXIMO TURNO/.test(t2),'cierre ②: pide lo que queda para el próximo turno por teclado');
+ await fillCnt(D); await p.screenshot({path:SS+'turno4-deja.png'}); await p.click('.vt-cnt [data-vc="ok"]'); await p.waitForTimeout(600);
+ const dif=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText); console.log('   '+dif.split('\n').filter(l=>/100\.000|20\.000|Diferencias/.test(l)).join(' | '));
+ ok(/₲ 100\.000\t2\t1\t\t1\t⛔ faltante 1/.test(dif),'cuadre: el sistema dice 2 de 100.000, remesa 1 → FALTANTE 1 de 100.000');
+ ok(/₲ 20\.000\t2\t\t3\t3\t🟡 sobrante 1/.test(dif),'cuadre: el sistema dice 2 de 20.000, quedan 3 → SOBRANTE 1 de 20.000');
+ await p.screenshot({path:SS+'turno5-cuadre.png'}); await p.click('.vt-ov [data-ivok]'); await p.waitForTimeout(600);
+ const s4=await p.evaluate(()=>{ const V=window.__vt.st(), h=V.hist.slice(-1)[0]; return {open:V.open, deja:V.lastDeja&&V.lastDeja.GS, h:V.hist.length, sales:V.sales.length, rem:h.movs.filter(m=>m.k==='rem').reduce((a,m)=>a+m.g,0), difB:h.difB}; }); console.log('   cierre',JSON.stringify(s4));
+ ok(!s4.open&&s4.sales===0&&s4.rem===50000+100000&&+s4.deja[20000]===3&&s4.difB.GS[100000]===-1&&s4.difB.GS[20000]===1,'turno cerrado: remesa de cierre registrada, diferencias guardadas en el historial, el próximo turno queda con lo cargado');
  // 5) INICIO del próximo turno: ya trae cargado lo que se dejó
  await p.click('#ventas [data-vt="ini"]'); await p.waitForTimeout(500);
  const pre=await p.evaluate(()=>{ const o={}; document.querySelectorAll('.vt-cnt [data-vn^="GS:"]').forEach(i=>{ if(i.value) o[i.dataset.vn.slice(3)]=+i.value; }); return o; }); console.log('   pre',JSON.stringify(pre));
  await p.screenshot({path:SS+'turno6-proximo.png'});
- ok(pre[500]===5&&pre[10000]===3&&pre[1000]===10,'el próximo inicio de turno ya trae los billetes que se dejaron (el cajero confirma contando)');
+ ok(pre[20000]===3&&pre[500]===6&&pre[1000]===10,'el próximo inicio de turno ya trae los billetes que se dejaron (el cajero confirma contando)');
  await p.click('.vt-cnt [data-vc="ok"]'); await p.waitForTimeout(500); ok(await p.evaluate(()=>window.__vt.st().open),'el próximo turno queda abierto');
  ok(!errs.length,'sin errores '+errs.join(' | ').slice(0,300));
  console.log('fallas',fail); await b.close(); process.exit(fail?1:0); })();
