@@ -14,7 +14,7 @@ const IMG=process.env.IMG||'/tmp/claude-0/mob/comp.png';
  const cargar=async(q)=>{ await p.evaluate(q=>{ const V=window.__vt.st(), t=V.tabs[0]; V.cur=t.id; t.cat='sd'; t.cli=''; t.cid=''; t.lines=[{aid:'a1',n:'IBUPROFENO 400 MG',q:q,pvp:10000,uq:1,nodesc:true}]; window.__vt.open(); },q); await p.waitForTimeout(300); await p.click('#ventas [data-vt="pdnew"]'); await p.waitForTimeout(400); };
  const fillCli=async(n,tel)=>{ await p.fill('.vt-pd [data-pf="cli"]',n); await p.fill('.vt-pd [data-pf="tel"]',tel); };
  // 1) transferencia sin foto → no deja
- await cargar(2); ok(await p.evaluate(()=>/Transferencia/.test(document.querySelector('.vt-pd').innerText)&&/Paga al retirar/.test(document.querySelector('.vt-pd').innerText)),'pedido de la app: formas de pago transferencia / paga al retirar / efectivo autorizado');
+ await cargar(2); ok(await p.evaluate(()=>/Transferencia/.test(document.querySelector('.vt-pd').innerText)&&/Paga al retirar/.test(document.querySelector('.vt-pd').innerText)),'pedido de la app: formas de pago transferencia / QR / paga al retirar');
  await fillCli('María González','0981 222 333'); await p.click('.vt-pd [data-pd="ok"]'); await p.waitForTimeout(300);
  ok(/comprobante/.test(await toast()) && await p.evaluate(()=>window.__vped.all().length)===0,'transferencia sin foto del comprobante: no genera el pedido');
  // delivery: «paga al retirar» queda deshabilitado y pide dirección
@@ -47,22 +47,8 @@ const IMG=process.env.IMG||'/tmp/claude-0/mob/comp.png';
  await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(500); await p.fill('.vt-ov [data-rqn="10000"]','1'); await p.dispatchEvent('.vt-ov [data-rqn="10000"]','input'); await p.waitForTimeout(300); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(700); await clean();
  const P2=await p.evaluate(()=>{ const x=window.__vped.all()[1], V=window.__vt.st(), s=V.sales[V.sales.length-1]; return {st:x.st,tk:x.tk,ped:s.ped,app:s.vendApp,fp:s.pays[0].fp}; });
  ok(P2.st==='ent'&&P2.ped&&P2.app==='Ana Vendedora'&&P2.fp==='ef','cobrado en caja al retirar: el pedido queda entregado y la venta lleva quién vendió por app '+JSON.stringify(P2));
- // 4) efectivo: solo con autorización del que está en la lista
- await p.evaluate(()=>{ const V=window.__vt.st(); V.pr.efxAut=['Ramón Dueño']; });
- await cargar(3); await fillCli('Vecina Rosa',''); await p.click('.vt-pd [data-pe="man"]'); await p.click('.vt-pd [data-pp="efx"]'); await p.waitForTimeout(200); await p.click('.vt-pd [data-pd="ok"]'); await pin('Ana Vendedora','4321');
- ok(/no puede autorizar/.test(await toast()) && await p.evaluate(()=>window.__vped.all().length)===2,'efectivo: una vendedora no se lo autoriza sola');
- await p.click('.vt-pd [data-pd="ok"]'); await pin('Ramón Dueño','9999'); await p.waitForTimeout(400);
- const P3=await p.evaluate(()=>{ const x=window.__vped.all()[2], V=window.__vt.st(); return {st:x.st,aut:x.pag.aut,cx:(V.cxe.movs||[]).length,m:V.cxe.movs[0]&&V.cxe.movs[0].m}; });
- ok(P3.st==='pag'&&P3.aut==='Ramón Dueño'&&P3.cx===1&&P3.m===30000,'efectivo autorizado por Ramón: entra a la caja externa de este celular '+JSON.stringify(P3));
- await clean();
- // 5) cierre de la caja externa y rendición en administración
- await p.click('#ventas [data-vt="pdlist"]'); await p.waitForTimeout(400);
- const tx5=await p.evaluate(()=>document.querySelector('.vt-pd').innerText);  ok(/Caja externa de este celular:\s*₲ 30\.000/.test(tx5),'muestra la caja externa por rendir (₲ 30.000)');
- await p.click('.vt-pd [data-pa="cxc"]'); await p.waitForTimeout(400); await p.fill('.vt-cnt [data-vn="GS:20000"]','1'); await p.dispatchEvent('.vt-cnt [data-vn="GS:20000"]','change'); await p.fill('.vt-cnt [data-vn="GS:5000"]','1'); await p.dispatchEvent('.vt-cnt [data-vn="GS:5000"]','change'); await p.waitForTimeout(300); await p.click('.vt-cnt [data-vc="ok"]'); await p.waitForTimeout(500);
- const R=await p.evaluate(()=>{ const m=window.__memcGet(), r=m.vcxe[m.vcxe.length-1], V=window.__vt.st(); return {sis:r.sis,cont:r.cont,dif:r.dif,st:r.st,left:V.cxe.movs.length}; });
- ok(R.sis===30000&&R.cont===25000&&R.dif===-5000&&R.st==='pend'&&R.left===0,'cierre de caja externa: contó ₲ 25.000 de ₲ 30.000 → faltan ₲ 5.000, queda para rendir '+JSON.stringify(R));
- await p.click('.vt-pd [data-pa="cxok"]'); await pin('Ramón Dueño','9999');
- ok(await p.evaluate(()=>{ const m=window.__memcGet(); return m.vcxe[m.vcxe.length-1].st==='ok' && m.vcxe[m.vcxe.length-1].okBy==='Ramón Dueño'; }),'administración recibe la rendición con su PIN');
+ // 4) v1353: la app ya no cobra efectivo (sin vuelto): transferencia, QR o paga al retirar
+ await cargar(3); ok(await p.evaluate(()=>!document.querySelector('.vt-pd [data-pp="efx"]') && !!document.querySelector('.vt-pd [data-pp="qr"]')),'sin efectivo en la app; aparece 📱 QR'); await clean();
  ok(await p.evaluate(()=>window.__memcGet().__mt && window.__memcGet().__mt.vped>0),'los pedidos quedan en los datos que viajan por la nube');
  ok(!errs.length,'sin errores '+errs.join(' | ').slice(0,300));
  await b.close(); if(bad){ console.log('✘ t627 con fallas'); process.exit(1);} })();
