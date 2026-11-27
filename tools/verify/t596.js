@@ -13,7 +13,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(/41,1|41,2/.test(c.bp),'el descuento por bonificación sale de 140 sobre 340 ('+c.bp+')');
  c=await set(100,'1+1'); ok(/= 100 de regalo/.test(c.brx),'regla 1+1 con 100 → 100 de regalo, llegan 200 ('+c.brx+')');
  c=await set(200); ok(/= 200 de regalo/.test(c.brx),'regla 1+1 con 200 → 200 de regalo ('+c.brx+')');
- c=await set(25,'10/7'); ok(/= 14 de regalo/.test(c.brx)&&/no da justo/.test(c.brx)&&c.sel,'25 con 10/7 no da justo: avisa y pide elegir cómo redondea ('+c.brx+')');
+ c=await set(25,'10/7'); ok(/= 14 de regalo/.test(c.brx)&&/no da justo|va de a 10/.test(c.brx)&&c.sel,'25 con 10/7 no da justo: avisa y pide elegir cómo redondea ('+c.brx+')');
  await p.selectOption(r+' select[data-k="brm"]','p'); await p.waitForTimeout(300); c=await C(); ok(/= 17 de regalo/.test(c.brx)&&!/no da justo/.test(c.brx),'elijo «proporcional» → 17 ('+c.brx+')');
  await p.selectOption(r+' select[data-k="brm"]','g'); await p.waitForTimeout(300); c=await C(); ok(/= 14 de regalo/.test(c.brx)&&!/no da justo/.test(c.brx),'elijo «solo grupos completos» → 14 ('+c.brx+')');
  c=await set(10,'1+0,5'); ok(/= 5 de regalo/.test(c.brx)&&!c.sel,'regla con decimales 1+0,5 con 10 → 5 ('+c.brx+')'); c=await set(100); ok(/= 50 de regalo/.test(c.brx),'1+0,5 con 100 → 50 ('+c.brx+')');

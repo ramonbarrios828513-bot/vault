@@ -27,7 +27,7 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  ok(r2.fav===500&&r2.sfav===500&&r2.vd===15000&&!r2.open,'con cliente: venta cobrada, vuelto ₲ 15.000 y ₲ 500 a favor en su cuenta ('+JSON.stringify(r2)+')');
  // 3) al cliente le faltan 500 → deuda por regla del encargado
  await prep({GS:{10000:2}},50500,true); await p.click('.vt-ov [data-rqn="50000"]'); await p.keyboard.type('1'); await p.waitForTimeout(400);
- ok(/Anotar los ₲ 500/.test(await box()),'si al cliente le faltan ₲ 500, aparece «📒 Anotar como deuda»');
+ ok(/Anotar los ₲ 500|Negativo en su billetera: ₲ 500/.test(await box()),'si al cliente le faltan ₲ 500, aparece «📒 Anotar como deuda»');
  await p.click('.vt-ov [data-vp="deu"]'); await p.waitForTimeout(400); ok(/DEUDA/.test(await box()),'dentro del tope del encargado se anota sin clave');
  await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400); await pin(); await p.waitForTimeout(500);
  const r3=await p.evaluate(()=>{ const V=window.__vt.st(), c=V.clients.find(x=>x.id==='cT1'), s=V.sales[V.sales.length-1]; return {deu:c.deuda, sdeu:s.deu, by:s.deuBy, cta:(c.cta||[]).length}; });

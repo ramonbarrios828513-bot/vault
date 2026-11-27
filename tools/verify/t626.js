@@ -1,0 +1,25 @@
+// v1350 · 📱 caja en el celular: billetes primero, tocar el billete suma 1, Confirmar fijo abajo, sin teclado automático
+const setup=require('./rvlib.js'); let bad=0; const ok=(c,m)=>{ console.log((c?'✔ ':'✘ FALLA ')+m); if(!c) bad++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:412,height:860},ctx:{isMobile:true,hasTouch:true}});
+ await p.evaluate(()=>{ window.__vt.open(); const V=window.__vt.st(); V.open=false; V.stock={}; V.sales=[]; V.movs=[]; V.lastDeja=null; window.__vt.open(); }); await p.waitForTimeout(400);
+ await p.click('#ventas [data-vt="ini"]'); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>!!document.querySelector('.vt-cnt .vt-mfx') && getComputedStyle([...document.querySelectorAll('.vt-cnt .vt-cc')][1]).display==='none'),'inicio: reales y dólares escondidos detrás de «💱 Reales o dólares»');
+ for(let i=0;i<3;i++) await p.tap('.vt-cnt .vt-dr:has([data-vn="GS:20000"]) .vt-dn');
+ await p.tap('.vt-cnt .vt-dr:has([data-vn="GS:1000"]) .vt-dn');
+ ok(await p.evaluate(()=>document.querySelector('[data-vn="GS:20000"]').value==='3' && document.querySelector('[data-vn="GS:1000"]').value==='1'),'tocar el billete suma 1 (3 × 20.000, 1 × 1.000)');
+ ok(await p.evaluate(()=>document.activeElement.tagName!=='INPUT'),'no se abre el teclado solo');
+ ok(await p.evaluate(()=>getComputedStyle(document.getElementById('vxBack')).display==='none'),'el botón Volver flotante se esconde con la caja abierta');
+ await p.tap('.vt-cnt [data-vc="ok"]'); await p.waitForTimeout(600); await p.evaluate(()=>document.querySelectorAll('.ico-ov,.vt-aut,.ask-ov').forEach(o=>o.remove()));
+ ok(await p.evaluate(()=>{ const V=window.__vt.st(); return V.open && V.stock.GS[20000]===3 && V.stock.GS[1000]===1; }),'caja abierta con lo tocado');
+ await p.evaluate(()=>{ const V=window.__vt.st(), t=V.tabs[0]; V.cur=t.id; t.cat='sd'; t.fp='ef'; t.lines=[{aid:'m1',n:'X',q:1,pvp:15000,uq:1,nodesc:true}]; window.__vt.open(); }); await p.waitForTimeout(300);
+ await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(700);
+ const L=await p.evaluate(()=>{ const r=s=>{ const e=document.querySelector(s); return e?e.getBoundingClientRect():null; }; return {cli:r('.vt-ov .vt-cbar').top, bil:r('.vt-ov [data-rqn="20000"]').top, ok:r('.vt-ov .ico-ok').bottom, H:innerHeight, act:document.activeElement.tagName}; });
+ ok(L.bil < L.cli, 'cobro: los billetes van antes que los datos del cliente');
+ ok(L.bil < L.H && L.ok <= L.H+1, 'cobro: billetes y ✅ Confirmar a la vista sin bajar');
+ ok(L.act!=='INPUT','cobro: no salta el teclado');
+ await p.tap('.vt-ov .vt-cr:has([data-rqn="20000"]) > b'); await p.waitForTimeout(500);
+ const t=await p.evaluate(()=>document.querySelector('.vt-ov [data-live]').innerText);
+ ok(/Vuelto ₲ 5\.000/.test(t),'cobro: tocar ₲ 20.000 → vuelto ₲ 5.000 en la barra fija ('+t.replace(/\n/g,' ')+')');
+ await p.tap('.vt-ov [data-rqn="500"]'); await p.waitForTimeout(300); ok(await p.evaluate(()=>document.activeElement.dataset.rqn==='500'),'si toca el casillero, sí se puede escribir con el teclado');
+ ok(errs.length===0,'sin errores '+errs.join('|'));
+ await b.close(); if(bad){ console.log('✘ t626 con fallas'); process.exit(1);} })();

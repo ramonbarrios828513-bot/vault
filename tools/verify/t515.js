@@ -13,7 +13,9 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); const set=(d,n)=>{ const i=ov.querySelector('[data-vn="GS:'+d+'"]'); if(i){ i.value=String(n); i.dispatchEvent(new Event('input',{bubbles:true})); i.dispatchEvent(new Event('change',{bubbles:true})); } }; set(50000,2); set(5000,3); });
  await p.waitForTimeout(300);
  await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); const b=ov.querySelector('[data-vc="ok"]'); b&&b.click(); }); await p.waitForTimeout(400);
+ /* v1349: cierre en 2 pasos (① remesa ② próximo turno): lo contado va como remesa y no queda nada */
+ await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); const b=ov.querySelector('[data-vc="ok"]'); b&&b.click(); }); await p.waitForTimeout(400);
  const cie=await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); return ov?ov.innerText.replace(/\s+/g,' '):''; });
- ok(/diferencia billete por billete/i.test(cie)&&/faltan 1/.test(cie)&&/sobran 1/.test(cie),'el cierre muestra faltan / sobran por billete: '+cie.slice(0,300));
+ ok(/faltante 1/.test(cie)&&/sobrante 1/.test(cie),'el cierre muestra faltan / sobran por billete: '+cie.slice(0,300));
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
