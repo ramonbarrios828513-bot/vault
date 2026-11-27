@@ -13,7 +13,9 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(await p.evaluate(w=>document.querySelector(w+' [data-ngi$="|i:gq"]').innerText,w)==='15','la tarjeta GENERAL muestra lo que va al proveedor');
  ok(await p.evaluate(w=>!!document.querySelector(w+' .ng-scar[data-scr="1"]'),w),'◀ ▶ para recorrer las sucursales');
  const last=await p.evaluate(()=>{ const L=[...document.querySelectorAll('#articulos .ng-two [data-ngtab]')].filter(x=>!x.disabled&&!x.readOnly&&x.offsetParent!==null); const e=L[L.length-1]; e.focus(); return L.length; });
- await p.keyboard.press('Enter'); await p.waitForTimeout(300);
- ok(await p.evaluate(()=>document.activeElement && document.activeElement.dataset.ng==='save'),'Enter en el último campo no queda preso: pasa a «💾 Guardar»');
+ await p.keyboard.press('Enter'); await p.waitForTimeout(500);
+ ok(await p.evaluate(()=>{ const a=document.activeElement; return !!(a&&a.closest&&a.closest('#articulos .ng-band')); }),'v1346: Enter en el último campo NO sale del producto (vuelve a su primer cuadro)');
+ await p.evaluate(()=>{ const L=[...document.querySelectorAll('#articulos .ng-two [data-ngtab]')].filter(x=>!x.disabled&&!x.readOnly&&x.offsetParent!==null); L[L.length-1].focus(); }); await p.keyboard.down('Control'); await p.keyboard.press('Enter'); await p.keyboard.up('Control'); await p.waitForTimeout(600);
+ ok(await p.evaluate(()=>document.activeElement && document.activeElement.dataset.ng==='save'),'☑️ Confirmar (Ctrl+Enter) en el último producto pasa a «💾 Guardar»');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
