@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#0b1220">
+<title>Mi Billetera Nissifarma</title>
+<style>
+:root{--bg:#0b1220;--card:#111a2e;--line:#24324f;--tx:#e5edf9;--mut:#9fb0cc}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#1e3a8a 0,#0b1220 55%);min-height:100vh;color:var(--tx);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.wrap{max-width:560px;margin:0 auto;padding:18px 16px 60px}
+.brand{text-align:center;font:900 15px system-ui;letter-spacing:3px;color:#93c5fd;margin:4px 0 14px}
+.card{border-radius:22px;padding:22px 20px;margin:0 0 16px;border:2px solid rgba(255,255,255,.18);box-shadow:0 10px 0 rgba(0,0,0,.55),0 18px 30px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.25)}
+.card.g{background:linear-gradient(160deg,#16a34a,#065f46)}.card.r{background:linear-gradient(160deg,#dc2626,#7f1d1d)}.card.z{background:linear-gradient(160deg,#334155,#0f172a)}
+.card small{display:block;font:800 14px system-ui;opacity:.9}.card b.m{display:block;font:900 40px system-ui;margin:6px 0;text-shadow:0 3px 0 rgba(0,0,0,.35)}.card p{margin:4px 0 0;font-weight:700}
+h2{font-size:17px;margin:18px 0 8px}.mv{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:var(--card);border:1px solid var(--line);margin:6px 0}
+.mv span{color:var(--mut);font-size:13.5px}.mv b.p{color:#4ade80}.mv b.n{color:#f87171}
+.mut{color:var(--mut);font-size:14px;text-align:center}button{font:800 16px system-ui;border:0;border-radius:12px;padding:12px 16px;background:#1d4ed8;color:#fff;width:100%;margin-top:14px;box-shadow:0 4px 0 rgba(0,0,0,.45)}
+</style></head><body><div class="wrap" id="app"><div class="brand">NISSIFARMA</div><p class="mut">⏳ Abriendo tu billetera…</p></div>
+<script>
+(function () {
+  var Q = {}; location.hash.slice(1).split('&').forEach(function (kv) { var i = kv.indexOf('='); if (i > 0) Q[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1)); });
+  function E(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function F(n) { return Math.round(Math.abs(+n || 0)).toLocaleString('es-PY'); }
+  function ub64(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var r = atob(s), a = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) a[i] = r.charCodeAt(i); return a; }
+  async function dec(d) { if (typeof d === 'string') d = JSON.parse(d); var k = await crypto.subtle.importKey('raw', ub64(Q.e || ''), 'AES-GCM', false, ['decrypt']); var pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: ub64(d.iv) }, k, ub64(d.ct)); return JSON.parse(new TextDecoder().decode(pt)); }
+  var KN = { fav: 'Vuelto que dejaste a favor', usofav: 'Usaste tu saldo', deu: 'Quedó pendiente de pago', pago: 'Pagaste tu deuda' };
+  function show(h) { document.getElementById('app').innerHTML = '<div class="brand">NISSIFARMA</div>' + h; }
+  async function load() {
+    try {
+      if (!Q.s || !Q.k || !Q.e || !Q.b) throw new Error('El enlace está incompleto.');
+      var r = await fetch((Q.u || '') + '/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Space': Q.s, 'X-Key': Q.k, 'X-Vend': '1' }, body: JSON.stringify({ ops: [{ op: 'get', p: 'bil/' + Q.b + '/w' }] }) });
+      var j = await r.json(); if (j.err) throw new Error(j.err === 'forbidden' ? 'Este enlace ya no está habilitado. Pedí uno nuevo en la farmacia.' : 'No pude conectar. Probá de nuevo.');
+      var d = j.res && j.res[0]; if (!d) { show('<div class="card z"><small>Tu billetera</small><b class="m">Todavía sin movimientos</b><p>Se actualiza apenas la farmacia registra tu compra.</p></div><button onclick="location.reload()">🔄 Actualizar</button>'); return; }
+      var w = await dec(d), s = +w.saldo || 0;
+      var h = '<div class="card ' + (s > 0 ? 'g' : s < 0 ? 'r' : 'z') + '"><small>Hola' + (w.n ? ', ' + E(w.n) : '') + ' 👋 · Tu Billetera Nissifarma</small><b class="m">' + (s < 0 ? '− ' : '') + '₲ ' + F(s) + '</b><p>' + (s > 0 ? '✅ Saldo a tu favor: usalo como parte de pago en cualquier sucursal.' : s < 0 ? '⚠️ Saldo pendiente: se descuenta en tu próxima compra.' : 'Estás al día.') + '</p></div>';
+      var M = (w.movs || []).slice().reverse();
+      h += '<h2>Últimos movimientos</h2>' + (M.length ? M.map(function (m) { var pos = m.k === 'fav' || m.k === 'pago'; return '<div class="mv"><div>' + E(KN[m.k] || m.k) + '<br><span>' + new Date(m.t).toLocaleDateString('es-PY') + (m.tk ? ' · ticket N.º ' + E(m.tk) : '') + (m.suc ? ' · ' + E(m.suc) : '') + '</span></div><b class="' + (pos ? 'p' : 'n') + '">' + (pos ? '+ ' : '− ') + F(m.m) + '</b></div>'; }).join('') : '<p class="mut">Sin movimientos.</p>');
+      h += '<p class="mut" style="margin-top:14px">Actualizado: ' + new Date(w.t).toLocaleString('es-PY') + '</p><button onclick="location.reload()">🔄 Actualizar</button><p class="mut">Guardá este enlace o el QR de tu ticket: es tu acceso personal. No lo compartas.</p>';
+      show(h);
+    } catch (e) { show('<div class="card z"><small>Tu billetera</small><b class="m" style="font-size:22px">No se pudo abrir</b><p>' + E(e.message || e) + '</p></div><button onclick="location.reload()">🔄 Probar de nuevo</button>'); }
+  }
+  load();
+})();
+</script></body></html>

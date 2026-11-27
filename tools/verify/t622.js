@@ -1,0 +1,21 @@
+// v1349 · gráficos de Gestión de cheques: 3D vectorial (sin filtros pixelados), pocas barras no se agigantan, faltante marcado; semanas con faltan/sobra
+const setup=require('./rvlib.js');
+let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
+ await p.evaluate(()=>{ const T=window.__tes.st(), h=new Date(), H=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');
+   T.sal.push({id:'s1',cta:'Basa-G',f:H,m:32000000});
+   T.chq.push({id:'k1',prov:'P1',cta:'Basa-G',num:'1',monto:20000000,co:H,st:'pend',tipo:'Cheque diferido'},{id:'k2',prov:'P2',cta:'Basa-G',num:'2',monto:26923120,co:H,st:'pend',tipo:'Cheque diferido'});
+   window.__tes.ui.tab='tb'; window.__tes.open(); });
+ await p.waitForTimeout(1200);
+ const r=await p.evaluate(()=>{ const sec=[...document.querySelectorAll('#tesoreria .tes-sec')].find(s=>/A qué banco van/.test(s.textContent)); if(!sec) return null; const sv=sec.querySelector('svg'); sec.scrollIntoView(); if(!sv) return {txt:sec.textContent.slice(0,300)}; return {w:sv.getBoundingClientRect().width, poly:sv.querySelectorAll('polygon[data-3d]').length, txt:sv.textContent, filt:getComputedStyle(sv.querySelector('rect')).filter}; });
+ console.log(JSON.stringify(r));
+ ok(r && r.w<=600,'1 banco: el gráfico no ocupa toda la pantalla');
+ ok(r && r.poly>=4,'barras con caras 3D vectoriales');
+ ok(r && /faltan 14,9M/.test(r.txt) && /Cheques 46,9M/.test(r.txt) && /Saldo 32,0M/.test(r.txt),'rótulos claros + faltante marcado');
+ ok(r && (r.filt==='none'||!r.filt),'sin filtro rasterizado en las barras');
+ await p.screenshot({path:'/tmp/claude-0/-home-claude/35b1ce44-d35c-5596-924f-bd3f45a2f74d/scratchpad/t622a.png'});
+ await p.evaluate(()=>{ window.__tes.ui.tab='sem'; window.__tes.draw(); }); await p.waitForTimeout(900);
+ const s=await p.evaluate(()=>({f:document.querySelectorAll('#tesoreria .tes-wkf').length, h:(document.querySelector('#tesoreria .tes-wkb')||{}).offsetHeight}));
+ console.log(JSON.stringify(s)); ok(s.f>=8 && s.h>=24,'semanas: barras altas y columna faltan/sobra');
+ await p.screenshot({path:'/tmp/claude-0/-home-claude/35b1ce44-d35c-5596-924f-bd3f45a2f74d/scratchpad/t622b.png'});
+ console.log('errs',errs,'fallas',fail); await b.close(); process.exit(fail?1:0); })();

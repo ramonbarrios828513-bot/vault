@@ -6,7 +6,7 @@ const H = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 
 const J = (o, s) => new Response(JSON.stringify(o), { status: s || 200, headers: { ...H, 'Content-Type': 'application/json' } });
 const HEX = /^[a-f0-9]{64}$/;
 // v1205: versión mínima de la app que puede GUARDAR. Un aparato con versión vieja solo puede leer: así nunca pisa lo cargado en otro.
-const MIN_APP = 1348;
+const MIN_APP = 1349;
 const WRITE = { set: 1, upd: 1, del: 1, inc: 1, rset: 1 };
 async function sha(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join(''); }
 let ready = false;
@@ -37,7 +37,7 @@ export async function onRequestPost({ request, env }) {
     const ops = Array.isArray(body.ops) ? body.ops.slice(0, 300) : [];
     const app = parseInt(request.headers.get('X-App') || '0', 10) || 0;
     // v1222: el VENDEDOR (portal) solo lee y guarda dentro de SU negociación; la versión de la app no se le exige
-    if (vendor) { if (ops.some((o) => !o || !['get', 'rget', 'rset'].includes(o.op) || typeof o.p !== 'string' || !o.p.startsWith(vendor) || o.p.length > 200)) return J({ err: 'forbidden', why: 'vendor' }, 403); }
+    if (vendor) { /* v1349: 💳 la BILLETERA del cliente (bil/) solo LEE */ if (vendor.startsWith('bil/') && ops.some((o) => !o || !['get', 'rget'].includes(o.op))) return J({ err: 'forbidden', why: 'bil' }, 403); if (ops.some((o) => !o || !['get', 'rget', 'rset'].includes(o.op) || typeof o.p !== 'string' || !o.p.startsWith(vendor) || o.p.length > 200)) return J({ err: 'forbidden', why: 'vendor' }, 403); }
     else if (app < MIN_APP && ops.some((o) => o && WRITE[o.op])) return J({ err: 'old', min: MIN_APP }, 426);
     // v1213: un aparato de TRABAJO solo puede leer y guardar en la carpeta de cierres (wk/), nada más
     if (worker && ops.some((o) => !o || (o.op !== 'ver' && (!['get', 'set', 'rset', 'rget', 'rlist', 'rver', 'list'].includes(o.op) || typeof o.p !== 'string' || !o.p.startsWith('wk/'))))) return J({ err: 'forbidden', why: 'worker' }, 403);
@@ -61,7 +61,7 @@ export async function onRequestPost({ request, env }) {
         if (w) { res.push({ t: +w.t }); continue; } const r = await env.DB.prepare('SELECT d, t FROM docs WHERE sp = ? AND p = ?').bind(sp, o.p).first(); res.push(r ? { c: 1, t: +r.t, d: r.d } : { err: 'retry' }); }
       else if (o.op === 'rget') { const r = await env.DB.prepare('SELECT d, t FROM docs WHERE sp = ? AND p = ?').bind(sp, o.p).first(); res.push(r ? [r.d, +r.t] : null); } // v1205: un registro con su versión (para revisar antes de subir)
       else if (o.op === 'wkadd' && !worker && /^[a-f0-9]{64}$/.test(o.h || '')) { await env.DB.prepare('INSERT OR REPLACE INTO workers (sp, wk, t) VALUES (?, ?, ?)').bind(sp, await sha('w:' + o.h), Date.now()).run(); res.push(true); } // el dueño habilita una llave de trabajo
-      else if (o.op === 'vkadd' && !worker && !vendor && /^[a-f0-9]{64}$/.test(o.h || '') && /^neg\/[A-Za-z0-9-]{4,40}$/.test(o.pre || '')) { await env.DB.prepare('INSERT OR REPLACE INTO vendors (sp, vk, pre, t) VALUES (?, ?, ?, ?)').bind(sp, await sha('w:' + o.h), o.pre, Date.now()).run(); res.push(true); } // v1222: el dueño habilita el enlace de un vendedor para UNA negociación
+      else if (o.op === 'vkadd' && !worker && !vendor && /^[a-f0-9]{64}$/.test(o.h || '') && /^(neg|bil)\/[A-Za-z0-9-]{4,40}$/.test(o.pre || '')) { await env.DB.prepare('INSERT OR REPLACE INTO vendors (sp, vk, pre, t) VALUES (?, ?, ?, ?)').bind(sp, await sha('w:' + o.h), o.pre, Date.now()).run(); res.push(true); } // v1222: el dueño habilita el enlace de un vendedor para UNA negociación
       else if (o.op === 'vkdel' && !worker && !vendor && /^[a-f0-9]{64}$/.test(o.h || '')) { await env.DB.prepare('DELETE FROM vendors WHERE sp = ? AND vk = ?').bind(sp, await sha('w:' + o.h)).run(); res.push(true); }
       else if (o.op === 'wkdel' && !worker && /^[a-f0-9]{64}$/.test(o.h || '')) { await env.DB.prepare('DELETE FROM workers WHERE sp = ? AND wk = ?').bind(sp, await sha('w:' + o.h)).run(); res.push(true); }
       else if (o.op === 'rver') { const pre = o.p + '/'; const q = await env.DB.prepare('SELECT p, t FROM docs WHERE sp = ? AND p >= ? AND p < ?').bind(sp, pre, pre + '\uffff').all(); res.push((q.results || []).map((x) => [x.p, +x.t])); } // v1212: lista liviana (registro + versión) para el control de espejo
