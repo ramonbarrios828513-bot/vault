@@ -7,9 +7,9 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const rows=await p.evaluate(()=>document.querySelectorAll('.vt-ov [data-rqn]').length); ok(rows>=10,'hay un casillero por cada billete y moneda ('+rows+')');
  await p.keyboard.type('0'); await p.keyboard.press('Enter'); await p.keyboard.type('1'); await p.waitForTimeout(150);
  const live=await p.evaluate(()=>document.querySelector('.vt-ov [data-live]').textContent); ok(/50\.000/.test(live)&&/Falta/.test(live),'suma en vivo mientras se escribe: '+live);
- await p.keyboard.press('Enter'); await p.keyboard.type('1'); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
+ await p.keyboard.press('Enter'); await p.keyboard.type('1'); await p.keyboard.press('Enter'); await p.waitForTimeout(400); /* v1346: el 1.er Enter muestra el vuelto, el 2.º cobra */ await p.keyboard.press('Enter'); await p.waitForTimeout(400);
  const st=await p.evaluate(()=>{ const V=window.__vt.st(), s=V.sales[V.sales.length-1]; return { rec:s?JSON.stringify(s.pays[0].rec.GS):'', vu:s&&s.vuDado }; });
- ok(/"50000":1/.test(st.rec)&&/"20000":1/.test(st.rec)&&st.vu===17300,'1 de 50.000 + 1 de 20.000 = 70.000 → Enter ya cobra con vuelto ₲ 17.300 '+JSON.stringify(st));
+ ok(/"50000":1/.test(st.rec)&&/"20000":1/.test(st.rec)&&st.vu===17300,'1 de 50.000 + 1 de 20.000 = 70.000 → Enter muestra el vuelto y otro Enter cobra con vuelto ₲ 17.300 '+JSON.stringify(st));
  // ya confirmado con Enter
  const s=await p.evaluate(()=>window.__vt.st().stock.GS); ok(s[50000]===1&&s[20000]===6,'los billetes entraron al stock de la caja '+JSON.stringify(s));
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));

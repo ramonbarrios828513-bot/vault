@@ -7,8 +7,8 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  const out=await p.evaluate(()=>{ const o=document.querySelector('.vt-out'); return {tx:o.innerText.replace(/\s+/g,' '), v:[...o.querySelectorAll('[data-vo]')].filter(i=>i.value).map(i=>i.value+'×'+i.dataset.vo).join(' + ')}; });
  ok(/SALIDA · vuelto ₲ 5\.700/.test(out.tx)&&/justo/.test(out.tx),'al escribir el billete, al lado ya aparece la SALIDA con el vuelto: '+out.v);
  ok(await p.evaluate(()=>!!document.querySelector('.vt-in')&&!!document.querySelector('.vt-out')),'dos bloques: ⬇ ENTRADA y ⬆ SALIDA');
- await p.keyboard.press('Enter'); await p.waitForTimeout(500);
+ await p.keyboard.press('Enter'); await p.waitForTimeout(500); /* v1346: el 1.er Enter muestra el vuelto, el 2.º confirma */ await p.keyboard.press('Enter'); await p.waitForTimeout(500);
  const S=await p.evaluate(()=>{ const V=window.__vt.st(), s=V.sales[V.sales.length-1]; return {n:V.sales.length, vu:s&&s.vuDado, st:V.stock.GS[100000], ov:document.querySelectorAll('.ico-ov').length}; });
- ok(S.n===1&&S.vu===5700&&S.st===1&&!S.ov,'Enter confirma: venta cobrada, vuelto ₲ 5.700 y el billete entró a la caja '+JSON.stringify(S));
+ ok(S.n===1&&S.vu===5700&&S.st===1&&!S.ov,'Enter muestra el vuelto y otro Enter confirma: venta cobrada, vuelto ₲ 5.700 y el billete entró a la caja '+JSON.stringify(S));
  ok(!errs.length,'sin errores '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
