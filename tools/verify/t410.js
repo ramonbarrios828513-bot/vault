@@ -22,7 +22,7 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  const N=await p.evaluate(()=>{ const A=window.__ar.st(); const n=Object.values(A.negs).find(x=>!x.del&&x.lines.some(l=>l.id==='demo23')); const L=n.lines.find(l=>l.id==='demo23'); return JSON.stringify({q:L.q,qs:L.qs}); });
  ok(/"KM 7":"10"/.test(N),'se guarda lo de cada sucursal en la orden '+N);
  await p.click('#articulos [data-tr="open"]'); await p.waitForTimeout(400); const tr=await p.evaluate(()=>document.getElementById('trOv').innerText.replace(/\n/g,' ')); console.log('   '+tr.slice(0,260));
- ok(/orden de compra es una sola/i.test(tr) && /KM 7 · 1 producto/.test(tr) && /Franco/.test(tr) && /Conciliado/.test(tr),'«🚚 Transferencias por sucursal»: una por local con lo que pidió y el total conciliado');
+ ok(/orden de compra es una sola/i.test(tr) && /KM 8 · 1 producto/.test(tr) && !/KM 7 · \d+ producto/.test(tr) && /Franco/.test(tr) && /Conciliado/.test(tr),'«🚚 Transferencias por sucursal»: una por local con lo que se le transfiere (lo de la central KM 7 queda en la central) y el total conciliado');
  await p.keyboard.press('Escape'); await p.waitForTimeout(200); ok(await p.evaluate(()=>document.getElementById('trOv').hidden),'Esc la cierra');
  ok(!errs.length,'sin errores: '+errs.slice(0,3).join(' | '));
  await b.close(); process.exit(fail?1:0); })();
