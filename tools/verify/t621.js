@@ -36,6 +36,11 @@ const setup=require('./rvlib.js'); let fail=0; const ok=(c,m)=>{ console.log((c?
  await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400); await p.fill('.vt-aut [data-au="pin"]','4321'); await p.keyboard.press('Enter'); await p.waitForTimeout(800);
  const r3=await p.evaluate(()=>{ const V=window.__vt.st(), s=V.sales[V.sales.length-1]; return {n:V.sales.length, deu:s.deu, sin:s.sinCli}; });
  console.log('   '+JSON.stringify(r3));
+ // 5) completa con QR
+ await prep(false,51000); await p.click('.vt-ov [data-rqn="50000"]'); await p.keyboard.type('1'); await p.waitForTimeout(400); const n5=await n();
+ await p.click('.vt-ov [data-vp="cmpqr"]'); await p.waitForTimeout(500); const f5=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText.match(/Saldo que falta[^\n]*/)); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(900);
+ const r5=await p.evaluate(()=>{ const V=window.__vt.st(), s=V.sales[V.sales.length-1]; const o=[...document.querySelectorAll('.vt-ov')].pop(); return {n:V.sales.length, pays:s.pays.map(q=>q.fp+':'+q.m), deu:s.deu, ov:o?o.innerText.slice(0,300):''}; }); console.log('   '+JSON.stringify({f5,r5:{n:r5.n,pays:r5.pays}})); if(r5.n!==n5+1) console.log(r5.ov); ok(r5.n===n5+1&&r5.pays.some(x=>/^qr:1000$/.test(x))&&!r5.deu,'le faltan ₲ 1.000: completa con QR y se cobra todo (efectivo + QR)');
+ await p.evaluate(()=>document.querySelectorAll('.vt-ov,.vt-aut,.ask-ov,.ico-ov').forEach(x=>x.remove()));
  // 4) el vendedor pone lo que falta
  await prep(false,51000); await p.click('.vt-ov [data-rqn="50000"]'); await p.keyboard.type('1'); await p.waitForTimeout(400); const n4=await n();
  await p.click('.vt-ov [data-vp="vpo"]'); await p.waitForTimeout(400); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(800);
