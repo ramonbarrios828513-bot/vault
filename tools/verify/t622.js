@@ -2,7 +2,7 @@
 const setup=require('./rvlib.js');
 let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) fail++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1366,height:900}});
- await p.evaluate(()=>{ const T=window.__tes.st(), h=new Date(), H=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');
+ await p.evaluate(()=>{ const T=window.__tes.st(), h=new Date(); /* fin de semana: el cheque pasa al lunes; probar con un día hábil */ while(h.getDay()===0||h.getDay()===6) h.setDate(h.getDate()-1); const _x=0, H=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');
    T.sal.push({id:'s1',cta:'Basa-G',f:H,m:32000000});
    T.chq.push({id:'k1',prov:'P1',cta:'Basa-G',num:'1',monto:20000000,co:H,st:'pend',tipo:'Cheque diferido'},{id:'k2',prov:'P2',cta:'Basa-G',num:'2',monto:26923120,co:H,st:'pend',tipo:'Cheque diferido'});
    window.__tes.ui.tab='tb'; window.__tes.open(); });
