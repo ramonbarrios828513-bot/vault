@@ -1,4 +1,4 @@
-// v1356 · 🍬 vuelto con productos: sin ajustes/delivery, sugeridos ya marcados, botón que agrega la combinación justa a la venta (sale del stock y el cobro cuadra)
+// v1358 · sugeridos con stock, cantidad que cubre y validación con barra · base v1356 · 🍬 vuelto con productos: sin ajustes/delivery, sugeridos ya marcados, botón que agrega la combinación justa a la venta (sale del stock y el cobro cuadra)
 const setup=require('./rvlib.js'); let bad=0; const ok=(c,m)=>{ console.log((c?'✔ ':'✘ FALLA ')+m); if(!c) bad++; };
 (async()=>{ const {b,p,errs}=await setup({vp:{width:1200,height:900}});
  await p.evaluate(()=>{ window.__vt.open(); const V=window.__vt.st(); V.open=false; V.sales=[]; V.movs=[]; V.vendAct='Ana'; V.pr=V.pr||{}; delete V.pr.vuArts; delete V.pr.vuInit;
@@ -12,17 +12,21 @@ const setup=require('./rvlib.js'); let bad=0; const ok=(c,m)=>{ console.log((c?'
  await p.fill('.vt-ov [data-rqn="20000"]','1'); await p.dispatchEvent('.vt-ov [data-rqn="20000"]','input'); await p.waitForTimeout(800);
  const V0=await p.evaluate(()=>window.__vt.st().pr.vuArts||[]);
  ok(V0.includes('c1')&&V0.includes('c2')&&V0.includes('c3')&&!V0.includes('a1')&&!V0.includes('a2'),'sugeridos ya marcados, sin ajustes ni delivery '+JSON.stringify(V0));
- const tx=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText);
- ok(/Dar por el vuelto/.test(tx)&&/cierra justo/.test(tx),'propone la combinación que cierra justo los ₲ 850');
- await p.click('.vt-ov [data-vp="dulc"]'); await p.waitForTimeout(800);
- const L=await p.evaluate(()=>{ const V=window.__vt.st(); return V.tabs.find(t=>t.id===V.cur).lines.map(l=>l.aid+':'+l.q); });
- ok(L.join(',')==='m1:1','NO se suman al ticket del cliente '+L.join(','));
- const tx2=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText);
- ok(/El vuelto cierra con producto/.test(tx2)&&/Procesar \+ 🖨️ imprimir el vale/.test(tx2),'cierra con producto y ofrece procesar con o sin vale');
- await p.evaluate(()=>{ window.__noAutoTk=1; }); await p.click('.vt-ov [data-vp="vtok"][data-pr="0"]'); await p.waitForTimeout(900); await p.evaluate(()=>document.querySelectorAll('.ask-ov [data-ak="yes"]').forEach(b=>b.click())); await p.waitForTimeout(600);
- const S=await p.evaluate(()=>{ const V=window.__vt.st(), m=V.sales[V.sales.length-2], v=V.sales[V.sales.length-1]; return m&&v&&{mt:m.total,mn:m.lines.length,mef:m.pays[0].m,mvt:m.vtS,vto:v.vto,vt:v.total,vn:v.lines.map(l=>l.aid+':'+l.q).join(','),vef:v.pays[0].m,ref:v.ref===m.num,fav:m.fav||0,st:[window.__vt.stk('c1'),window.__vt.stk('c2'),window.__vt.stk('c3')]}; });
- ok(S&&S.mt===18150&&S.mn===1&&S.mef===18150&&S.mvt===850&&S.fav===0,'ticket del cliente igual (₲ 18.150), sin saldo a favor '+JSON.stringify(S));
- ok(S&&S.vto===1&&S.vt===850&&S.vef===850&&S.ref,'vale aparte de ₲ 850 ligado al ticket');
- ok(S&&(S.st[0]+S.st[1]+S.st[2])<18,'salen del stock '+JSON.stringify(S&&S.st));
+ const T=()=>p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText);
+ let tx=await T();
+ ok(/Falta ₲ 850 de vuelto/.test(tx)&&/Sugeridos con stock/.test(tx)&&/CARAMELO HORTELA MENTA/.test(tx)&&!/AJUSTE|DELIVERY/.test(tx),'muestra lo que falta y sugiere productos con stock (sin ajustes ni delivery)');
+ ok(/₲ 250 × 3 = ₲ 750/.test(tx),'sugiere la cantidad que más cubre (3 caramelos = ₲ 750)');
+ await p.evaluate(()=>{ window.__vt.st().stk.c2=0; }); await p.click('.vt-ov [data-vp="vts"][data-aid="c1"]'); await p.waitForTimeout(600); tx=await T();
+ ok(/pasá la barra/.test(tx)&&/Falta ₲ 100 de vuelto/.test(tx)&&!/MOÑO/.test(tx.split('Vuelto en producto')[0]),'agrega 3, pide validar con barra; el moño sin stock no se sugiere');
+ await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400); const nS=await p.evaluate(()=>window.__vt.st().sales.length); ok(nS===0,'sin validar no deja procesar');
+ await p.click('.vt-ov [data-vp="vtv"]'); await p.waitForTimeout(400); await p.click('.vt-ov [data-vp="vts"][data-aid="c3"]'); await p.waitForTimeout(500); await p.click('.vt-ov [data-vp="vtv"]'); await p.waitForTimeout(500); tx=await T();
+ ok(/Con eso ya cubre: podés procesar la venta/.test(tx)&&/Procesar \+ 🖨️ imprimir el vale/.test(tx),'cuando cubre avisa: podés procesar');
+ await p.fill('.vt-ov [data-vtqn="0"]','2'); await p.dispatchEvent('.vt-ov [data-vtqn="0"]','change'); await p.waitForTimeout(500); tx=await T(); ok(/Falta ₲ 250 de vuelto/.test(tx),'la cantidad se cambia en el campo y recalcula');
+ await p.fill('.vt-ov [data-vtqn="0"]','3'); await p.dispatchEvent('.vt-ov [data-vtqn="0"]','change'); await p.waitForTimeout(500);
+ const L=await p.evaluate(()=>{ const V=window.__vt.st(); return V.tabs.find(t=>t.id===V.cur).lines.map(l=>l.aid+':'+l.q); }); ok(L.join(',')==='m1:1','NO se suman al ticket del cliente '+L.join(','));
+ await p.click('.vt-ov [data-vp="vtok"][data-pr="0"]'); await p.waitForTimeout(900); await p.evaluate(()=>document.querySelectorAll('.ask-ov [data-ak="yes"]').forEach(b=>b.click())); await p.waitForTimeout(600);
+ const S=await p.evaluate(()=>{ const V=window.__vt.st(), m=V.sales[V.sales.length-2], v=V.sales[V.sales.length-1]; return m&&v&&{mt:m.total,mef:m.pays[0].m,mvt:m.vtS,vto:v.vto,vt:v.total,vn:v.lines.map(l=>l.aid+':'+l.q+':'+l.val).join(','),fav:m.fav||0,st:[window.__vt.stk('c1'),window.__vt.stk('c3')]}; });
+ ok(S&&S.mt===18150&&S.mef===18150&&S.mvt===850&&S.fav===0&&S.vto===1&&S.vt===850,'venta cobrada y vale aparte de ₲ 850 '+JSON.stringify(S));
+ ok(S&&S.st[0]===7&&S.st[1]===4,'salen del stock 3 caramelos y 1 chicle');
  ok(!errs.length,'sin errores '+errs.join(' | ').slice(0,300));
  await b.close(); if(bad){ console.log('✘ t631 con fallas'); process.exit(1);} })();

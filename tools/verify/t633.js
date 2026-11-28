@@ -10,13 +10,15 @@ const setup=require('./rvlib.js'); let bad=0; const ok=(c,m)=>{ console.log((c?'
  await p.evaluate(()=>{ const V=window.__vt.st(), t=V.tabs[0]; V.cur=t.id; t.cat='sd'; t.fp='ef'; t.lines=[{aid:'m1',n:'IBUPROFENO 400',q:1,pvp:18150,uq:1,nodesc:true,val:true}]; window.__vt.open(); });
  await p.waitForTimeout(300); await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(600);
  await p.fill('.vt-ov [data-rqn="20000"]','1'); await p.dispatchEvent('.vt-ov [data-rqn="20000"]','input'); await p.waitForTimeout(800);
+ const t0=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText); ok(/7790001112223/.test(t0)&&!!(await p.$('.vt-ov [data-vp="vtcp"][data-bc="7790001112223"]')),'muestra la barra del sugerido para copiar');
  await p.fill('.vt-ov [data-vtq]','7790001112223'); await p.press('.vt-ov [data-vtq]','Enter'); await p.waitForTimeout(700);
  const tx=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText);
  ok(/Vuelto en producto/.test(tx)&&/CARAMELO HORTELA/.test(tx)&&/Falta ₲ 600 de vuelto/.test(tx),'con la barra entra el caramelo y queda faltando ₲ 600 '+(tx.match(/Falta ₲ [\d.]+ de vuelto/)||[''])[0]);
  await p.fill('.vt-ov [data-vtq]','moño'); await p.press('.vt-ov [data-vtq]','Enter'); await p.waitForTimeout(500);
  await p.fill('.vt-ov [data-vtq]','beldent'); await p.press('.vt-ov [data-vtq]','Enter'); await p.waitForTimeout(500);
+ for(let k=0;k<3&&(await p.$('.vt-ov [data-vp="vtv"]'));k++){ await p.click('.vt-ov [data-vp="vtv"]'); await p.waitForTimeout(400); }
  const tx2=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText);
- ok(/El vuelto cierra con producto/.test(tx2),'por nombre también: cierra justo');
+ ok(/Con eso ya cubre/.test(tx2),'por nombre también: cierra justo');
  await p.evaluate(()=>{ window.__noAutoTk=0; window.__pw=[]; window.open=function(){ const d={h:''}; window.__pw.push(d); return {document:{open(){},write(x){d.h+=x;},close(){}},focus(){},print(){}}; }; });
  await p.click('.vt-ov [data-vp="vtok"][data-pr="1"]'); await p.waitForTimeout(900); await p.evaluate(()=>document.querySelectorAll('.ask-ov [data-ak="yes"]').forEach(b=>b.click())); await p.waitForTimeout(900);
  const W=await p.evaluate(()=>window.__pw.map(d=>d.h));

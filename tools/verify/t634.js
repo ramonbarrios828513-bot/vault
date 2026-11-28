@@ -1,0 +1,26 @@
+// v1358 · al cliente le falta (ej. ₲ 150): QR/tarjeta, perdón Nissifarma hasta el tope, descuento con motivo, a cargo del vendedor; deuda solo cliente de siempre
+const setup=require('./rvlib.js'); let bad=0; const ok=(c,m)=>{ console.log((c?'✔ ':'✘ FALLA ')+m); if(!c) bad++; };
+(async()=>{ const {b,p,errs}=await setup({vp:{width:1200,height:900}});
+ await p.evaluate(()=>{ window.__vt.open(); const V=window.__vt.st(); V.open=false; V.sales=[]; V.movs=[]; V.vendAct='Ana'; V.pr=V.pr||{}; delete V.pr.vuArts; delete V.pr.vuInit;
+   Object.assign(V.arts,{ m1:{id:'m1',n:'IBUPROFENO 400',pvp:18150,u:1}, a1:{id:'a1',n:'AJUSTE GRAV.5%',pvp:50,u:1}, a2:{id:'a2',n:'DELIVERY SIN COSTO',pvp:50,u:1}, c1:{id:'c1',n:'CARAMELO HORTELA MENTA',pvp:250,u:1}, c2:{id:'c2',n:'MOÑO PARA REGALO',pvp:500,u:1}, c3:{id:'c3',n:'CHICLE BELDENT',pvp:100,u:1} });
+   V.stk.m1=10; V.stk.a1=99; V.stk.a2=99; V.stk.c1=10; V.stk.c2=3; V.stk.c3=5; V.sold={}; window.__vt.open(); });
+ await p.waitForTimeout(300);
+ await p.click('#ventas [data-vt="ini"]'); await p.waitForTimeout(300); await p.fill('.vt-cnt [data-vn="GS:1000"]','10'); await p.dispatchEvent('.vt-cnt [data-vn="GS:1000"]','change'); await p.waitForTimeout(200); await p.click('.vt-cnt [data-vc="ok"]'); await p.waitForTimeout(500);
+ await p.evaluate(()=>document.querySelectorAll('.ico-ov,.vt-aut,.ask-ov').forEach(o=>o.remove()));
+ await p.evaluate(()=>{ const V=window.__vt.st(), t=V.tabs[0]; V.cur=t.id; t.cat='sd'; t.fp='ef'; t.lines=[{aid:'m1',n:'IBUPROFENO 400',q:1,pvp:18150,uq:1,nodesc:true,val:true}]; window.__vt.open(); });
+ await p.waitForTimeout(300); await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(600);
+ const T=()=>p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText);
+ await p.fill('.vt-ov [data-rqn="10000"]','1'); await p.dispatchEvent('.vt-ov [data-rqn="10000"]','input'); await p.fill('.vt-ov [data-rqn="2000"]','4'); await p.dispatchEvent('.vt-ov [data-rqn="2000"]','input'); await p.waitForTimeout(500);
+ await p.evaluate(()=>{ const ov=[...document.querySelectorAll('.vt-ov')].pop(); ov.querySelector('[data-vp="vauto"]')&&0; }); await p.click('.vt-ov [data-vp="cliscr"]').catch(()=>{}); await p.waitForTimeout(300); await p.evaluate(()=>document.querySelectorAll('.cs-ov,.ask-ov').forEach(o=>o.remove()));
+ let tx=await T(); console.log('   '+(tx.match(/Al cliente le faltan[^\n]*/)||[''])[0]);
+ ok(/Al cliente le faltan ₲ 150/.test(tx)&&/con QR \(lo más rápido\)/.test(tx)&&/con tarjeta/.test(tx)&&/Perdón Nissifarma/.test(tx)&&/Descuento con motivo/.test(tx)&&/A cargo del vendedor/.test(tx),'faltan ₲ 150: QR, tarjeta, perdón, descuento, a cargo del vendedor');
+ ok(!/Queda debiendo/.test(tx)&&/no se deja deuda/.test(tx),'cliente sin identificar: no ofrece deuda');
+ await p.click('.vt-ov [data-vp="perd"]'); await p.waitForTimeout(500); tx=await T(); ok(/Perdón Nissifarma: ₲ 150/.test(tx)&&!/Al cliente le faltan/.test(tx),'perdón Nissifarma cubre los ₲ 150');
+ await p.click('.vt-ov [data-vp="perdx"]'); await p.waitForTimeout(400);
+ await p.evaluate(()=>{ window.__vtAut=(w,pre,done)=>done('Ana Vendedora'); window.__askBox0=window.__askBox; });
+ await p.click('.vt-ov [data-vp="vcr"]'); await p.waitForTimeout(500); tx=await T(); ok(/A cargo de Ana Vendedora \(a su crédito\): ₲ 150/.test(tx),'a cargo del vendedor con su PIN');
+ await p.evaluate(()=>{ window.__noAutoTk=1; }); await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(900); await p.evaluate(()=>document.querySelectorAll('.ask-ov [data-ak="yes"]').forEach(b=>b.click())); await p.waitForTimeout(600);
+ const S=await p.evaluate(()=>{ const V=window.__vt.st(), s=V.sales[V.sales.length-1]; return s&&{t:s.total,vcr:s.vcr,by:s.vcrBy,ef:s.pays[0].m,car:(V.vcar||[]).slice(-1)[0]}; }); console.log('   '+JSON.stringify(S));
+ ok(S&&S.t===18150&&S.vcr===150&&/Ana/.test(S.by)&&S.ef===18000&&S.car&&S.car.m===150,'venta procesada: ₲ 18.000 en efectivo + ₲ 150 a cargo de Ana, anotado');
+ ok(!errs.length,'sin errores '+errs.join(' | ').slice(0,300));
+ await b.close(); if(bad){ console.log('✘ t634 con fallas'); process.exit(1);} })();
