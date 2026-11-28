@@ -16,6 +16,7 @@ const setup=require('./rvlib.js'); let bad=0; const ok=(c,m)=>{ console.log((c?'
  let tx=await T();
  ok(/Falta ₲ 850 de vuelto/.test(tx)&&/Sugeridos con stock/.test(tx)&&/CARAMELO HORTELA MENTA/.test(tx)&&!/AJUSTE|DELIVERY/.test(tx),'muestra lo que falta y sugiere productos con stock (sin ajustes ni delivery)');
  ok(/₲ 250 × 3 = ₲ 750/.test(tx),'sugiere la cantidad que más cubre (3 caramelos = ₲ 750)');
+ await p.click('.vt-ov [data-vp="vtall"]'); await p.waitForTimeout(400); const lst=await p.evaluate(()=>[...document.querySelectorAll('.vt-ov')].pop().innerText); ok(/Productos para el vuelto · hasta ₲ 850 · solo con stock/.test(lst)&&/CARAMELO HORTELA MENTA/.test(lst)&&/Usar 3/.test(lst)&&!/AJUSTE|DELIVERY/.test(lst),'al tocar «Falta vuelto» se abren los productos con stock'); await p.click('[data-v9x]'); await p.waitForTimeout(200);
  await p.evaluate(()=>{ window.__vt.st().stk.c2=0; }); await p.click('.vt-ov [data-vp="vts"][data-aid="c1"]'); await p.waitForTimeout(600); tx=await T();
  ok(/pasá la barra/.test(tx)&&/Falta ₲ 100 de vuelto/.test(tx)&&!/MOÑO/.test(tx.split('Vuelto en producto')[0]),'agrega 3, pide validar con barra; el moño sin stock no se sugiere');
  await p.click('.vt-ov [data-vp="ok"]'); await p.waitForTimeout(400); const nS=await p.evaluate(()=>window.__vt.st().sales.length); ok(nS===0,'sin validar no deja procesar');
