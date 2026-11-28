@@ -1,0 +1,20 @@
+// v1354 · 🔎 ¿Tenés…?: consulta rápida en el celular — busca, muestra precio y en qué sucursal hay, agrega a la venta, responde por WhatsApp y arma el pedido
+const setup=require('./rvlib.js'); let bad=0; const ok=(c,m)=>{ console.log((c?'✔ ':'✘ FALLA ')+m); if(!c) bad++; };
+(async()=>{ const {b,p,errs}=await setup({});
+ await p.evaluate(()=>{ window.__vt.open(); const V=window.__vt.st(); V.vendAct='Ramón'; V.obj=V.obj||{}; V.obj.suc='KM 7 Central'; V.arts.a1={id:'a1',n:'IBUPROFENO 400 MG CJ X 10',pvp:10000,u:1}; V.arts.a2={id:'a2',n:'AMOXICILINA 500',pvp:20000,u:1}; V.stk.a1=0; V.stk.a2=3; V.sold={}; V.sucS=V.sucS||{}; V.sucS['Franco']={a1:{s:7}}; V.tabs.forEach(t=>{t.lines=[];}); window.__vt.open(); });
+ await p.waitForTimeout(300);
+ ok(await p.evaluate(()=>!!document.querySelector('#ventas [data-vt="pdq"]')),'botón 🔎 ¿Tenés…? en la caja');
+ await p.click('#ventas [data-vt="pdq"]'); await p.waitForTimeout(300);
+ await p.fill('.vt-pd [data-cq]','ibupro'); await p.waitForTimeout(300);
+ let tx=await p.evaluate(()=>document.querySelector('.vt-pd').innerText);
+ ok(/IBUPROFENO/.test(tx)&&/Franco: 7/.test(tx)&&/₲ 10\.000/.test(tx),'busca por nombre: precio y en qué sucursal hay');
+ await p.click('.vt-pd [data-cadd="a1"]'); await p.waitForTimeout(200);
+ await p.fill('.vt-pd [data-cq]','amoxi'); await p.waitForTimeout(200); await p.click('.vt-pd [data-cadd="a2"]'); await p.waitForTimeout(200);
+ tx=await p.evaluate(()=>document.querySelector('.vt-pd').innerText);
+ ok(/2 producto\(s\) · ₲ 30\.000/.test(tx),'agrega a la venta aunque acá no haya stock: 2 productos ₲ 30.000');
+ const u=await p.evaluate(()=>{ let x=''; window.open=(a)=>{x=a;}; document.querySelector('.vt-pd [data-cwa]').click(); return decodeURIComponent(x); });
+ ok(/IBUPROFENO[^\n]*hay en Franco/.test(u)&&/Total ₲ 30\.000/.test(u),'responde por WhatsApp con precio y dónde hay');
+ await p.click('.vt-pd [data-cped]'); await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>/Pedido de la app/.test(document.querySelector('.vt-pd').innerText)),'«Hacer el pedido» abre el pedido con lo elegido');
+ ok(!errs.length,'sin errores '+errs.join(' | ').slice(0,300));
+ await b.close(); if(bad){ console.log('✘ t629 con fallas'); process.exit(1);} })();
