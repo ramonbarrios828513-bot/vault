@@ -31,7 +31,7 @@ const IMG=process.env.IMG||'/tmp/claude-0/mob/comp.png';
  const pixT=await p.evaluate(()=>document.querySelector('.vt-pd .vt-qrz').innerText);
  ok(/R\$ 17,86/.test(pixT),'PIX: ₲ 25.000 a ₲ 1.400 → R$ 17,86 '+pixT.slice(0,80));
  const qrOk=await p.evaluate(()=>!!document.querySelector('.vt-pd [data-qrd] canvas, .vt-pd [data-qrd] img'));
- ok(qrOk || /sin conexión para dibujar/.test(pixT),'PIX: dibuja el QR (o avisa si no hay internet para dibujarlo)');
+ ok(qrOk,'PIX: dibuja el QR aun sin internet');
  await p.setInputFiles('.vt-pd [data-pfoto]',IMG); await p.waitForTimeout(900);
  await p.click('.vt-pd [data-pd="ok"]'); await p.waitForTimeout(500);
  const P1=await p.evaluate(()=>{ const x=window.__vped.all().slice(-1)[0]; return {suc:x.suc,vsuc:x.vsuc,otra:x.otra,st:x.st,tp:x.pag.tp,qr:x.pag.qr}; });
