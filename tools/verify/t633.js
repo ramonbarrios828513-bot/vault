@@ -21,9 +21,9 @@ const setup=require('./rvlib.js'); let bad=0; const ok=(c,m)=>{ console.log((c?'
  await p.click('.vt-ov [data-vp="vtok"][data-pr="1"]'); await p.waitForTimeout(900); await p.evaluate(()=>document.querySelectorAll('.ask-ov [data-ak="yes"]').forEach(b=>b.click())); await p.waitForTimeout(900);
  const W=await p.evaluate(()=>window.__pw.map(d=>d.h));
  const h=W.join('');
- ok(W.length===1&&/VALE · VUELTO EN PRODUCTO/.test(h)&&/page-break-before/.test(h),'imprime el ticket y el vale en hoja aparte');
+ ok(W.length===1&&/VALE UTILIZADO PARA VUELTO/.test(h)&&/page-break-before/.test(h)&&/Usado en el ticket del cliente N.º \d+/.test(h)&&/SOLO VÁLIDO PARA VUELTO<br>NO VÁLIDO PARA COMPRAS/.test(h)&&/Cliente: <b>/.test(h),'imprime el ticket y el vale en hoja aparte');
  const cli=h.split('page-break-before')[0];
- ok(!/CARAMELO/.test(cli)&&/Vuelto en producto \(vale aparte\)/.test(cli)&&/Efectivo recibido<\/td><td class="n">20\.000/.test(cli),'el ticket del cliente no lleva el caramelo, muestra el vale y el efectivo recibido');
+ ok(!/CARAMELO/.test(cli)&&/Vuelto en producto \(vale N.º \d+\)/.test(cli)&&/Efectivo recibido<\/td><td class="n">20\.000/.test(cli),'el ticket del cliente no lleva el caramelo, muestra el vale y el efectivo recibido');
  const st=await p.evaluate(()=>{ window.__vt.open(); return 1; }); await p.waitForTimeout(300);
  await p.evaluate(()=>{ document.querySelectorAll('.ico-ov').forEach(o=>o.remove()); const V=window.__vt.st(); V.tabs[0].lines=[{aid:'m1',n:'IBUPROFENO 400',q:1,pvp:18150,uq:1,nodesc:true,val:true}]; V.cur=V.tabs[0].id; window.__vt.open(); });
  await p.waitForTimeout(300); await p.click('#ventas [data-vt="cobrar"]'); await p.waitForTimeout(600);
