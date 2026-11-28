@@ -35,6 +35,6 @@ let fail=0; const ok=(c,m)=>{ console.log((c?'✔':'✘ FALLA')+' '+m); if(!c) f
  ok(/No tenemos cambio para ₲ 850/.test(pt)&&/CARAMELO MENTA/.test(pt)&&!/CHICLE/.test(pt)&&/Cargar ₲ 850 a mi Billetera Nissifarma/.test(pt),'la pantalla del cliente muestra los productos elegidos de hasta ₲ 850 y la opción billetera');
  await pop.screenshot({path:'/tmp/claude-0/-home-claude/35b1ce44-d35c-5596-924f-bd3f45a2f74d/scratchpad/pantalla-cliente.png'});
  await pop.click('[data-id="dul1"]'); await p.waitForTimeout(900);
- const a4=await p.evaluate(()=>{ const V=window.__vt.st(), t=V.tabs.find(x=>x.id===V.cur); return t.lines.some(l=>l.aid==='dul1'); }); ok(a4,'el cliente toca el caramelo en su pantalla → se agrega a la venta en la caja');
+ const a4=await p.evaluate(()=>{ const o=[...document.querySelectorAll('.vt-ov')].pop(); return /Vuelto en producto/.test(o.textContent) && /CARAMELO MENTA/.test(o.textContent); }); ok(a4,'el cliente toca el caramelo en su pantalla → queda como vuelto en producto en la caja');
  ok(!errs.length,'sin errores '+errs.join(' | ').slice(0,300));
  console.log('fallas',fail); await b.close(); process.exit(fail?1:0); })();
